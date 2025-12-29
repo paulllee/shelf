@@ -1,0 +1,20 @@
+# uv generated
+__pycache__/
+*.py[oc]
+build/
+dist/
+wheels/
+*.egg-info
+.venv
+
+# env details
+uv.lock
+
+# frontend stuff
+node_modules/
+static/
+package-lock.json
+
+# misc
+contents/
+GEMINI.md
