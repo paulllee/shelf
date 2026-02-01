@@ -16,7 +16,7 @@
       id="media-form"
       {% if item %}hx-put="/media/{{ item.id }}"{% else %}hx-post="/media"{% endif %}
       hx-target="#media-content"
-      hx-on::after-request="if(event.detail.successful) document.getElementById('modal-container').innerHTML = ''"
+      hx-on::after-request="if(event.detail.successful && event.detail.elt === this) document.getElementById('modal-container').innerHTML = ''"
     >
       <input type="hidden" name="viewing_status" value="{{ viewing_status if viewing_status else 'queued' }}" />
       <div class="form-control mb-4">
@@ -121,6 +121,6 @@
   </div>
   <div
     class="modal-backdrop"
-    onclick="document.getElementById('modal-container').innerHTML = ''"
+    onclick="if (event.target === this) document.getElementById('modal-container').innerHTML = ''"
   ></div>
 </div>
