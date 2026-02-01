@@ -1,4 +1,3 @@
-<!-- prettier-ignore -->
 {% if media_items %}
 <div class="flex flex-col gap-2 sm:flex-row sm:gap-4 mb-4">
   <div class="form-control">
@@ -46,7 +45,10 @@
       {% endif %}
     </div>
     <div class="text-sm text-base-content/60 mt-1">
-      {% if item.type_str != "undefined" %}{{ item.type_str }}{% endif %}{% if item.type_str != "undefined" and item.country_str != "undefined" %} · {% endif %}{% if item.country_str != "undefined" %}{{ item.country_str }}{% endif %}
+      {% if item.type_str != "undefined" %}{{ item.type_str }}{% endif %}{% if
+      item.type_str != "undefined" and item.country_str != "undefined" %} · {%
+      endif %}{% if item.country_str != "undefined" %}{{ item.country_str }}{%
+      endif %}
     </div>
   </div>
   {% endfor %}
