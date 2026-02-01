@@ -1,2 +1,5 @@
 # path to media markdown files
 media_dir = "./contents/media"
+
+# path to workout markdown files
+workout_dir = "./contents/workout"

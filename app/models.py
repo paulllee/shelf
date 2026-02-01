@@ -1,9 +1,13 @@
 from dataclasses import dataclass
+from datetime import date, time
 from enum import IntEnum
 from typing import Optional
 
 from pydantic import BaseModel
 from slugify import slugify
+
+
+# media
 
 
 class MediaCountry(IntEnum):
@@ -88,3 +92,64 @@ class MediaModel(BaseModel):
     @property
     def id(self) -> str:
         return slugify(self.name).lower()
+
+
+# workout
+
+
+@dataclass
+class WorkoutSet:
+    reps: int
+    weight: float | None = None
+
+
+@dataclass
+class Exercise:
+    name: str
+    sets: list[WorkoutSet]
+
+
+@dataclass
+class ExerciseGroup:
+    name: str
+    rest_seconds: int
+    exercises: list[Exercise]
+
+
+@dataclass
+class Workout:
+    date: date
+    time: time
+    groups: list[ExerciseGroup]
+    content: str
+
+    @property
+    def id(self) -> str:
+        return f"{self.date.strftime('%Y%m%d')}-{self.time.strftime('%H%M%S')}"
+
+
+class WorkoutSetModel(BaseModel):
+    reps: int
+    weight: Optional[float] = None
+
+
+class ExerciseModel(BaseModel):
+    name: str
+    sets: list[WorkoutSetModel]
+
+
+class ExerciseGroupModel(BaseModel):
+    name: str
+    rest_seconds: int
+    exercises: list[ExerciseModel]
+
+
+class WorkoutModel(BaseModel):
+    date: date
+    time: time
+    groups: list[ExerciseGroupModel]
+    content: Optional[str] = None
+
+    @property
+    def id(self) -> str:
+        return f"{self.date.strftime('%Y%m%d')}-{self.time.strftime('%H%M%S')}"
