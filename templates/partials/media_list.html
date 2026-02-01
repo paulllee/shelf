@@ -28,7 +28,7 @@
   </div>
 </div>
 
-<!-- Mobile card view -->
+<!-- mobile card view -->
 <div id="media-cards" class="space-y-2 md:hidden">
   {% for item in media_items %}
   <div
@@ -54,7 +54,7 @@
   {% endfor %}
 </div>
 
-<!-- Desktop table view -->
+<!-- desktop table view -->
 <div class="hidden md:block overflow-auto max-h-[70vh] rounded-lg">
   <table id="media-table" class="table table-zebra w-full bg-base-100">
     <thead class="sticky top-0 bg-base-100 z-10">
@@ -106,7 +106,7 @@
       .getElementById("filter-country")
       .value.toLowerCase();
 
-    // Filter table rows (desktop)
+    // filter table rows (desktop)
     const rows = document.querySelectorAll("#media-table tbody tr");
     rows.forEach((row) => {
       const type = row.children[1].textContent.trim().toLowerCase();
@@ -118,7 +118,7 @@
       row.style.display = typeMatch && countryMatch ? "" : "none";
     });
 
-    // Filter cards (mobile)
+    // filter cards (mobile)
     const cards = document.querySelectorAll("#media-cards .media-card");
     cards.forEach((card) => {
       const type = card.dataset.type.toLowerCase();

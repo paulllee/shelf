@@ -100,7 +100,7 @@ def parse_groups_from_form(
     """Parse exercise groups from form data with nested field names."""
     form_dict = {k: str(v).strip() for k, v in form_data.items()}
 
-    # Build nested structure: {group_idx: {field: value, exercises: {ex_idx: {...}}}}
+    # build nested structure: {group_idx: {field: value, exercises: {ex_idx: {...}}}}
     groups_raw: dict[int, dict[str, Any]] = {}
 
     for key, value in form_dict.items():
@@ -128,7 +128,7 @@ def parse_groups_from_form(
                 field
             ] = value
 
-    # Convert to model structure, filtering out empty entries
+    # convert to model structure, filtering out empty entries
     groups: list[ExerciseGroupModel] = []
 
     for group_idx in sorted(groups_raw):
@@ -174,7 +174,7 @@ def parse_groups_from_form(
     return groups
 
 
-# API routes
+# api routes
 
 
 @router.get("/api/workouts")
@@ -207,7 +207,7 @@ async def delete_workout(request: Request, workout_id: str):
     )
 
 
-# Template-returning routes for HTMX
+# template-returning routes for htmx
 
 
 @router.get("/workout-items")
@@ -236,7 +236,7 @@ async def get_workout_calendar(
         if w.date.year == year and w.date.month == month
     }
 
-    first_weekday = (calendar.monthrange(year, month)[0] + 1) % 7  # Sunday-start
+    first_weekday = (calendar.monthrange(year, month)[0] + 1) % 7  # sunday-start
     days_in_month = calendar.monthrange(year, month)[1]
 
     prev_year, prev_month = (year - 1, 12) if month == 1 else (year, month - 1)
@@ -379,7 +379,7 @@ async def update_workout(request: Request, workout_id: str):
     )
 
 
-# Template routes
+# template routes
 
 
 @router.post("/template")

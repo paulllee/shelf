@@ -88,7 +88,7 @@ async def create_media_item(request: Request):
 
     request.app.state.media_items = request.app.state.parse_all_media()
 
-    # Use viewing_status to stay on current tab, fallback to item's status for new items
+    # use viewing_status to stay on current tab, fallback to item's status for new items
     viewing_status: str = str(form_dict.get("viewing_status", "")).strip()
     status: str = viewing_status or media_item.status or "queued"
     items: list[Media] = [
@@ -127,7 +127,7 @@ async def update_media_item(request: Request, id: str):
 
     request.app.state.media_items = request.app.state.parse_all_media()
 
-    # Use viewing_status to stay on current tab
+    # use viewing_status to stay on current tab
     viewing_status: str = str(form_dict.get("viewing_status", "")).strip()
     status: str = viewing_status or media_item.status or "queued"
     items: list[Media] = [
