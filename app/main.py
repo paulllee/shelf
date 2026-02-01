@@ -26,7 +26,7 @@ from app.models import (
 from app.routes import media as media_routes
 from app.routes import workout as workout_routes
 
-logger: logging.Logger = logging.getLogger(__name__)
+logger: logging.Logger = logging.getLogger("uvicorn.error")
 
 
 def get_dir_from_config(config_path: str, key: str) -> Path:
@@ -37,23 +37,23 @@ def get_dir_from_config(config_path: str, key: str) -> Path:
         dir_path: Any | None = config.get(key)
 
         if dir_path:
-            logger.info("loaded config %s=%s", key, dir_path)
+            logger.info("Loaded config %s=%s", key, dir_path)
             return Path(dir_path)
         else:
             logger.error("%s not found in config.toml", key)
             sys.exit(1)
 
     except FileNotFoundError:
-        logger.error("config file %s not found", config_path)
+        logger.error("Config file %s not found", config_path)
         sys.exit(1)
     except tomllib.TOMLDecodeError:
-        logger.error("config file %s is not valid toml", config_path)
+        logger.error("Config file %s is not valid toml", config_path)
         sys.exit(1)
 
 
 def validate_dir(dir_path: Path) -> None:
     if not dir_path.exists():
-        logger.error("directory %s does not exist", dir_path)
+        logger.error("Directory %s does not exist", dir_path)
         sys.exit(1)
 
 
@@ -73,7 +73,7 @@ def parse_md_to_media(md_path: Path) -> Media:
             review=post.content,
         )
     except Exception:
-        logger.exception("failed to parse %s", md_path)
+        logger.exception("Failed to parse %s", md_path)
         raise HTTPException(status_code=404, detail=f"failed to parse {md_path}")
 
 
@@ -83,7 +83,7 @@ def parse_all_media(media_dir: Path) -> list[Media]:
 
 async def poll_media_items(app: FastAPI, interval_in_seconds: int) -> None:
     while True:
-        logger.debug("refreshing media items")
+        logger.debug("Refreshing media items")
         app.state.media_items = parse_all_media(app.state.media_dir)
         await asyncio.sleep(interval_in_seconds)
 
@@ -130,7 +130,7 @@ def parse_md_to_workout(md_path: Path) -> Workout:
             content=post.content,
         )
     except Exception:
-        logger.exception("failed to parse %s", md_path)
+        logger.exception("Failed to parse %s", md_path)
         raise HTTPException(status_code=404, detail=f"failed to parse {md_path}")
 
 
@@ -146,7 +146,7 @@ def parse_all_workouts(workout_dir: Path) -> list[Workout]:
 
 async def poll_workout_items(app: FastAPI, interval_in_seconds: int) -> None:
     while True:
-        logger.debug("refreshing workout items")
+        logger.debug("Refreshing workout items")
         app.state.workout_items = parse_all_workouts(app.state.workout_dir)
         await asyncio.sleep(interval_in_seconds)
 
@@ -183,7 +183,7 @@ def parse_md_to_template(md_path: Path) -> WorkoutTemplate:
             groups=groups,
         )
     except Exception:
-        logger.exception("failed to parse %s", md_path)
+        logger.exception("Failed to parse %s", md_path)
         raise HTTPException(status_code=404, detail=f"failed to parse {md_path}")
 
 
@@ -221,7 +221,7 @@ async def lifespan(app: FastAPI):
     app.state.template_items = parse_all_templates(app.state.template_dir)
 
     # start polling tasks for manual file edits
-    logger.info("starting background polling tasks")
+    logger.info("Starting background polling tasks")
     poll_media_task = asyncio.create_task(poll_media_items(app, interval_in_seconds=5))
     poll_workout_task = asyncio.create_task(
         poll_workout_items(app, interval_in_seconds=5)
@@ -229,7 +229,7 @@ async def lifespan(app: FastAPI):
 
     yield
 
-    logger.info("shutting down background tasks")
+    logger.info("Shutting down background tasks")
     poll_media_task.cancel()
     poll_workout_task.cancel()
 
