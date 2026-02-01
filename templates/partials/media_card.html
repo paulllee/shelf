@@ -1,6 +1,6 @@
 <tr
   class="hover:bg-base-200 cursor-pointer"
-  hx-get="/modal/media/{{ item.id }}/edit"
+  hx-get="/modal/media/{{ item.id }}/edit?viewing_status={{ current_status }}"
   hx-target="#modal-container"
 >
   <td class="font-medium">{{ item.name }}</td>

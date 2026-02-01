@@ -21,11 +21,12 @@ from app.models import (
     MediaType,
     Workout,
     WorkoutSet,
+    WorkoutTemplate,
 )
 from app.routes import media as media_routes
 from app.routes import workout as workout_routes
 
-logger: logging.Logger = logging.getLogger("uvicorn.error")
+logger: logging.Logger = logging.getLogger(__name__)
 
 
 def get_dir_from_config(config_path: str, key: str) -> Path:
@@ -36,17 +37,23 @@ def get_dir_from_config(config_path: str, key: str) -> Path:
         dir_path: Any | None = config.get(key)
 
         if dir_path:
-            logger.info("successfully loaded %s=%s", key, dir_path)
+            logger.info("loaded config %s=%s", key, dir_path)
             return Path(dir_path)
         else:
-            logger.error("%s var not found in config.toml", key)
+            logger.error("%s not found in config.toml", key)
             sys.exit(1)
 
     except FileNotFoundError:
-        logger.error("%s config was not found", config_path)
+        logger.error("config file %s not found", config_path)
         sys.exit(1)
     except tomllib.TOMLDecodeError:
-        logger.error("%s config is not a valid toml file", config_path)
+        logger.error("config file %s is not valid toml", config_path)
+        sys.exit(1)
+
+
+def validate_dir(dir_path: Path) -> None:
+    if not dir_path.exists():
+        logger.error("directory %s does not exist", dir_path)
         sys.exit(1)
 
 
@@ -74,9 +81,9 @@ def parse_all_media(media_dir: Path) -> list[Media]:
     return [parse_md_to_media(p) for p in media_dir.iterdir() if p.is_file()]
 
 
-async def poll_media_items(app: FastAPI, interval_in_seconds: int):
+async def poll_media_items(app: FastAPI, interval_in_seconds: int) -> None:
     while True:
-        logger.info("poll_media_items: refreshing media_items state")
+        logger.debug("refreshing media items")
         app.state.media_items = parse_all_media(app.state.media_dir)
         await asyncio.sleep(interval_in_seconds)
 
@@ -137,35 +144,94 @@ def parse_all_workouts(workout_dir: Path) -> list[Workout]:
     ]
 
 
-async def poll_workout_items(app: FastAPI, interval_in_seconds: int):
+async def poll_workout_items(app: FastAPI, interval_in_seconds: int) -> None:
     while True:
-        logger.info("poll_workout_items: refreshing workout_items state")
+        logger.debug("refreshing workout items")
         app.state.workout_items = parse_all_workouts(app.state.workout_dir)
         await asyncio.sleep(interval_in_seconds)
 
 
+# template parsing
+
+
+def parse_md_to_template(md_path: Path) -> WorkoutTemplate:
+    try:
+        with md_path.open("r", encoding="utf-8") as f:
+            post: frontmatter.Post = frontmatter.load(f)
+
+        groups_data: Any = post.get("groups", [])
+        groups: list[ExerciseGroup] = []
+        for g in groups_data:
+            exercises = []
+            for e in g.get("exercises", []):
+                sets = []
+                for s in e.get("sets", []):
+                    sets.append(
+                        WorkoutSet(reps=s.get("reps", 0), weight=s.get("weight"))
+                    )
+                exercises.append(Exercise(name=e.get("name", ""), sets=sets))
+            groups.append(
+                ExerciseGroup(
+                    name=g.get("name", ""),
+                    rest_seconds=g.get("rest_seconds", 0),
+                    exercises=exercises,
+                )
+            )
+
+        return WorkoutTemplate(
+            name=str(post.get("name", "")),
+            groups=groups,
+        )
+    except Exception:
+        logger.exception("failed to parse %s", md_path)
+        raise HTTPException(status_code=404, detail=f"failed to parse {md_path}")
+
+
+def parse_all_templates(template_dir: Path) -> list[WorkoutTemplate]:
+    if not template_dir.exists():
+        return []
+    return [
+        parse_md_to_template(p)
+        for p in template_dir.iterdir()
+        if p.is_file() and p.suffix == ".md"
+    ]
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # store dirs in app.state for routes to access
+    # load directories from config
     app.state.media_dir = get_dir_from_config("./config.toml", "media_dir")
-    app.state.workout_dir = get_dir_from_config("./config.toml", "workout_dir")
+    validate_dir(app.state.media_dir)
 
-    # store parsing functions in app.state for routes to access
+    app.state.workout_dir = get_dir_from_config("./config.toml", "workout_dir")
+    validate_dir(app.state.workout_dir)
+
+    app.state.template_dir = get_dir_from_config("./config.toml", "template_dir")
+    validate_dir(app.state.template_dir)
+
+    # store parsing functions in app.state
     app.state.parse_md_to_media = parse_md_to_media
     app.state.parse_all_media = lambda: parse_all_media(app.state.media_dir)
     app.state.parse_md_to_workout = parse_md_to_workout
     app.state.parse_all_workouts = lambda: parse_all_workouts(app.state.workout_dir)
+    app.state.parse_md_to_template = parse_md_to_template
+    app.state.parse_all_templates = lambda: parse_all_templates(app.state.template_dir)
 
-    # poll items if markdown files are manually edited
-    poll_media_items_task = asyncio.create_task(
-        poll_media_items(app, interval_in_seconds=5)
-    )
-    poll_workout_items_task = asyncio.create_task(
+    # initial load of templates
+    app.state.template_items = parse_all_templates(app.state.template_dir)
+
+    # start polling tasks for manual file edits
+    logger.info("starting background polling tasks")
+    poll_media_task = asyncio.create_task(poll_media_items(app, interval_in_seconds=5))
+    poll_workout_task = asyncio.create_task(
         poll_workout_items(app, interval_in_seconds=5)
     )
+
     yield
-    poll_media_items_task.cancel()
-    poll_workout_items_task.cancel()
+
+    logger.info("shutting down background tasks")
+    poll_media_task.cancel()
+    poll_workout_task.cancel()
 
 
 app: FastAPI = FastAPI(lifespan=lifespan)

@@ -3,3 +3,6 @@ media_dir = "./contents/media"
 
 # path to workout markdown files
 workout_dir = "./contents/workout"
+
+# path to workout template files
+template_dir = "./contents/templates"

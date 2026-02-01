@@ -1,0 +1,35 @@
+<div
+  class="exercise-container bg-base-300 rounded p-3"
+  data-exercise-idx="{{ exercise_idx }}"
+>
+  <div class="flex gap-2 mb-2">
+    <input
+      type="text"
+      name="groups[{{ group_idx }}][exercises][{{ exercise_idx }}][name]"
+      class="input input-bordered input-sm flex-1"
+      placeholder="exercise name"
+      value="{{ exercise.name if exercise else '' }}"
+      required
+    />
+    <button
+      type="button"
+      class="btn btn-ghost btn-sm"
+      onclick="removeExercise(this)"
+    >
+      ×
+    </button>
+  </div>
+  <div class="sets-container space-y-1">
+    {% if exercise %} {% for set in exercise.sets %} {% set set_idx =
+    loop.index0 %} {% include "partials/workout_set_form.html" %} {% endfor %}
+    {% else %} {% set set_idx = 0 %} {% set set = none %} {% include
+    "partials/workout_set_form.html" %} {% endif %}
+  </div>
+  <button
+    type="button"
+    class="btn btn-ghost btn-xs mt-1"
+    onclick="addSet(this)"
+  >
+    + add set
+  </button>
+</div>

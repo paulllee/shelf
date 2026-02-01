@@ -153,3 +153,25 @@ class WorkoutModel(BaseModel):
     @property
     def id(self) -> str:
         return f"{self.date.strftime('%Y%m%d')}-{self.time.strftime('%H%M%S')}"
+
+
+# workout templates
+
+
+@dataclass
+class WorkoutTemplate:
+    name: str
+    groups: list[ExerciseGroup]
+
+    @property
+    def id(self) -> str:
+        return slugify(self.name).lower()
+
+
+class WorkoutTemplateModel(BaseModel):
+    name: str
+    groups: list[ExerciseGroupModel]
+
+    @property
+    def id(self) -> str:
+        return slugify(self.name).lower()

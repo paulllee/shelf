@@ -1,0 +1,38 @@
+{% if templates %}
+<div class="space-y-2">
+  {% for template in templates %}
+  <div
+    class="flex items-center justify-between bg-base-300 rounded-lg px-3 py-2"
+  >
+    <div class="flex-1">
+      <span class="font-medium">{{ template.name }}</span>
+      <span class="text-xs text-base-content/50 ml-2">
+        {{ template.groups|length }} group{{ 's' if template.groups|length != 1
+        else '' }}
+      </span>
+    </div>
+    <div class="flex gap-1">
+      <button
+        type="button"
+        class="btn btn-primary btn-xs"
+        hx-get="/modal/workout/from-template/{{ template.id }}"
+        hx-target="#modal-container"
+      >
+        use
+      </button>
+      <button
+        type="button"
+        class="btn btn-ghost btn-xs"
+        hx-delete="/template/{{ template.id }}"
+        hx-target="#templates-container"
+        hx-confirm="delete template '{{ template.name }}'?"
+      >
+        ×
+      </button>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+{% else %}
+<p class="text-sm text-base-content/50">no templates saved</p>
+{% endif %}

@@ -1,0 +1,324 @@
+<!-- prettier-ignore -->
+<div class="modal modal-open">
+  <div class="modal-box max-w-2xl max-h-[90vh]">
+    <button
+      class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2"
+      onclick="document.getElementById('modal-container').innerHTML = ''"
+    >
+      X
+    </button>
+
+    <h3 class="font-bold text-lg mb-4">
+      {% if workout %}edit workout{% else %}add workout{% endif %}
+    </h3>
+
+    {% if not workout %}
+    <!-- Templates section for new workouts -->
+    <div class="collapse collapse-arrow bg-base-200 mb-4">
+      <input type="checkbox" {% if templates %}checked{% endif %} />
+      <div class="collapse-title font-medium text-sm">
+        quick start from template
+      </div>
+      <div class="collapse-content">
+        <div id="templates-container">
+          {% include "partials/workout_templates.html" %}
+        </div>
+      </div>
+    </div>
+
+    <div class="divider text-sm">or create custom</div>
+    {% endif %}
+
+    <form
+      id="workout-form"
+      {% if workout %}hx-put="/workout/{{ workout.id }}"{% else %}hx-post="/workout"{% endif %}
+      hx-target="#workout-content"
+      hx-on::after-request="if(event.detail.successful) document.getElementById('modal-container').innerHTML = ''"
+    >
+      <div class="grid grid-cols-2 gap-4 mb-4">
+        <div class="form-control">
+          <label class="label">
+            <span class="label-text">date</span>
+          </label>
+          <input
+            type="date"
+            name="date"
+            class="input input-bordered"
+            value="{{ workout.date.isoformat() if workout else today }}"
+            required
+          />
+        </div>
+        <div class="form-control">
+          <label class="label">
+            <span class="label-text">time</span>
+          </label>
+          <input
+            type="time"
+            name="time"
+            class="input input-bordered"
+            value="{{ workout.time.strftime('%H:%M') if workout else now_time }}"
+            required
+          />
+        </div>
+      </div>
+
+      <div class="divider text-sm">exercise groups</div>
+
+      <div id="groups-container" class="space-y-4 mb-4">
+        {% if workout %}
+          {% for group in workout.groups %}
+            {% set group_idx = loop.index0 %}
+            {% include "partials/workout_group_form.html" %}
+          {% endfor %}
+        {% elif prefill_template %}
+          {% for group in prefill_template.groups %}
+            {% set group_idx = loop.index0 %}
+            {% include "partials/workout_group_form.html" %}
+          {% endfor %}
+        {% else %}
+          {% set group_idx = 0 %}
+          {% set group = none %}
+          {% include "partials/workout_group_form.html" %}
+        {% endif %}
+      </div>
+
+      <button
+        type="button"
+        class="btn btn-ghost btn-sm w-full mb-4"
+        onclick="addGroup()"
+      >
+        + add group
+      </button>
+
+      <div class="form-control mb-4">
+        <label class="label">
+          <span class="label-text">notes</span>
+        </label>
+        <textarea
+          name="content"
+          class="textarea textarea-bordered h-20"
+          placeholder="workout notes..."
+        >{{ workout.content if workout and workout.content else '' }}</textarea>
+      </div>
+
+      <div class="modal-action flex-wrap gap-2">
+        <button
+          type="button"
+          class="btn btn-ghost btn-sm"
+          onclick="showSaveTemplateDialog()"
+        >
+          save as template
+        </button>
+        <div class="flex-1"></div>
+        <button
+          type="button"
+          class="btn"
+          onclick="document.getElementById('modal-container').innerHTML = ''"
+        >
+          cancel
+        </button>
+        <button type="submit" class="btn btn-primary">
+          {% if workout %}save{% else %}add{% endif %}
+        </button>
+      </div>
+    </form>
+
+    <!-- Save as template dialog (hidden) -->
+    <dialog id="save-template-dialog" class="modal">
+      <div class="modal-box">
+        <h3 class="font-bold text-lg mb-4">save as template</h3>
+        <div class="form-control">
+          <label class="label">
+            <span class="label-text">template name</span>
+          </label>
+          <input
+            type="text"
+            id="template-name-input"
+            class="input input-bordered"
+            placeholder="e.g., push day, leg day"
+          />
+        </div>
+        <div class="modal-action">
+          <button class="btn" onclick="document.getElementById('save-template-dialog').close()">cancel</button>
+          <button class="btn btn-primary" onclick="saveAsTemplate()">save</button>
+        </div>
+      </div>
+      <form method="dialog" class="modal-backdrop">
+        <button>close</button>
+      </form>
+    </dialog>
+  </div>
+  <div
+    class="modal-backdrop"
+    onclick="document.getElementById('modal-container').innerHTML = ''"
+  ></div>
+</div>
+
+<script>
+  let groupCounter = document.querySelectorAll(".group-container").length;
+
+  function addGroup() {
+    const container = document.getElementById("groups-container");
+    const groupHtml = createGroupHtml(groupCounter);
+    container.insertAdjacentHTML("beforeend", groupHtml);
+    groupCounter++;
+  }
+
+  function removeGroup(btn) {
+    const group = btn.closest(".group-container");
+    if (document.querySelectorAll(".group-container").length > 1) {
+      group.remove();
+    }
+  }
+
+  function addExercise(btn) {
+    const groupContainer = btn.closest(".group-container");
+    const exercisesContainer = groupContainer.querySelector(
+      ".exercises-container",
+    );
+    const groupIdx = groupContainer.dataset.groupIdx;
+    const exerciseIdx = exercisesContainer.children.length;
+    const exerciseHtml = createExerciseHtml(groupIdx, exerciseIdx);
+    exercisesContainer.insertAdjacentHTML("beforeend", exerciseHtml);
+  }
+
+  function removeExercise(btn) {
+    const exercise = btn.closest(".exercise-container");
+    const container = exercise.parentElement;
+    if (container.querySelectorAll(".exercise-container").length > 1) {
+      exercise.remove();
+    }
+  }
+
+  function addSet(btn) {
+    const exerciseContainer = btn.closest(".exercise-container");
+    const setsContainer = exerciseContainer.querySelector(".sets-container");
+    const groupIdx =
+      exerciseContainer.closest(".group-container").dataset.groupIdx;
+    const exerciseIdx = exerciseContainer.dataset.exerciseIdx;
+    const setIdx = setsContainer.children.length;
+    const setHtml = createSetHtml(groupIdx, exerciseIdx, setIdx);
+    setsContainer.insertAdjacentHTML("beforeend", setHtml);
+  }
+
+  function removeSet(btn) {
+    const set = btn.closest(".set-row");
+    const container = set.parentElement;
+    if (container.querySelectorAll(".set-row").length > 1) {
+      set.remove();
+    }
+  }
+
+  function createGroupHtml(groupIdx) {
+    return `
+      <div class="group-container bg-base-200 rounded-lg p-4" data-group-idx="${groupIdx}">
+        <div class="flex gap-2 mb-3">
+          <input
+            type="text"
+            name="groups[${groupIdx}][name]"
+            class="input input-bordered input-sm flex-1"
+            placeholder="group name (e.g., chest & triceps)"
+            required
+          />
+          <input
+            type="number"
+            name="groups[${groupIdx}][rest_seconds]"
+            class="input input-bordered input-sm w-24"
+            placeholder="rest (s)"
+            value="60"
+            required
+          />
+          <button type="button" class="btn btn-ghost btn-sm" onclick="removeGroup(this)">×</button>
+        </div>
+        <div class="exercises-container space-y-3">
+          ${createExerciseHtml(groupIdx, 0)}
+        </div>
+        <button type="button" class="btn btn-ghost btn-xs mt-2" onclick="addExercise(this)">
+          + add exercise
+        </button>
+      </div>
+    `;
+  }
+
+  function createExerciseHtml(groupIdx, exerciseIdx) {
+    return `
+      <div class="exercise-container bg-base-300 rounded p-3" data-exercise-idx="${exerciseIdx}">
+        <div class="flex gap-2 mb-2">
+          <input
+            type="text"
+            name="groups[${groupIdx}][exercises][${exerciseIdx}][name]"
+            class="input input-bordered input-sm flex-1"
+            placeholder="exercise name"
+            required
+          />
+          <button type="button" class="btn btn-ghost btn-sm" onclick="removeExercise(this)">×</button>
+        </div>
+        <div class="sets-container space-y-1">
+          ${createSetHtml(groupIdx, exerciseIdx, 0)}
+        </div>
+        <button type="button" class="btn btn-ghost btn-xs mt-1" onclick="addSet(this)">
+          + add set
+        </button>
+      </div>
+    `;
+  }
+
+  function createSetHtml(groupIdx, exerciseIdx, setIdx) {
+    return `
+      <div class="set-row flex gap-2 items-center">
+        <span class="text-xs text-base-content/50 w-6">#${setIdx + 1}</span>
+        <input
+          type="number"
+          name="groups[${groupIdx}][exercises][${exerciseIdx}][sets][${setIdx}][reps]"
+          class="input input-bordered input-xs w-20"
+          placeholder="reps"
+          required
+        />
+        <input
+          type="number"
+          step="0.5"
+          name="groups[${groupIdx}][exercises][${exerciseIdx}][sets][${setIdx}][weight]"
+          class="input input-bordered input-xs w-24"
+          placeholder="weight"
+        />
+        <button type="button" class="btn btn-ghost btn-xs" onclick="removeSet(this)">×</button>
+      </div>
+    `;
+  }
+
+  function showSaveTemplateDialog() {
+    document.getElementById("save-template-dialog").showModal();
+  }
+
+  function saveAsTemplate() {
+    const templateName = document
+      .getElementById("template-name-input")
+      .value.trim();
+    if (!templateName) {
+      alert("please enter a template name");
+      return;
+    }
+
+    const form = document.getElementById("workout-form");
+    const formData = new FormData(form);
+    formData.append("template_name", templateName);
+
+    fetch("/template", {
+      method: "POST",
+      body: formData,
+    })
+      .then((response) => response.text())
+      .then((html) => {
+        const container = document.getElementById("templates-container");
+        if (container) {
+          container.innerHTML = html;
+        }
+        document.getElementById("save-template-dialog").close();
+        document.getElementById("template-name-input").value = "";
+      })
+      .catch((err) => {
+        console.error("error saving template:", err);
+        alert("failed to save template");
+      });
+  }
+</script>

@@ -1,0 +1,85 @@
+<!-- prettier-ignore -->
+<div class="modal modal-open">
+  <div class="modal-box max-w-2xl">
+    <button
+      class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2"
+      onclick="document.getElementById('modal-container').innerHTML = ''"
+    >
+      X
+    </button>
+
+    <h3 class="font-bold text-lg mb-1">
+      {{ workout.date.strftime('%A, %B %d, %Y').lower() }}
+    </h3>
+    <p class="text-sm text-base-content/60 mb-4">
+      {{ workout.time.strftime('%I:%M %p').lower().lstrip('0') }}
+    </p>
+
+    <div class="space-y-4">
+      {% for group in workout.groups %}
+      <div class="collapse collapse-arrow bg-base-200">
+        <input type="checkbox" checked />
+        <div class="collapse-title font-medium">
+          {{ group.name }}
+          <span class="text-sm text-base-content/60 ml-2">
+            ({{ group.rest_seconds }}s rest)
+          </span>
+        </div>
+        <div class="collapse-content">
+          <div class="space-y-3">
+            {% for exercise in group.exercises %}
+            <div>
+              <p class="font-medium">{{ exercise.name }}</p>
+              <div class="flex flex-wrap gap-2 mt-1">
+                {% for set in exercise.sets %}
+                <span class="badge badge-outline">
+                  {{ set.reps }} reps{% if set.weight %} @ {{ set.weight }}{% endif %}
+                </span>
+                {% endfor %}
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+
+    {% if workout.content %}
+    <div class="mt-4">
+      <p class="text-sm text-base-content/70 font-medium mb-1">notes</p>
+      <p class="text-sm">{{ workout.content }}</p>
+    </div>
+    {% endif %}
+
+    <div class="modal-action">
+      <button
+        class="btn btn-ghost btn-sm"
+        hx-delete="/workout/{{ workout.id }}"
+        hx-target="#workout-content"
+        hx-confirm="delete this workout?"
+        hx-on::after-request="if(event.detail.successful) document.getElementById('modal-container').innerHTML = ''"
+      >
+        delete
+      </button>
+      <button
+        class="btn btn-sm"
+        hx-get="/modal/workout/{{ workout.id }}/edit"
+        hx-target="#modal-container"
+      >
+        edit
+      </button>
+      <button
+        type="button"
+        class="btn btn-sm btn-primary"
+        onclick="document.getElementById('modal-container').innerHTML = ''"
+      >
+        close
+      </button>
+    </div>
+  </div>
+  <div
+    class="modal-backdrop"
+    onclick="document.getElementById('modal-container').innerHTML = ''"
+  ></div>
+</div>

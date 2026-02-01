@@ -1,0 +1,22 @@
+<div class="set-row flex gap-2 items-center">
+  <span class="text-xs text-base-content/50 w-6">#{{ set_idx + 1 }}</span>
+  <input
+    type="number"
+    name="groups[{{ group_idx }}][exercises][{{ exercise_idx }}][sets][{{ set_idx }}][reps]"
+    class="input input-bordered input-xs w-20"
+    placeholder="reps"
+    value="{{ set.reps if set else '' }}"
+    required
+  />
+  <input
+    type="number"
+    step="0.5"
+    name="groups[{{ group_idx }}][exercises][{{ exercise_idx }}][sets][{{ set_idx }}][weight]"
+    class="input input-bordered input-xs w-24"
+    placeholder="weight"
+    value="{{ set.weight if set and set.weight else '' }}"
+  />
+  <button type="button" class="btn btn-ghost btn-xs" onclick="removeSet(this)">
+    ×
+  </button>
+</div>

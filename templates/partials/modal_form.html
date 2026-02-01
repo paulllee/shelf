@@ -18,6 +18,7 @@
       hx-target="#media-content"
       hx-on::after-request="if(event.detail.successful) document.getElementById('modal-container').innerHTML = ''"
     >
+      <input type="hidden" name="viewing_status" value="{{ viewing_status if viewing_status else 'queued' }}" />
       <div class="form-control mb-4">
         <label class="label">
           <span class="label-text">name</span>
