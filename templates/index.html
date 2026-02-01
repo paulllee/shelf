@@ -54,38 +54,37 @@
     <div role="tablist" class="tabs tabs-boxed mb-6">
       <a
         role="tab"
-        class="tab tab-active"
+        class="tab"
+        data-status="queued"
         hx-get="/media-items?status=queued"
         hx-target="#media-content"
-        hx-on::after-request="setActiveTab(this)"
+        hx-on::after-request="setActiveTab(this, 'queued')"
       >
         queued
       </a>
       <a
         role="tab"
         class="tab"
+        data-status="watching"
         hx-get="/media-items?status=watching"
         hx-target="#media-content"
-        hx-on::after-request="setActiveTab(this)"
+        hx-on::after-request="setActiveTab(this, 'watching')"
       >
         watching
       </a>
       <a
         role="tab"
         class="tab"
+        data-status="watched"
         hx-get="/media-items?status=watched"
         hx-target="#media-content"
-        hx-on::after-request="setActiveTab(this)"
+        hx-on::after-request="setActiveTab(this, 'watched')"
       >
         watched
       </a>
     </div>
 
-    <div
-      id="media-content"
-      hx-get="/media-items?status=queued"
-      hx-trigger="load"
-    >
+    <div id="media-content">
       <span class="loading loading-spinner loading-lg"></span>
     </div>
   </div>
@@ -99,11 +98,12 @@
 </div>
 
 <script>
-  function setActiveTab(clickedTab) {
+  function setActiveTab(clickedTab, status) {
     document.querySelectorAll('[role="tab"]').forEach((tab) => {
       tab.classList.remove("tab-active");
     });
     clickedTab.classList.add("tab-active");
+    localStorage.setItem("shelf-media-tab", status);
   }
 
   function switchSection(section) {
@@ -112,6 +112,8 @@
     const mediaBtn = document.getElementById("section-media");
     const workoutBtn = document.getElementById("section-workouts");
     const addBtn = document.getElementById("add-btn");
+
+    localStorage.setItem("shelf-section", section);
 
     if (section === "media") {
       mediaSection.classList.remove("hidden");
@@ -131,5 +133,26 @@
       htmx.process(addBtn);
     }
   }
+
+  // restore state on page load
+  document.addEventListener("DOMContentLoaded", function () {
+    const savedSection = localStorage.getItem("shelf-section") || "media";
+    const savedTab = localStorage.getItem("shelf-media-tab") || "queued";
+
+    // restore section
+    switchSection(savedSection);
+
+    // restore media tab and load content
+    const tab = document.querySelector(`[data-status="${savedTab}"]`);
+    if (tab) {
+      tab.classList.add("tab-active");
+      htmx.ajax("GET", `/media-items?status=${savedTab}`, "#media-content");
+    } else {
+      document
+        .querySelector('[data-status="queued"]')
+        .classList.add("tab-active");
+      htmx.ajax("GET", "/media-items?status=queued", "#media-content");
+    }
+  });
 </script>
 {% endblock %}

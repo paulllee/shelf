@@ -248,7 +248,7 @@ async def get_workout_calendar(
         context={
             "year": year,
             "month": month,
-            "month_name": calendar.month_name[month].lower(),
+            "month_name": calendar.month_abbr[month].lower(),
             "first_weekday": first_weekday,
             "days_in_month": days_in_month,
             "workout_dates": workout_dates,

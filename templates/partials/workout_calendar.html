@@ -1,16 +1,29 @@
-<div class="bg-base-200 rounded-lg p-4">
+<div id="workout-calendar" class="bg-base-200 rounded-lg p-4">
   <div class="flex justify-between items-center mb-4">
     <button
-      class="btn btn-ghost btn-sm"
+      class="btn btn-ghost btn-sm btn-square"
       hx-get="/workout-calendar?year={{ prev_year }}&month={{ prev_month }}"
       hx-target="#workout-calendar"
       hx-swap="outerHTML"
     >
       ←
     </button>
-    <span class="font-semibold">{{ month_name }} {{ year }}</span>
+    <div class="flex items-center gap-1">
+      <span class="font-semibold whitespace-nowrap text-sm"
+        >{{ month_name }} {{ year }}</span
+      >
+      <button
+        class="btn btn-ghost btn-xs btn-circle"
+        hx-get="/workout-calendar"
+        hx-target="#workout-calendar"
+        hx-swap="outerHTML"
+        title="go to today"
+      >
+        ○
+      </button>
+    </div>
     <button
-      class="btn btn-ghost btn-sm"
+      class="btn btn-ghost btn-sm btn-square"
       hx-get="/workout-calendar?year={{ next_year }}&month={{ next_month }}"
       hx-target="#workout-calendar"
       hx-swap="outerHTML"
