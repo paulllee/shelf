@@ -83,7 +83,7 @@ def parse_all_media(media_dir: Path) -> list[Media]:
 
 async def poll_media_items(app: FastAPI, interval_in_seconds: int) -> None:
     while True:
-        logger.debug("Refreshing media items")
+        logger.info("Refreshing media items")
         app.state.media_items = parse_all_media(app.state.media_dir)
         await asyncio.sleep(interval_in_seconds)
 
@@ -146,7 +146,7 @@ def parse_all_workouts(workout_dir: Path) -> list[Workout]:
 
 async def poll_workout_items(app: FastAPI, interval_in_seconds: int) -> None:
     while True:
-        logger.debug("Refreshing workout items")
+        logger.info("Refreshing workout items")
         app.state.workout_items = parse_all_workouts(app.state.workout_dir)
         await asyncio.sleep(interval_in_seconds)
 
