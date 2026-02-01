@@ -1,5 +1,7 @@
 <div class="set-row flex gap-2 items-center">
-  <span class="text-xs text-base-content/50 w-5 flex-shrink-0">#{{ set_idx + 1 }}</span>
+  <span class="text-xs text-base-content/50 w-5 flex-shrink-0"
+    >#{{ set_idx + 1 }}</span
+  >
   <input
     type="number"
     name="groups[{{ group_idx }}][exercises][{{ exercise_idx }}][sets][{{ set_idx }}][reps]"
@@ -16,7 +18,11 @@
     placeholder="weight"
     value="{{ set.weight if set and set.weight else '' }}"
   />
-  <button type="button" class="btn btn-ghost btn-xs flex-shrink-0" onclick="removeSet(this)">
+  <button
+    type="button"
+    class="btn btn-ghost btn-xs flex-shrink-0"
+    onclick="removeSet(this)"
+  >
     ×
   </button>
 </div>
