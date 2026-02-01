@@ -18,6 +18,7 @@ def write_media_item(media_item: MediaModel, file_path: Path) -> None:
 
     with open(file_path, "wb") as f:
         frontmatter.dump(post, f)
+        f.write(b"\n")
 
 
 def write_workout(workout: WorkoutModel, file_path: Path) -> None:
@@ -50,6 +51,7 @@ def write_workout(workout: WorkoutModel, file_path: Path) -> None:
 
     with open(file_path, "wb") as f:
         frontmatter.dump(post, f)
+        f.write(b"\n")
 
 
 def write_template(template: WorkoutTemplateModel, file_path: Path) -> None:
@@ -81,3 +83,4 @@ def write_template(template: WorkoutTemplateModel, file_path: Path) -> None:
 
     with open(file_path, "wb") as f:
         frontmatter.dump(post, f)
+        f.write(b"\n")
