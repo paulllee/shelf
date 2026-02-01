@@ -1,0 +1,143 @@
+{% if media_items %}
+<div class="flex gap-4 mb-4">
+  <div class="form-control">
+    <select
+      id="filter-type"
+      class="select select-bordered select-sm"
+      onchange="filterTable()"
+    >
+      <option value="">all types</option>
+      {% set types = media_items | map(attribute='type') | unique | sort %} {%
+      for t in types %} {% if t.name != "UNDEFINED" %}
+      <option value="{{ t.name.lower() }}">{{ t.name.lower() }}</option>
+      {% endif %} {% endfor %}
+    </select>
+  </div>
+  <div class="form-control">
+    <select
+      id="filter-country"
+      class="select select-bordered select-sm"
+      onchange="filterTable()"
+    >
+      <option value="">all countries</option>
+      {% set countries = media_items | map(attribute='country') | unique | sort
+      %} {% for c in countries %} {% if c.name != "UNDEFINED" %}
+      <option value="{{ c.name.lower() }}">{{ c.name.lower() }}</option>
+      {% endif %} {% endfor %}
+    </select>
+  </div>
+</div>
+
+<div class="overflow-auto max-h-[70vh] rounded-lg">
+  <table id="media-table" class="table table-zebra w-full bg-base-100">
+    <thead class="sticky top-0 bg-base-100 z-10">
+      <tr class="border-b-2 border-base-300">
+        <th
+          class="text-left cursor-pointer select-none hover:bg-base-200"
+          data-sort="title"
+          onclick="sortTable(this, 0)"
+        >
+          title <span class="sort-indicator text-xs opacity-50"></span>
+        </th>
+        <th
+          class="text-left w-24 cursor-pointer select-none hover:bg-base-200"
+          data-sort="type"
+          onclick="sortTable(this, 1)"
+        >
+          type <span class="sort-indicator text-xs opacity-50"></span>
+        </th>
+        <th
+          class="text-left w-24 cursor-pointer select-none hover:bg-base-200"
+          data-sort="country"
+          onclick="sortTable(this, 2)"
+        >
+          country <span class="sort-indicator text-xs opacity-50"></span>
+        </th>
+        <th
+          class="text-left w-20 cursor-pointer select-none hover:bg-base-200"
+          data-sort="rating"
+          onclick="sortTable(this, 3)"
+        >
+          rating <span class="sort-indicator text-xs opacity-50"></span>
+        </th>
+        <th class="w-16"></th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for item in media_items %} {% include "partials/media_card.html" %} {%
+      endfor %}
+    </tbody>
+  </table>
+</div>
+
+<script>
+  function filterTable() {
+    const typeFilter = document
+      .getElementById("filter-type")
+      .value.toLowerCase();
+    const countryFilter = document
+      .getElementById("filter-country")
+      .value.toLowerCase();
+    const rows = document.querySelectorAll("#media-table tbody tr");
+
+    rows.forEach((row) => {
+      const type = row.children[1].textContent.trim().toLowerCase();
+      const country = row.children[2].textContent.trim().toLowerCase();
+
+      const typeMatch = !typeFilter || type === typeFilter;
+      const countryMatch = !countryFilter || country === countryFilter;
+
+      row.style.display = typeMatch && countryMatch ? "" : "none";
+    });
+  }
+
+  function sortTable(header, colIndex) {
+    const table = header.closest("table");
+    const tbody = table.querySelector("tbody");
+    const rows = Array.from(tbody.querySelectorAll("tr"));
+    const headers = table.querySelectorAll("th[data-sort]");
+
+    // determine sort direction
+    const currentDir = header.getAttribute("data-dir");
+    const newDir = currentDir === "asc" ? "desc" : "asc";
+
+    // reset all headers
+    headers.forEach((h) => {
+      h.removeAttribute("data-dir");
+      h.querySelector(".sort-indicator").textContent = "";
+    });
+
+    // set current header
+    header.setAttribute("data-dir", newDir);
+    header.querySelector(".sort-indicator").textContent =
+      newDir === "asc" ? " ▲" : " ▼";
+
+    // sort rows
+    rows.sort((a, b) => {
+      let aVal = a.children[colIndex].textContent.trim().toLowerCase();
+      let bVal = b.children[colIndex].textContent.trim().toLowerCase();
+
+      // handle numeric sorting for rating
+      if (colIndex === 3) {
+        aVal = aVal === "-" ? -1 : parseFloat(aVal) || 0;
+        bVal = bVal === "-" ? -1 : parseFloat(bVal) || 0;
+        return newDir === "asc" ? aVal - bVal : bVal - aVal;
+      }
+
+      // string sorting
+      if (newDir === "asc") {
+        return aVal.localeCompare(bVal);
+      } else {
+        return bVal.localeCompare(aVal);
+      }
+    });
+
+    // re-append sorted rows
+    rows.forEach((row) => tbody.appendChild(row));
+  }
+</script>
+{% else %}
+<div class="text-center py-12 text-base-content/60 bg-base-100 rounded-lg">
+  <p>no media items in this list</p>
+</div>
+{% endif %}

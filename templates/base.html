@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{% block title %}shelf{% endblock %}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Josefin+Sans:ital,wght@0,100..700;1,100..700&display=swap"
+      rel="stylesheet"
+    />
+    <link href="/static/css/output.css" rel="stylesheet" />
+    <script src="https://unpkg.com/htmx.org@2.0.4"></script>
+    <script>
+      (function () {
+        const theme = localStorage.getItem("theme") || "dark";
+        document.documentElement.setAttribute("data-theme", theme);
+      })();
+    </script>
+  </head>
+  <body class="min-h-screen bg-base-100">
+    <div class="container mx-auto px-4 py-8 max-w-4xl">
+      {% block content %}{% endblock %}
+    </div>
+
+    <div id="modal-container"></div>
+
+    <script>
+      document.body.addEventListener("closeModal", function () {
+        document.getElementById("modal-container").innerHTML = "";
+      });
+
+      document.addEventListener("keydown", function (e) {
+        if (e.key === "Escape") {
+          document.getElementById("modal-container").innerHTML = "";
+        }
+      });
+
+      // sync theme toggle checkbox on page load
+      document.addEventListener("DOMContentLoaded", function () {
+        const theme = localStorage.getItem("theme") || "dark";
+        const toggle = document.getElementById("theme-toggle");
+        if (toggle) {
+          toggle.checked = theme === "dark";
+        }
+      });
+
+      function toggleTheme() {
+        const html = document.documentElement;
+        const current = html.getAttribute("data-theme");
+        const next = current === "dark" ? "light" : "dark";
+        html.setAttribute("data-theme", next);
+        localStorage.setItem("theme", next);
+      }
+    </script>
+  </body>
+</html>

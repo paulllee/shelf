@@ -1,22 +1,74 @@
-<!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>shelf</title>
-    <link
-      rel="stylesheet"
-      href="{{ url_for('static', path='/css/output.css') }}"
-    />
-    <script src="https://cdn.jsdelivr.net/npm/htmx.org@2.0.8/dist/htmx.min.js"></script>
-  </head>
-  <body>
-    <div
-      id="media-items"
-      hx-get="/media-items"
-      hx-swap="innerHTML"
-      hx-trigger="load"
-      class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 p-4"
-    />
-  </body>
-</html>
+{% extends "base.html" %} {% block content %}
+<div class="flex justify-between items-center mb-6">
+  <div class="flex items-center gap-3">
+    <h1 class="text-3xl font-bold">shelf</h1>
+    <label class="swap swap-rotate">
+      <input type="checkbox" id="theme-toggle" onclick="toggleTheme()" />
+      <span
+        class="swap-on w-6 h-6 bg-current"
+        style="
+          -webkit-mask: url(/static/icons/sun.svg) center/contain no-repeat;
+          mask: url(/static/icons/sun.svg) center/contain no-repeat;
+        "
+      ></span>
+      <span
+        class="swap-off w-6 h-6 bg-current"
+        style="
+          -webkit-mask: url(/static/icons/moon.svg) center/contain no-repeat;
+          mask: url(/static/icons/moon.svg) center/contain no-repeat;
+        "
+      ></span>
+    </label>
+  </div>
+  <button
+    class="btn btn-primary"
+    hx-get="/modal/media/new"
+    hx-target="#modal-container"
+  >
+    add media
+  </button>
+</div>
+
+<div role="tablist" class="tabs tabs-boxed mb-6">
+  <a
+    role="tab"
+    class="tab tab-active"
+    hx-get="/media-items?status=queued"
+    hx-target="#media-content"
+    hx-on::after-request="setActiveTab(this)"
+  >
+    queued
+  </a>
+  <a
+    role="tab"
+    class="tab"
+    hx-get="/media-items?status=watching"
+    hx-target="#media-content"
+    hx-on::after-request="setActiveTab(this)"
+  >
+    watching
+  </a>
+  <a
+    role="tab"
+    class="tab"
+    hx-get="/media-items?status=watched"
+    hx-target="#media-content"
+    hx-on::after-request="setActiveTab(this)"
+  >
+    watched
+  </a>
+</div>
+
+<div id="media-content" hx-get="/media-items?status=queued" hx-trigger="load">
+  <span class="loading loading-spinner loading-lg"></span>
+</div>
+
+<script>
+  function setActiveTab(clickedTab) {
+    document.querySelectorAll('[role="tab"]').forEach((tab) => {
+      tab.classList.remove("tab-active");
+    });
+    clickedTab.classList.add("tab-active");
+  }
+</script>
+{% endblock %}

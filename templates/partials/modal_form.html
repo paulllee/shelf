@@ -1,0 +1,124 @@
+<div class="modal modal-open">
+  <div class="modal-box">
+    <button
+      class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2"
+      onclick="document.getElementById('modal-container').innerHTML = ''"
+    >
+      X
+    </button>
+
+    <h3 class="font-bold text-lg mb-4">
+      {% if item %}edit media{% else %}add media{% endif %}
+    </h3>
+
+    <form
+      id="media-form"
+      {% if item %}hx-put="/media/{{ item.id }}"{% else %}hx-post="/media"{% endif %}
+      hx-target="#media-content"
+      hx-on::after-request="if(event.detail.successful) document.getElementById('modal-container').innerHTML = ''"
+    >
+      <div class="form-control mb-4">
+        <label class="label">
+          <span class="label-text">name</span>
+        </label>
+        <input
+          type="text"
+          name="name"
+          class="input input-bordered"
+          value="{{ item.name if item else '' }}"
+          required
+          hx-get="/api/check-name"
+          hx-trigger="blur changed, keyup changed delay:500ms"
+          hx-target="#name-error"
+          hx-include="[name='name']"
+          {% if item %}hx-vals='{"exclude": "{{ item.id }}"}'{% endif %}
+        />
+        <div id="name-error" class="text-error text-sm mt-1"></div>
+      </div>
+
+      <div class="grid grid-cols-2 gap-4 mb-4">
+        <div class="form-control">
+          <label class="label">
+            <span class="label-text">country</span>
+          </label>
+          <select name="country" class="select select-bordered">
+            {% for country in countries %}{% if country != "UNDEFINED" %}
+            <option value="{{ country.lower() }}" {% if item and item.country == country.lower() %}selected{% endif %}>
+              {{ country.lower() }}
+            </option>
+            {% endif %}{% endfor %}
+          </select>
+        </div>
+
+        <div class="form-control">
+          <label class="label">
+            <span class="label-text">type</span>
+          </label>
+          <select name="type" class="select select-bordered">
+            {% for type in types %}{% if type != "UNDEFINED" %}
+            <option value="{{ type.lower() }}" {% if item and item.type == type.lower() %}selected{% endif %}>
+              {{ type.lower() }}
+            </option>
+            {% endif %}{% endfor %}
+          </select>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-2 gap-4 mb-4">
+        <div class="form-control">
+          <label class="label">
+            <span class="label-text">status</span>
+          </label>
+          <select name="status" class="select select-bordered">
+            {% for status in statuses %}
+            <option value="{{ status.lower() }}" {% if item and item.status == status.lower() %}selected{% endif %}>
+              {{ status.lower() }}
+            </option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div class="form-control">
+          <label class="label">
+            <span class="label-text">rating</span>
+          </label>
+          <input
+            type="text"
+            name="rating"
+            class="input input-bordered"
+            value="{{ item.rating if item and item.rating else '' }}"
+            placeholder="e.g. 4.5"
+          />
+        </div>
+      </div>
+
+      <div class="form-control mb-6">
+        <label class="label">
+          <span class="label-text">review</span>
+        </label>
+        <textarea
+          name="review"
+          class="textarea textarea-bordered h-24"
+          placeholder="your thoughts..."
+        >{{ item.review if item and item.review else '' }}</textarea>
+      </div>
+
+      <div class="modal-action">
+        <button
+          type="button"
+          class="btn"
+          onclick="document.getElementById('modal-container').innerHTML = ''"
+        >
+          cancel
+        </button>
+        <button type="submit" class="btn btn-primary">
+          {% if item %}save{% else %}add{% endif %}
+        </button>
+      </div>
+    </form>
+  </div>
+  <div
+    class="modal-backdrop"
+    onclick="document.getElementById('modal-container').innerHTML = ''"
+  ></div>
+</div>

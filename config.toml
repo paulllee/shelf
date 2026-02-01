@@ -1,0 +1,2 @@
+# path to media markdown files
+media_dir = "./contents/media"

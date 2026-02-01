@@ -5,6 +5,10 @@ help:
 	@echo "targets:"
 	@grep -E '^##' $(MAKEFILE_LIST) | sed -e 's/^## //' | column -t -s ':'
 
+## lint: lint python files with ruff
+lint:
+	uv run ruff check
+
 ## format-all: formats python + html/js/css files
 format-all:
 	uv run ruff format
@@ -19,6 +23,10 @@ build-css:
 watch-css:
 	npx @tailwindcss/cli -i src/input.css -o static/css/output.css -w
 
-## run: run dev fastapi configuration
-run:
-	uv run fastapi dev main.py
+## dev: run dev fastapi configuration
+dev:
+	uv run fastapi dev app/main.py --host 0.0.0.0 --port 80
+
+## prod: run prod fastapi configuration
+prod:
+	uv run fastapi run app/main.py --host 0.0.0.0 --port 80
