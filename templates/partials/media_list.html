@@ -1,10 +1,10 @@
 {% if media_items %}
-<div class="flex gap-4 mb-4">
+<div class="flex flex-col gap-2 sm:flex-row sm:gap-4 mb-4">
   <div class="form-control">
     <select
       id="filter-type"
-      class="select select-bordered select-sm"
-      onchange="filterTable()"
+      class="select select-bordered select-sm w-full sm:w-auto"
+      onchange="filterMedia()"
     >
       <option value="">all types</option>
       {% set types = media_items | map(attribute='type') | unique | sort %} {%
@@ -16,8 +16,8 @@
   <div class="form-control">
     <select
       id="filter-country"
-      class="select select-bordered select-sm"
-      onchange="filterTable()"
+      class="select select-bordered select-sm w-full sm:w-auto"
+      onchange="filterMedia()"
     >
       <option value="">all countries</option>
       {% set countries = media_items | map(attribute='country') | unique | sort
@@ -28,7 +28,31 @@
   </div>
 </div>
 
-<div class="overflow-auto max-h-[70vh] rounded-lg">
+<!-- Mobile card view -->
+<div id="media-cards" class="space-y-2 md:hidden">
+  {% for item in media_items %}
+  <div
+    class="media-card bg-base-200 rounded-lg p-3 active:bg-base-300 cursor-pointer"
+    data-type="{{ item.type_str }}"
+    data-country="{{ item.country_str }}"
+    hx-get="/modal/media/{{ item.id }}/edit?viewing_status={{ current_status }}"
+    hx-target="#modal-container"
+  >
+    <div class="flex justify-between items-start">
+      <span class="font-medium">{{ item.name }}</span>
+      {% if item.rating and item.rating != "n/a" %}
+      <span class="badge badge-primary badge-sm">{{ item.rating }}</span>
+      {% endif %}
+    </div>
+    <div class="text-sm text-base-content/60 mt-1">
+      {% if item.type_str != "undefined" %}{{ item.type_str }}{% endif %}{% if item.type_str != "undefined" and item.country_str != "undefined" %} · {% endif %}{% if item.country_str != "undefined" %}{{ item.country_str }}{% endif %}
+    </div>
+  </div>
+  {% endfor %}
+</div>
+
+<!-- Desktop table view -->
+<div class="hidden md:block overflow-auto max-h-[70vh] rounded-lg">
   <table id="media-table" class="table table-zebra w-full bg-base-100">
     <thead class="sticky top-0 bg-base-100 z-10">
       <tr class="border-b-2 border-base-300">
@@ -71,15 +95,16 @@
 </div>
 
 <script>
-  function filterTable() {
+  function filterMedia() {
     const typeFilter = document
       .getElementById("filter-type")
       .value.toLowerCase();
     const countryFilter = document
       .getElementById("filter-country")
       .value.toLowerCase();
-    const rows = document.querySelectorAll("#media-table tbody tr");
 
+    // Filter table rows (desktop)
+    const rows = document.querySelectorAll("#media-table tbody tr");
     rows.forEach((row) => {
       const type = row.children[1].textContent.trim().toLowerCase();
       const country = row.children[2].textContent.trim().toLowerCase();
@@ -88,6 +113,18 @@
       const countryMatch = !countryFilter || country === countryFilter;
 
       row.style.display = typeMatch && countryMatch ? "" : "none";
+    });
+
+    // Filter cards (mobile)
+    const cards = document.querySelectorAll("#media-cards .media-card");
+    cards.forEach((card) => {
+      const type = card.dataset.type.toLowerCase();
+      const country = card.dataset.country.toLowerCase();
+
+      const typeMatch = !typeFilter || type === typeFilter;
+      const countryMatch = !countryFilter || country === countryFilter;
+
+      card.style.display = typeMatch && countryMatch ? "" : "none";
     });
   }
 

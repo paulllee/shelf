@@ -1,46 +1,60 @@
 {% extends "base.html" %} {% block content %}
-<div class="flex justify-between items-center mb-6">
-  <div class="flex items-center gap-3">
-    <h1 class="text-3xl font-bold">shelf</h1>
-    <label class="swap swap-rotate">
-      <input type="checkbox" id="theme-toggle" onclick="toggleTheme()" />
-      <span
-        class="swap-on w-6 h-6 bg-current"
-        style="
-          -webkit-mask: url(/static/icons/sun.svg) center/contain no-repeat;
-          mask: url(/static/icons/sun.svg) center/contain no-repeat;
-        "
-      ></span>
-      <span
-        class="swap-off w-6 h-6 bg-current"
-        style="
-          -webkit-mask: url(/static/icons/moon.svg) center/contain no-repeat;
-          mask: url(/static/icons/moon.svg) center/contain no-repeat;
-        "
-      ></span>
-    </label>
+<div class="flex flex-col gap-3 mb-6 sm:flex-row sm:justify-between sm:items-center">
+  <!-- Title row: title + theme toggle + mobile add button -->
+  <div class="flex items-center justify-between">
+    <div class="flex items-center gap-3">
+      <h1 class="text-2xl sm:text-3xl font-bold">shelf</h1>
+      <label class="swap swap-rotate">
+        <input type="checkbox" id="theme-toggle" onclick="toggleTheme()" />
+        <span
+          class="swap-on w-6 h-6 bg-current"
+          style="
+            -webkit-mask: url(/static/icons/sun.svg) center/contain no-repeat;
+            mask: url(/static/icons/sun.svg) center/contain no-repeat;
+          "
+        ></span>
+        <span
+          class="swap-off w-6 h-6 bg-current"
+          style="
+            -webkit-mask: url(/static/icons/moon.svg) center/contain no-repeat;
+            mask: url(/static/icons/moon.svg) center/contain no-repeat;
+          "
+        ></span>
+      </label>
+    </div>
+    <!-- Mobile-only add button -->
+    <button
+      id="add-btn-mobile"
+      class="btn btn-primary btn-sm sm:hidden"
+      hx-get="/modal/media/new"
+      hx-target="#modal-container"
+    >
+      +
+    </button>
   </div>
 
-  <div class="join">
+  <!-- Section toggle - full width on mobile -->
+  <div class="join w-full sm:w-auto">
     <button
       id="section-media"
-      class="btn btn-sm join-item btn-active"
+      class="btn btn-sm join-item flex-1 sm:flex-none btn-active"
       onclick="switchSection('media')"
     >
       media
     </button>
     <button
       id="section-workouts"
-      class="btn btn-sm join-item"
+      class="btn btn-sm join-item flex-1 sm:flex-none"
       onclick="switchSection('workouts')"
     >
       workouts
     </button>
   </div>
 
+  <!-- Desktop add button -->
   <button
     id="add-btn"
-    class="btn btn-primary"
+    class="btn btn-primary hidden sm:block"
     hx-get="/modal/media/new"
     hx-target="#modal-container"
   >
@@ -112,6 +126,7 @@
     const mediaBtn = document.getElementById("section-media");
     const workoutBtn = document.getElementById("section-workouts");
     const addBtn = document.getElementById("add-btn");
+    const addBtnMobile = document.getElementById("add-btn-mobile");
 
     localStorage.setItem("shelf-section", section);
 
@@ -122,7 +137,9 @@
       workoutBtn.classList.remove("btn-active");
       addBtn.textContent = "add media";
       addBtn.setAttribute("hx-get", "/modal/media/new");
+      addBtnMobile.setAttribute("hx-get", "/modal/media/new");
       htmx.process(addBtn);
+      htmx.process(addBtnMobile);
     } else {
       mediaSection.classList.add("hidden");
       workoutSection.classList.remove("hidden");
@@ -130,7 +147,9 @@
       workoutBtn.classList.add("btn-active");
       addBtn.textContent = "add workout";
       addBtn.setAttribute("hx-get", "/modal/workout/new");
+      addBtnMobile.setAttribute("hx-get", "/modal/workout/new");
       htmx.process(addBtn);
+      htmx.process(addBtnMobile);
     }
   }
 

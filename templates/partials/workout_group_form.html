@@ -1,31 +1,33 @@
 <div
-  class="group-container bg-base-200 rounded-lg p-4"
+  class="group-container bg-base-200 rounded-lg p-3 sm:p-4"
   data-group-idx="{{ group_idx }}"
 >
-  <div class="flex gap-2 mb-3">
+  <div class="flex flex-col sm:flex-row gap-2 mb-3">
     <input
       type="text"
       name="groups[{{ group_idx }}][name]"
-      class="input input-bordered input-sm flex-1"
+      class="input input-bordered input-sm w-full sm:flex-1"
       placeholder="group name (e.g., chest & triceps)"
       value="{{ group.name if group else '' }}"
       required
     />
-    <input
-      type="number"
-      name="groups[{{ group_idx }}][rest_seconds]"
-      class="input input-bordered input-sm w-24"
-      placeholder="rest (s)"
-      value="{{ group.rest_seconds if group else 60 }}"
-      required
-    />
-    <button
-      type="button"
-      class="btn btn-ghost btn-sm"
-      onclick="removeGroup(this)"
-    >
-      ×
-    </button>
+    <div class="flex gap-2">
+      <input
+        type="number"
+        name="groups[{{ group_idx }}][rest_seconds]"
+        class="input input-bordered input-sm flex-1 sm:w-24 sm:flex-none"
+        placeholder="rest (s)"
+        value="{{ group.rest_seconds if group else 60 }}"
+        required
+      />
+      <button
+        type="button"
+        class="btn btn-ghost btn-sm flex-shrink-0"
+        onclick="removeGroup(this)"
+      >
+        ×
+      </button>
+    </div>
   </div>
   <div class="exercises-container space-y-3">
     {% if group %} {% for exercise in group.exercises %} {% set exercise_idx =

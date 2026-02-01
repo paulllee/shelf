@@ -1,7 +1,7 @@
-<div id="workout-calendar" class="bg-base-200 rounded-lg p-4">
+<div id="workout-calendar" class="bg-base-200 rounded-lg p-3 sm:p-4">
   <div class="flex justify-between items-center mb-4">
     <button
-      class="btn btn-ghost btn-sm btn-square"
+      class="btn btn-ghost btn-sm btn-square min-w-[44px] min-h-[44px]"
       hx-get="/workout-calendar?year={{ prev_year }}&month={{ prev_month }}"
       hx-target="#workout-calendar"
       hx-swap="outerHTML"
@@ -13,7 +13,7 @@
         >{{ month_name }} {{ year }}</span
       >
       <button
-        class="btn btn-ghost btn-xs btn-circle"
+        class="btn btn-ghost btn-sm btn-circle min-w-[44px] min-h-[44px]"
         hx-get="/workout-calendar"
         hx-target="#workout-calendar"
         hx-swap="outerHTML"
@@ -23,7 +23,7 @@
       </button>
     </div>
     <button
-      class="btn btn-ghost btn-sm btn-square"
+      class="btn btn-ghost btn-sm btn-square min-w-[44px] min-h-[44px]"
       hx-get="/workout-calendar?year={{ next_year }}&month={{ next_month }}"
       hx-target="#workout-calendar"
       hx-swap="outerHTML"
@@ -32,7 +32,7 @@
     </button>
   </div>
 
-  <div class="grid grid-cols-7 gap-1 text-center text-xs mb-2">
+  <div class="grid grid-cols-7 gap-0.5 sm:gap-1 text-center text-xs mb-2">
     <div class="text-base-content/50">su</div>
     <div class="text-base-content/50">mo</div>
     <div class="text-base-content/50">tu</div>
@@ -42,14 +42,14 @@
     <div class="text-base-content/50">sa</div>
   </div>
 
-  <div class="grid grid-cols-7 gap-1 text-center text-sm">
+  <div class="grid grid-cols-7 gap-0.5 sm:gap-1 text-center text-xs sm:text-sm">
     {% for _ in range(first_weekday) %}
     <div></div>
     {% endfor %} {% for day in range(1, days_in_month + 1) %} {% set date_str =
     '%04d-%02d-%02d'|format(year, month, day) %} {% set has_workout = date_str
     in workout_dates %} {% set is_today = date_str == today %}
     <div
-      class="relative py-1 rounded {% if is_today %}bg-primary/20{% endif %} {% if has_workout %}cursor-pointer hover:bg-base-300{% endif %}"
+      class="relative py-2 sm:py-1 rounded min-h-[36px] flex items-center justify-center {% if is_today %}bg-primary/20{% endif %} {% if has_workout %}cursor-pointer hover:bg-base-300 active:bg-base-300{% endif %}"
       {%
       if
       has_workout
@@ -60,7 +60,7 @@
     >
       {{ day }} {% if has_workout %}
       <div
-        class="absolute bottom-0 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-primary"
+        class="absolute bottom-0.5 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-primary"
       ></div>
       {% endif %}
     </div>

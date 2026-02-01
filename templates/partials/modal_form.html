@@ -1,6 +1,6 @@
 <!-- prettier-ignore -->
 <div class="modal modal-open">
-  <div class="modal-box">
+  <div class="modal-box w-[calc(100%-2rem)] sm:w-auto max-w-lg">
     <button
       class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2"
       onclick="document.getElementById('modal-container').innerHTML = ''"
@@ -38,7 +38,7 @@
         <div id="name-error" class="text-error text-sm mt-1"></div>
       </div>
 
-      <div class="grid grid-cols-2 gap-4 mb-4">
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
         <div class="form-control">
           <label class="label">
             <span class="label-text">country</span>
@@ -66,7 +66,7 @@
         </div>
       </div>
 
-      <div class="grid grid-cols-2 gap-4 mb-4">
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
         <div class="form-control">
           <label class="label">
             <span class="label-text">status</span>
@@ -105,7 +105,7 @@
         >{{ item.review if item and item.review else '' }}</textarea>
       </div>
 
-      <div class="modal-action">
+      <div class="modal-action flex-col-reverse gap-2 sm:flex-row">
         <button
           type="button"
           class="btn"
