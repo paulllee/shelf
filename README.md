@@ -3,6 +3,12 @@
 a self-hosted, markdown-backed personal tracker for media (movies, shows, etc.)
 and workouts
 
+## screenshots
+
+| media | workouts |
+|-------|----------|
+| ![media](docs/media.jpeg) | ![workouts](docs/workouts.jpeg) |
+
 ## features
 
 - **media tracking**: track movies, shows, and other media with status
