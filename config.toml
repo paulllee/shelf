@@ -5,4 +5,4 @@ media_dir = "./contents/media"
 workout_dir = "./contents/workout"
 
 # path to workout template files
-template_dir = "./contents/templates"
+template_dir = "./contents/template"
