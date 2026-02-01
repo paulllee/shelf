@@ -186,7 +186,7 @@ async def edit_media_item_form(request: Request, id: str):
 
 
 @router.get("/modal/media/new")
-async def new_media_modal(request: Request):
+async def new_media_modal(request: Request, status: str = "queued"):
     return templates.TemplateResponse(
         request=request,
         name="partials/modal_form.html",
@@ -194,6 +194,7 @@ async def new_media_modal(request: Request):
             "countries": MediaCountry.get_defined_names(),
             "types": MediaType.get_defined_names(),
             "statuses": MediaStatus.get_defined_names(),
+            "viewing_status": status,
         },
     )
 

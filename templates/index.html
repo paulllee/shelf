@@ -120,6 +120,16 @@
     });
     clickedTab.classList.add("tab-active");
     localStorage.setItem("shelf-media-tab", status);
+    updateAddButtonStatus(status);
+  }
+
+  function updateAddButtonStatus(status) {
+    const addBtn = document.getElementById("add-btn");
+    const addBtnMobile = document.getElementById("add-btn-mobile");
+    addBtn.setAttribute("hx-get", `/modal/media/new?status=${status}`);
+    addBtnMobile.setAttribute("hx-get", `/modal/media/new?status=${status}`);
+    htmx.process(addBtn);
+    htmx.process(addBtnMobile);
   }
 
   function switchSection(section) {
@@ -138,8 +148,12 @@
       mediaBtn.classList.add("btn-active");
       workoutBtn.classList.remove("btn-active");
       addBtn.textContent = "add media";
-      addBtn.setAttribute("hx-get", "/modal/media/new");
-      addBtnMobile.setAttribute("hx-get", "/modal/media/new");
+      const currentTab = localStorage.getItem("shelf-media-tab") || "queued";
+      addBtn.setAttribute("hx-get", `/modal/media/new?status=${currentTab}`);
+      addBtnMobile.setAttribute(
+        "hx-get",
+        `/modal/media/new?status=${currentTab}`,
+      );
       htmx.process(addBtn);
       htmx.process(addBtnMobile);
     } else {
@@ -168,11 +182,13 @@
     if (tab) {
       tab.classList.add("tab-active");
       htmx.ajax("GET", `/media-items?status=${savedTab}`, "#media-content");
+      updateAddButtonStatus(savedTab);
     } else {
       document
         .querySelector('[data-status="queued"]')
         .classList.add("tab-active");
       htmx.ajax("GET", "/media-items?status=queued", "#media-content");
+      updateAddButtonStatus("queued");
     }
   });
 </script>

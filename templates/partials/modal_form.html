@@ -73,7 +73,7 @@
           </label>
           <select name="status" class="select select-bordered">
             {% for status in statuses %}
-            <option value="{{ status.lower() }}" {% if item and item.status == status.lower() %}selected{% endif %}>
+            <option value="{{ status.lower() }}" {% if (item and item.status == status.lower()) or (not item and viewing_status == status.lower()) %}selected{% endif %}>
               {{ status.lower() }}
             </option>
             {% endfor %}
