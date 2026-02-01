@@ -24,9 +24,9 @@ watch-css:
 	npx @tailwindcss/cli -i src/input.css -o static/css/output.css -w
 
 ## dev: run dev fastapi configuration
-dev:
+dev: build-css
 	uv run fastapi dev app/main.py --host 0.0.0.0 --port 80
 
 ## prod: run prod fastapi configuration
-prod:
+prod: build-css
 	uv run fastapi run app/main.py --host 0.0.0.0 --port 80
