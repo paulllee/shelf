@@ -63,6 +63,13 @@
         delete
       </button>
       <button
+        class="btn btn-ghost btn-sm"
+        hx-get="/modal/workout/from-workout/{{ workout.id }}"
+        hx-target="#modal-container"
+      >
+        repeat
+      </button>
+      <button
         class="btn btn-sm"
         hx-get="/modal/workout/{{ workout.id }}/edit"
         hx-target="#modal-container"

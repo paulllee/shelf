@@ -319,6 +319,23 @@ async def new_workout_from_template(request: Request, template_id: str):
     )
 
 
+@router.get("/modal/workout/from-workout/{workout_id}")
+async def new_workout_from_workout(request: Request, workout_id: str):
+    workout = request.app.state.parse_md_to_workout(
+        try_get_workout_md(request, workout_id)
+    )
+    return templates.TemplateResponse(
+        request=request,
+        name="partials/workout_modal_form.html",
+        context={
+            "today": date.today().isoformat(),
+            "now_time": datetime.now().strftime("%H:%M"),
+            "templates": request.app.state.template_items,
+            "prefill_workout": workout,
+        },
+    )
+
+
 @router.post("/workout")
 async def create_workout(request: Request):
     form_data = await request.form()

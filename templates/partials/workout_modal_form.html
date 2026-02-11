@@ -75,6 +75,11 @@
             {% set group_idx = loop.index0 %}
             {% include "partials/workout_group_form.html" %}
           {% endfor %}
+        {% elif prefill_workout %}
+          {% for group in prefill_workout.groups %}
+            {% set group_idx = loop.index0 %}
+            {% include "partials/workout_group_form.html" %}
+          {% endfor %}
         {% else %}
           {% set group_idx = 0 %}
           {% set group = none %}
