@@ -9,30 +9,45 @@ Shelf is a self-hosted, markdown-backed personal tracker for media (movies, show
 ## Commands
 
 ```bash
-make dev          # Run dev server (FastAPI with hot reload)
-make prod         # Run production server
-make lint         # Lint Python with ruff
-make format-all   # Format Python (ruff) + HTML/JS/CSS (prettier)
-make build-css    # Build Tailwind CSS
-make watch-css    # Watch and rebuild Tailwind CSS
+make dev          # Run both backend (port 8000) and frontend (port 80) dev servers
+make dev-api      # Run FastAPI backend only
+make dev-ui       # Run Vite frontend only (port 80, may need sudo)
+make prod         # Build frontend and run production server
+make lint         # Lint Python (ruff) and TypeScript (tsc --noEmit)
+make format-all   # Format Python (ruff) + frontend (prettier)
+make build-frontend  # Build React app for production
 ```
 
-Uses `uv` for Python package management. Requires Python 3.14+.
+Uses `uv` for Python package management. Requires Python 3.14+. Uses `npm` for frontend.
 
 ## Architecture
 
-**Backend**: FastAPI app in `app/main.py` serving Jinja2 templates with HTMX for interactivity.
+**Backend**: FastAPI app in `app/main.py` serving a JSON API under `/api/`. In production, also serves the built SPA from `static/spa/`.
 
 **Data Layer**: Markdown files with YAML frontmatter parsed via `python-frontmatter`. Files are polled every 5 seconds and cached in `app.state` (`media_items`, `workout_items`, `template_items`). Directory paths configured in `config.toml`.
 
+**Frontend**: React SPA built with Vite + TypeScript. Uses TanStack Query for data fetching/caching, Tailwind CSS + DaisyUI for styling, `useReducer` for the nested workout form builder. No router — section/tab state stored in localStorage.
+
 **Key Files**:
-- `app/main.py` - FastAPI app, lifespan, parsing functions
+- `app/main.py` - FastAPI app, lifespan, parsing functions, CORS, SPA catch-all
 - `app/models.py` - Dataclasses (`Media`, `Workout`, `WorkoutTemplate`) and Pydantic models for form validation
 - `app/writer.py` - Serializes items back to markdown
-- `app/routes/media.py` - Media CRUD routes
-- `app/routes/workout.py` - Workout and template CRUD routes
+- `app/routes/media.py` - Media JSON API endpoints
+- `app/routes/workout.py` - Workout and template JSON API endpoints
+- `frontend/src/App.tsx` - React app entry, section toggle
+- `frontend/src/api/` - Typed API client functions
+- `frontend/src/components/` - React components
+- `frontend/src/types/` - TypeScript interfaces mirroring backend models
 
-**Frontend**: Tailwind CSS (via DaisyUI), HTMX partials in `templates/partials/`.
+## Key Patterns
+
+- **ID generation**: Media IDs are slugified names (e.g., "Reply 1988" → `reply-1988`). Workout IDs are `YYYYMMDD-HHMMSS` from date/time fields. Template IDs are slugified names.
+- **Edit with rename**: PUT endpoints handle ID changes (when name/date changes) by deleting old file and creating new one.
+- **Polling**: Background async tasks poll markdown directories every 5 seconds, updating `app.state`. This allows detecting external file edits.
+- **No router**: Frontend uses localStorage (`shelf-section`) to track active section (media/workouts). No URL-based routing.
+- **Workout form state**: `WorkoutFormModal.tsx` uses `useReducer` for the deeply nested group → exercise → set structure. Actions include `add_group`, `remove_group`, `add_exercise`, `update_set`, etc.
+- **Responsive views**: Media uses card layout on mobile, table on desktop. Controlled by Tailwind breakpoints.
+- **No tests**: No test infrastructure exists yet.
 
 ## Data Models
 

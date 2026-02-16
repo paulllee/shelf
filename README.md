@@ -25,7 +25,7 @@ and workouts
 
 - python 3.14+
 - [uv](https://github.com/astral-sh/uv) (python package manager)
-- node.js (for tailwindcss)
+- node.js (for react frontend)
 
 ## setup
 
@@ -40,9 +40,9 @@ and workouts
    uv sync
    ```
 
-3. install node dependencies:
+3. install frontend dependencies:
    ```bash
-   npm install
+   cd frontend && npm install
    ```
 
 4. create content directories:
@@ -59,7 +59,7 @@ and workouts
 
 ## running
 
-development server (with hot reload):
+development server (backend + frontend with hot reload):
 ```bash
 make dev
 ```
@@ -69,18 +69,21 @@ production server:
 make prod
 ```
 
-the app runs on `http://localhost:80` by default
+in development, the frontend runs on `http://localhost:5173` and proxies API
+calls to the backend on `http://localhost:8000`. in production, the built SPA is
+served directly from fastapi on `http://localhost:80`.
 
 ## available commands
 
 ```bash
-make help        # show all commands
-make dev         # run dev server
-make prod        # run production server
-make lint        # lint python with ruff
-make format-all  # format python + html/js/css
-make build-css   # build tailwindcss
-make watch-css   # watch and rebuild tailwindcss
+make help           # show all commands
+make dev            # run both backend and frontend dev servers
+make dev-api        # run fastapi backend only
+make dev-ui         # run vite frontend only
+make prod           # build frontend and run production server
+make lint           # lint python (ruff) and typescript (tsc)
+make format-all     # format python + frontend files
+make build-frontend # build react app for production
 ```
 
 ## project structure
@@ -88,25 +91,35 @@ make watch-css   # watch and rebuild tailwindcss
 ```
 shelf/
 ├── app/
-│   ├── main.py          # fastapi app, lifespan, parsing
+│   ├── main.py          # fastapi app, lifespan, parsing, cors, spa serving
 │   ├── models.py        # data models (media, workout, templates)
 │   ├── writer.py        # markdown serialization
-│   └── routes/          # api and htmx routes
+│   └── routes/          # json api routes
 │       ├── media.py
 │       └── workout.py
-├── templates/           # jinja2 templates
-│   ├── base.html
+├── frontend/            # react spa (vite + typescript)
 │   ├── index.html
-│   └── partials/        # htmx partials
+│   ├── package.json
+│   ├── vite.config.ts
+│   └── src/
+│       ├── main.tsx
+│       ├── App.tsx
+│       ├── input.css    # tailwind + daisyui
+│       ├── api/         # typed api client
+│       ├── components/  # react components
+│       ├── hooks/       # custom hooks
+│       └── types/       # typescript interfaces
 ├── static/
-│   └── css/output.css   # compiled tailwindcss
+│   ├── spa/             # vite build output (gitignored)
+│   ├── favicons/
+│   └── icons/
 ├── contents/            # markdown data (gitignored)
 │   ├── media/
 │   ├── workout/
 │   └── templates/
 ├── config.toml          # directory configuration
 ├── pyproject.toml       # python dependencies
-└── package.json         # node dependencies (tailwind, prettier)
+└── Makefile
 ```
 
 ## data format
@@ -146,7 +159,7 @@ optional notes here
 
 ## tech stack
 
-- **backend**: fastapi + jinja2
-- **frontend**: htmx + tailwindcss + daisyui
+- **backend**: fastapi (json api)
+- **frontend**: react (vite) + tailwindcss + daisyui + tanstack query
 - **data**: markdown with yaml frontmatter
-- **tooling**: uv, ruff, prettier
+- **tooling**: uv, ruff, prettier, typescript

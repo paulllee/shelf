@@ -8,9 +8,10 @@ from pathlib import Path
 from typing import Any
 
 import frontmatter
-from fastapi import FastAPI, HTTPException, Request
+from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
-from fastapi.templating import Jinja2Templates
 
 from app.models import (
     Exercise,
@@ -236,20 +237,46 @@ async def lifespan(app: FastAPI):
 
 app: FastAPI = FastAPI(lifespan=lifespan)
 
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:5173"],
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 app.mount(
     "/static",
     StaticFiles(directory=Path(__file__).parent.parent / "static"),
     name="static",
 )
-templates: Jinja2Templates = Jinja2Templates(directory="./templates")
 
-app.include_router(media_routes.router)
-app.include_router(workout_routes.router)
+app.include_router(media_routes.router, prefix="/api")
+app.include_router(workout_routes.router, prefix="/api")
 
 
-@app.get("/")
-async def index_page(request: Request):
-    return templates.TemplateResponse(
-        request=request,
-        name="index.html",
+@app.get("/api/meta/enums")
+async def get_enums() -> dict[str, list[str]]:
+    return {
+        "countries": [m.name.lower() for m in MediaCountry if m.name != "UNDEFINED"],
+        "types": [m.name.lower() for m in MediaType if m.name != "UNDEFINED"],
+        "statuses": [m.name.lower() for m in MediaStatus],
+    }
+
+
+# SPA catch-all: serve index.html for non-API, non-static routes
+spa_dir: Path = Path(__file__).parent.parent / "static" / "spa"
+
+
+@app.get("/{full_path:path}")
+async def serve_spa(full_path: str) -> FileResponse:
+    # try to serve the exact file first (for assets like .js, .css)
+    file_path: Path = spa_dir / full_path
+    if full_path and file_path.is_file():
+        return FileResponse(file_path)
+    # otherwise serve index.html for client-side routing
+    index_path: Path = spa_dir / "index.html"
+    if index_path.is_file():
+        return FileResponse(index_path)
+    raise HTTPException(
+        status_code=404, detail="SPA not built. Run: make build-frontend"
     )

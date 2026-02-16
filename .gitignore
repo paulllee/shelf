@@ -13,6 +13,7 @@ uv.lock
 # frontend stuff
 node_modules/
 static/css/
+static/spa/
 package-lock.json
 
 # misc

@@ -5,28 +5,32 @@ help:
 	@echo "targets:"
 	@grep -E '^##' $(MAKEFILE_LIST) | sed -e 's/^## //' | column -t -s ':'
 
-## lint: lint python files with ruff
+## lint: lint python and typescript
 lint:
 	uv run ruff check
+	cd frontend && npx tsc --noEmit
 
-## format-all: formats python + html/js/css files
+## format-all: format python + frontend files
 format-all:
 	uv run ruff format
-	@echo ""
-	npx prettier -w **/*.html **/*.js **/*.css
+	cd frontend && npx prettier -w src/
 
-## build-css: build tailwindcss
-build-css:
-	npx @tailwindcss/cli -i src/input.css -o static/css/output.css
+## dev-api: run fastapi backend only
+dev-api:
+	uv run fastapi dev app/main.py --host 0.0.0.0 --port 8000
 
-## watch-css: watching for any changes to rebuild tailwindcss
-watch-css:
-	npx @tailwindcss/cli -i src/input.css -o static/css/output.css -w
+## dev-ui: run vite frontend only
+dev-ui:
+	cd frontend && npm run dev
 
-## dev: run dev fastapi configuration
-dev: build-css
-	uv run fastapi dev app/main.py --host 0.0.0.0 --port 80
+## dev: run both backend and frontend dev servers
+dev:
+	(cd frontend && npm run dev) & uv run fastapi dev app/main.py --host 0.0.0.0 --port 8000
 
-## prod: run prod fastapi configuration
-prod: build-css
+## build-frontend: build react app for production
+build-frontend:
+	cd frontend && npm run build
+
+## prod: build frontend and run production server
+prod: build-frontend
 	uv run fastapi run app/main.py --host 0.0.0.0 --port 80
