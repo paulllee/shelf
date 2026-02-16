@@ -52,7 +52,7 @@ type FormAction =
       groupIdx: number;
       exerciseIdx: number;
       setIdx: number;
-      reps: number;
+      reps: number | null;
     }
   | {
       type: "SET_SET_WEIGHT";
@@ -63,7 +63,7 @@ type FormAction =
     };
 
 function emptySet(): WorkoutSet {
-  return { reps: 0, weight: null };
+  return { reps: null, weight: null };
 }
 
 function emptyExercise(): Exercise {
@@ -460,17 +460,16 @@ export default function WorkoutFormModal({
                             type="number"
                             className="input input-bordered input-xs flex-1 min-w-0"
                             placeholder="reps"
-                            value={set.reps || ""}
+                            value={set.reps ?? ""}
                             onChange={(e) =>
                               dispatch({
                                 type: "SET_SET_REPS",
                                 groupIdx: gi,
                                 exerciseIdx: ei,
                                 setIdx: si,
-                                reps: parseInt(e.target.value) || 0,
+                                reps: e.target.value ? parseInt(e.target.value) : null,
                               })
                             }
-                            required
                           />
                           <input
                             type="number"

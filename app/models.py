@@ -99,7 +99,7 @@ class MediaModel(BaseModel):
 
 @dataclass
 class WorkoutSet:
-    reps: int
+    reps: int | None = None
     weight: float | None = None
 
 
@@ -129,7 +129,7 @@ class Workout:
 
 
 class WorkoutSetModel(BaseModel):
-    reps: int
+    reps: Optional[int] = None
     weight: Optional[float] = None
 
 

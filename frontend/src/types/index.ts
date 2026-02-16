@@ -1,5 +1,5 @@
 export interface WorkoutSet {
-  reps: number;
+  reps: number | null;
   weight: number | null;
 }
 

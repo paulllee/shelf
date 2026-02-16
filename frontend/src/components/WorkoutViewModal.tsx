@@ -96,7 +96,7 @@ export default function WorkoutViewModal({
                     <div className="flex flex-wrap gap-2 mt-1">
                       {exercise.sets.map((set, si) => (
                         <span key={si} className="badge badge-outline">
-                          {set.reps} reps
+                          {set.reps != null ? `${set.reps} reps` : "—"}
                           {set.weight != null ? ` @ ${set.weight}` : ""}
                         </span>
                       ))}

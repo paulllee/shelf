@@ -35,7 +35,9 @@ def write_workout(workout: WorkoutModel, file_path: Path) -> None:
         for exercise in group.exercises:
             sets = []
             for s in exercise.sets:
-                set_dict: dict = {"reps": s.reps}
+                set_dict: dict = {}
+                if s.reps is not None:
+                    set_dict["reps"] = s.reps
                 if s.weight is not None:
                     set_dict["weight"] = s.weight
                 sets.append(set_dict)
@@ -67,7 +69,9 @@ def write_template(template: WorkoutTemplateModel, file_path: Path) -> None:
         for exercise in group.exercises:
             sets = []
             for s in exercise.sets:
-                set_dict: dict = {"reps": s.reps}
+                set_dict: dict = {}
+                if s.reps is not None:
+                    set_dict["reps"] = s.reps
                 if s.weight is not None:
                     set_dict["weight"] = s.weight
                 sets.append(set_dict)

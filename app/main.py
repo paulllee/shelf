@@ -113,7 +113,7 @@ def parse_md_to_workout(md_path: Path) -> Workout:
                 sets = []
                 for s in e.get("sets", []):
                     sets.append(
-                        WorkoutSet(reps=s.get("reps", 0), weight=s.get("weight"))
+                        WorkoutSet(reps=s.get("reps"), weight=s.get("weight"))
                     )
                 exercises.append(Exercise(name=e.get("name", ""), sets=sets))
             groups.append(
@@ -168,7 +168,7 @@ def parse_md_to_template(md_path: Path) -> WorkoutTemplate:
                 sets = []
                 for s in e.get("sets", []):
                     sets.append(
-                        WorkoutSet(reps=s.get("reps", 0), weight=s.get("weight"))
+                        WorkoutSet(reps=s.get("reps"), weight=s.get("weight"))
                     )
                 exercises.append(Exercise(name=e.get("name", ""), sets=sets))
             groups.append(
