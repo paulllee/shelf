@@ -177,18 +177,20 @@
     // restore section
     switchSection(savedSection);
 
-    // restore media tab and load content
-    const tab = document.querySelector(`[data-status="${savedTab}"]`);
-    if (tab) {
-      tab.classList.add("tab-active");
-      htmx.ajax("GET", `/media-items?status=${savedTab}`, "#media-content");
-      updateAddButtonStatus(savedTab);
-    } else {
-      document
-        .querySelector('[data-status="queued"]')
-        .classList.add("tab-active");
-      htmx.ajax("GET", "/media-items?status=queued", "#media-content");
-      updateAddButtonStatus("queued");
+    // restore media tab and load content (only if on media section)
+    if (savedSection === "media") {
+      const tab = document.querySelector(`[data-status="${savedTab}"]`);
+      if (tab) {
+        tab.classList.add("tab-active");
+        htmx.ajax("GET", `/media-items?status=${savedTab}`, "#media-content");
+        updateAddButtonStatus(savedTab);
+      } else {
+        document
+          .querySelector('[data-status="queued"]')
+          .classList.add("tab-active");
+        htmx.ajax("GET", "/media-items?status=queued", "#media-content");
+        updateAddButtonStatus("queued");
+      }
     }
   });
 </script>
