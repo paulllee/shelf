@@ -67,7 +67,7 @@ function emptySet(): WorkoutSet {
 }
 
 function emptyExercise(): Exercise {
-  return { name: "", sets: [emptySet()] };
+  return { name: "", sets: [] };
 }
 
 function emptyGroup(): ExerciseGroup {
@@ -166,7 +166,7 @@ function formReducer(state: FormState, action: FormAction): FormState {
           ...g,
           exercises: updateAt(g.exercises, action.exerciseIdx, (e) => ({
             ...e,
-            sets: e.sets.length > 1 ? removeAt(e.sets, action.setIdx) : e.sets,
+            sets: removeAt(e.sets, action.setIdx),
           })),
         })),
       };
@@ -460,6 +460,7 @@ export default function WorkoutFormModal({
                             type="number"
                             className="input input-bordered input-xs flex-1 min-w-0"
                             placeholder="reps"
+                            min="1"
                             value={set.reps ?? ""}
                             onChange={(e) =>
                               dispatch({
@@ -467,7 +468,7 @@ export default function WorkoutFormModal({
                                 groupIdx: gi,
                                 exerciseIdx: ei,
                                 setIdx: si,
-                                reps: e.target.value ? parseInt(e.target.value) : null,
+                                reps: (() => { const v = parseInt(e.target.value); return v > 0 ? v : null; })(),
                               })
                             }
                           />
@@ -543,12 +544,10 @@ export default function WorkoutFormModal({
           + add group
         </button>
 
-        <div className="form-control mb-4">
-          <label className="label">
-            <span className="label-text">notes</span>
-          </label>
+        <div className="mb-4">
+          <label className="label mb-2 block">notes</label>
           <textarea
-            className="textarea textarea-bordered h-20"
+            className="textarea textarea-bordered h-20 w-full"
             placeholder="workout notes..."
             value={state.content}
             onChange={(e) =>

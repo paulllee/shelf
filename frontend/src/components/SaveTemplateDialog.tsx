@@ -32,7 +32,7 @@ export default function SaveTemplateDialog({
   };
 
   return (
-    <dialog className="modal modal-open">
+    <div className="modal modal-open">
       <div className="modal-box">
         <h3 className="font-bold text-lg mb-4">save as template</h3>
         <div className="form-control">
@@ -66,9 +66,7 @@ export default function SaveTemplateDialog({
           </button>
         </div>
       </div>
-      <form method="dialog" className="modal-backdrop">
-        <button onClick={onClose}>close</button>
-      </form>
-    </dialog>
+      <div className="modal-backdrop" onClick={onClose} />
+    </div>
   );
 }
