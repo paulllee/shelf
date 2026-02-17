@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { createPortal } from "react-dom";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { createTemplate } from "../api/templates";
 import type { ExerciseGroup } from "../types";
@@ -31,8 +32,8 @@ export default function SaveTemplateDialog({
     mutation.mutate();
   };
 
-  return (
-    <div className="modal modal-open">
+  return createPortal(
+    <div className="modal modal-open z-[1100]">
       <div className="modal-box">
         <h3 className="font-bold text-lg mb-4">save as template</h3>
         <div className="form-control">
@@ -67,6 +68,7 @@ export default function SaveTemplateDialog({
         </div>
       </div>
       <div className="modal-backdrop" onClick={onClose} />
-    </div>
+    </div>,
+    document.body,
   );
 }
