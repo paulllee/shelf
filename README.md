@@ -4,12 +4,16 @@ a self-hosted, markdown-backed personal tracker for media, workouts, and habits
 
 ## features
 
-- **media tracking**: track movies, shows, and other media with status, ratings, and reviews
-- **workout logging**: log workouts with exercise groups, sets, reps, and weights. drag-and-drop to reorder groups and exercises
+- **media tracking**: track movies, shows, and other media with status, ratings,
+  and reviews
+- **workout logging**: log workouts with exercise groups, sets, reps, and
+  weights. drag-and-drop to reorder groups and exercises
 - **workout templates**: save routines as templates for quick reuse
-- **habit tracking**: track daily habits with completion history and a monthly calendar view
+- **habit tracking**: track daily habits with completion history and a monthly
+  calendar view
 - **activity logging**: log one-off activities with preset quick-add
-- **markdown storage**: all data stored as plain markdown files with yaml frontmatter
+- **markdown storage**: all data stored as plain markdown files with yaml
+  frontmatter
 
 ## requirements
 
@@ -26,7 +30,8 @@ uv sync
 cd frontend && npm install
 ```
 
-configure paths in `config.toml` if needed — content directories are created automatically on first run.
+configure paths in `config.toml` if needed — content directories are created
+automatically on first run.
 
 ## running
 
