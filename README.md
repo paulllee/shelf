@@ -2,6 +2,10 @@
 
 a self-hosted, markdown-backed personal tracker for media, workouts, and habits
 
+![habits](docs/shelf-habits.png)
+![media](docs/shelf-media.png)
+![workouts](docs/shelf-workout.png)
+
 ## features
 
 - **media tracking**: track movies, shows, and other media with status, ratings,
