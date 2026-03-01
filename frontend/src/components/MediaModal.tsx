@@ -11,6 +11,9 @@ import {
 import { ApiError } from "../api/client";
 import type { MediaItem, MediaFormData } from "../types";
 
+const inputCls =
+  "w-full bg-base-200 text-base-content px-4 py-3 rounded-lg border border-primary/20 focus:border-primary focus:outline-none transition-colors placeholder:text-base-content/30";
+
 interface MediaModalProps {
   item?: MediaItem | null;
   onClose: () => void;
@@ -36,17 +39,14 @@ export default function MediaModal({ item, onClose }: MediaModalProps) {
   const [review, setReview] = useState(item?.review ?? "");
   const [nameError, setNameError] = useState("");
 
-  // set defaults from enums when they load (for create mode)
   useEffect(() => {
     if (!enums) return;
     if (!item) {
-      if (!country && enums.countries.length > 0)
-        setCountry(enums.countries[0]);
+      if (!country && enums.countries.length > 0) setCountry(enums.countries[0]);
       if (!type && enums.types.length > 0) setType(enums.types[0]);
     }
   }, [enums, item, country, type]);
 
-  // debounced name check
   useEffect(() => {
     if (!name.trim()) {
       setNameError("");
@@ -70,9 +70,7 @@ export default function MediaModal({ item, onClose }: MediaModalProps) {
       onClose();
     },
     onError: (err: Error) => {
-      if (err instanceof ApiError && err.status === 422) {
-        setNameError(err.detail);
-      }
+      if (err instanceof ApiError && err.status === 422) setNameError(err.detail);
     },
   });
 
@@ -83,9 +81,7 @@ export default function MediaModal({ item, onClose }: MediaModalProps) {
       onClose();
     },
     onError: (err: Error) => {
-      if (err instanceof ApiError && err.status === 422) {
-        setNameError(err.detail);
-      }
+      if (err instanceof ApiError && err.status === 422) setNameError(err.detail);
     },
   });
 
@@ -101,7 +97,6 @@ export default function MediaModal({ item, onClose }: MediaModalProps) {
     (e: React.FormEvent) => {
       e.preventDefault();
       if (nameError) return;
-
       const data: MediaFormData = {
         name: name.trim(),
         country,
@@ -110,111 +105,91 @@ export default function MediaModal({ item, onClose }: MediaModalProps) {
         rating: rating.trim() || null,
         review: review.trim() || null,
       };
-
-      if (isEdit) {
-        updateMutation.mutate(data);
-      } else {
-        createMutation.mutate(data);
-      }
+      if (isEdit) updateMutation.mutate(data);
+      else createMutation.mutate(data);
     },
-    [
-      name,
-      country,
-      type,
-      status,
-      rating,
-      review,
-      nameError,
-      isEdit,
-      createMutation,
-      updateMutation,
-    ],
+    [name, country, type, status, rating, review, nameError, isEdit, createMutation, updateMutation],
   );
 
   const isPending = createMutation.isPending || updateMutation.isPending;
 
   return (
     <Modal onClose={onClose}>
-      <h3 className="font-bold text-lg mb-4">
+      <h3 className="text-base-content text-xl font-bold mb-5 pr-8">
         {isEdit ? "edit media" : "add media"}
       </h3>
 
-      <form onSubmit={handleSubmit}>
-        <div className="mb-4">
-          <label className="label mb-2 block">name</label>
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <div>
+          <label className="block text-base-content text-sm font-semibold mb-2">
+            name
+          </label>
           <input
             type="text"
-            className="input input-bordered"
+            className={inputCls}
             value={name}
             onChange={(e) => setName(e.target.value)}
+            autoFocus
             required
           />
           {nameError && (
-            <div className="text-error text-sm mt-1">{nameError}</div>
+            <p className="text-error text-sm mt-1">{nameError}</p>
           )}
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
-          <div className="form-control">
-            <label className="label">
-              <span className="label-text">country</span>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label className="block text-base-content text-sm font-semibold mb-2">
+              country
             </label>
             <select
-              className="select select-bordered"
+              className={inputCls}
               value={country}
               onChange={(e) => setCountry(e.target.value)}
             >
               {enums?.countries.map((c) => (
-                <option key={c} value={c}>
-                  {c}
-                </option>
+                <option key={c} value={c}>{c}</option>
               ))}
             </select>
           </div>
-
-          <div className="form-control">
-            <label className="label">
-              <span className="label-text">type</span>
+          <div>
+            <label className="block text-base-content text-sm font-semibold mb-2">
+              type
             </label>
             <select
-              className="select select-bordered"
+              className={inputCls}
               value={type}
               onChange={(e) => setType(e.target.value)}
             >
               {enums?.types.map((t) => (
-                <option key={t} value={t}>
-                  {t}
-                </option>
+                <option key={t} value={t}>{t}</option>
               ))}
             </select>
           </div>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
-          <div className="form-control">
-            <label className="label">
-              <span className="label-text">status</span>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label className="block text-base-content text-sm font-semibold mb-2">
+              status
             </label>
             <select
-              className="select select-bordered"
+              className={inputCls}
               value={status}
               onChange={(e) => setStatus(e.target.value)}
             >
               {enums?.statuses.map((s) => (
-                <option key={s} value={s}>
-                  {s}
-                </option>
+                <option key={s} value={s}>{s}</option>
               ))}
             </select>
           </div>
-
-          <div className="form-control">
-            <label className="label">
-              <span className="label-text">rating</span>
+          <div>
+            <label className="block text-base-content text-sm font-semibold mb-2">
+              rating
             </label>
             <input
               type="text"
-              className="input input-bordered"
+              className={inputCls}
               value={rating}
               onChange={(e) => setRating(e.target.value)}
               placeholder="e.g. 4.5"
@@ -222,41 +197,54 @@ export default function MediaModal({ item, onClose }: MediaModalProps) {
           </div>
         </div>
 
-        <div className="mb-6">
-          <label className="label mb-2 block">review</label>
+        <div>
+          <label className="block text-base-content text-sm font-semibold mb-2">
+            review
+          </label>
           <textarea
-            className="textarea textarea-bordered h-24"
+            className={`${inputCls} h-24 resize-none`}
             value={review}
             onChange={(e) => setReview(e.target.value)}
             placeholder="your thoughts..."
           />
         </div>
 
-        <div className="modal-action flex-col-reverse gap-2 sm:flex-row">
+        <div className="flex flex-wrap gap-2 pt-2">
           {isEdit && (
             <button
               type="button"
-              className="btn btn-ghost btn-sm text-error"
               onClick={() => {
-                if (confirm("delete this media item?")) {
-                  deleteMutation.mutate();
-                }
+                if (confirm("delete this media item?")) deleteMutation.mutate();
               }}
               disabled={deleteMutation.isPending}
+              className="text-error/60 hover:text-error text-sm font-semibold transition-colors"
             >
               delete
             </button>
           )}
           <div className="flex-1" />
-          <button type="button" className="btn" onClick={onClose}>
+          <button
+            type="button"
+            onClick={onClose}
+            className="px-4 py-2.5 bg-base-200 text-base-content rounded-full border border-primary/20 hover:border-primary transition-colors font-semibold text-sm"
+          >
             cancel
           </button>
           <button
             type="submit"
-            className="btn btn-primary"
             disabled={isPending || !!nameError}
+            className="px-4 py-2.5 bg-primary text-primary-content rounded-full border border-primary/80 font-semibold text-sm hover:brightness-110 transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:brightness-100 relative overflow-hidden"
           >
-            {isEdit ? "save" : "add"}
+            <div className="absolute inset-0 rounded-full shadow-[inset_0px_0.5px_0px_1.5px_rgba(255,255,255,0.06)]" />
+            <span className="relative">
+              {isPending ? (
+                <span className="loading loading-spinner loading-sm" />
+              ) : isEdit ? (
+                "save"
+              ) : (
+                "add"
+              )}
+            </span>
           </button>
         </div>
       </form>

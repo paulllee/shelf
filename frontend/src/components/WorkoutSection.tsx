@@ -1,33 +1,20 @@
-import { useState, useRef } from "react";
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Plus } from "lucide-react";
 import { fetchWorkouts } from "../api/workouts";
 import type { Workout } from "../types";
 import WorkoutCard from "./WorkoutCard";
-import WorkoutCalendar from "./WorkoutCalendar";
 import WorkoutViewModal from "./WorkoutViewModal";
 import WorkoutFormModal from "./WorkoutFormModal";
 
 export default function WorkoutSection() {
   const [viewWorkout, setViewWorkout] = useState<Workout | null>(null);
   const [showAddModal, setShowAddModal] = useState(false);
-  const cardRefs = useRef<Map<string, HTMLDivElement>>(new Map());
 
   const { data: workouts = [], isLoading } = useQuery({
     queryKey: ["workouts"],
     queryFn: fetchWorkouts,
   });
-
-  const handleDateClick = (dateStr: string) => {
-    const card = cardRefs.current.get(dateStr);
-    if (card) {
-      card.scrollIntoView({ behavior: "smooth", block: "center" });
-      card.classList.add("ring-2", "ring-primary");
-      setTimeout(() => {
-        card.classList.remove("ring-2", "ring-primary");
-      }, 2000);
-    }
-  };
 
   if (isLoading) {
     return <span className="loading loading-spinner loading-lg" />;
@@ -65,27 +52,15 @@ export default function WorkoutSection() {
           <span className="hidden sm:inline">add workout</span>
         </button>
       </div>
-      <div className="flex flex-col md:flex-row gap-4 md:gap-6">
-        <div className="md:w-64 flex-shrink-0">
-          <WorkoutCalendar onDateClick={handleDateClick} />
-        </div>
 
-        <div className="flex-1">
-          <div className="space-y-3">
-            {workouts.map((workout) => (
-              <WorkoutCard
-                key={workout.id}
-                workout={workout}
-                ref={(el) => {
-                  if (el) {
-                    cardRefs.current.set(workout.date, el);
-                  }
-                }}
-                onClick={() => setViewWorkout(workout)}
-              />
-            ))}
-          </div>
-        </div>
+      <div className="space-y-3">
+        {workouts.map((workout) => (
+          <WorkoutCard
+            key={workout.id}
+            workout={workout}
+            onClick={() => setViewWorkout(workout)}
+          />
+        ))}
       </div>
 
       {viewWorkout && (

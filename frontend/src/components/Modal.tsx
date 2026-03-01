@@ -1,4 +1,5 @@
 import { useEffect, useCallback, type ReactNode } from "react";
+import { X } from "lucide-react";
 
 interface ModalProps {
   children: ReactNode;
@@ -31,19 +32,23 @@ export default function Modal({
   }, []);
 
   return (
-    <div className="modal modal-open">
+    <div
+      className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50"
+      onClick={onClose}
+    >
       <div
-        className={`modal-box w-[calc(100%-1rem)] sm:w-auto ${maxWidth} max-h-[85vh] sm:max-h-[90vh]`}
+        className={`bg-base-300 rounded-xl w-full ${maxWidth} max-h-[85vh] sm:max-h-[90vh] overflow-y-auto shadow-[0px_4px_12px_0px_rgba(0,0,0,0.3)] relative p-6`}
+        onClick={(e) => e.stopPropagation()}
       >
         <button
-          className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2"
+          className="absolute right-4 top-4 text-base-content/50 hover:text-base-content transition-colors"
           onClick={onClose}
+          aria-label="Close"
         >
-          X
+          <X className="w-6 h-6" />
         </button>
         {children}
       </div>
-      <div className="modal-backdrop" onClick={onClose} />
     </div>
   );
 }
