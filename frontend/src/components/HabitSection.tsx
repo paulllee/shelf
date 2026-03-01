@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { ChevronDown, ChevronUp, Plus, Settings } from "lucide-react";
 import HabitList from "./HabitList";
@@ -30,7 +30,7 @@ export default function HabitSection() {
     queryKey: ["presets"],
     queryFn: fetchPresets,
   });
-  const presets = presetsData.map((p) => p.name);
+  const presets = useMemo(() => presetsData.map((p) => p.name), [presetsData]);
 
   const [currentDate, setCurrentDate] = useState(new Date());
   const [editingHabit, setEditingHabit] = useState<Habit | null>(null);
@@ -53,12 +53,23 @@ export default function HabitSection() {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["habits"] }),
   });
 
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
+  const today = useMemo(() => {
+    const d = new Date();
+    d.setHours(0, 0, 0, 0);
+    return d;
+  }, []);
 
-  const todaysHabits = habits.filter((h) => h.days.includes(today.getDay()));
-  const otherHabits = habits.filter(
-    (h) => !todaysHabits.some((th) => th.id === h.id),
+  const todaysHabits = useMemo(
+    () => habits.filter((h) => h.days.includes(today.getDay())),
+    [habits, today],
+  );
+  const todaysHabitIds = useMemo(
+    () => new Set(todaysHabits.map((h) => h.id)),
+    [todaysHabits],
+  );
+  const otherHabits = useMemo(
+    () => habits.filter((h) => !todaysHabitIds.has(h.id)),
+    [habits, todaysHabitIds],
   );
 
   const handleToggle = (habitId: string, dateStr: string) => {
@@ -139,7 +150,7 @@ export default function HabitSection() {
       {otherHabits.length > 0 && (
         <div>
           <button
-            onClick={() => setIsOtherHabitsExpanded(!isOtherHabitsExpanded)}
+            onClick={() => setIsOtherHabitsExpanded((prev) => !prev)}
             className="flex items-center gap-2 text-base-content font-semibold mb-4 hover:text-primary transition-colors motion-reduce:transition-none"
           >
             {isOtherHabitsExpanded ? (

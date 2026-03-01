@@ -1,6 +1,9 @@
+import { useMemo } from "react";
 import { ChevronLeft, ChevronRight, Calendar } from "lucide-react";
 import type { Activity, Habit } from "../types";
 import { formatDateStr } from "../utils/date";
+
+const DAY_HEADERS = ["su", "mo", "tu", "we", "th", "fr", "sa"] as const;
 
 interface HabitCalendarProps {
   currentDate: Date;
@@ -68,13 +71,16 @@ export default function HabitCalendar({
   const today = new Date();
   today.setHours(0, 0, 0, 0);
 
-  const days: (number | null)[] = [];
-  for (let i = 0; i < startingDayOfWeek; i++) {
-    days.push(null);
-  }
-  for (let i = 1; i <= daysInMonth; i++) {
-    days.push(i);
-  }
+  const days = useMemo<(number | null)[]>(() => {
+    const result: (number | null)[] = [];
+    for (let i = 0; i < startingDayOfWeek; i++) {
+      result.push(null);
+    }
+    for (let i = 1; i <= daysInMonth; i++) {
+      result.push(i);
+    }
+    return result;
+  }, [startingDayOfWeek, daysInMonth]);
 
   const renderDay = (day: number | null, index: number) => {
     if (day === null) {
@@ -215,7 +221,7 @@ export default function HabitCalendar({
       </div>
 
       <div className="grid grid-cols-7 gap-0.5 sm:gap-1 mb-2">
-        {["su", "mo", "tu", "we", "th", "fr", "sa"].map((day) => (
+        {DAY_HEADERS.map((day) => (
           <div
             key={day}
             className="text-center text-base-content/50 text-[10px] font-normal uppercase"
