@@ -57,7 +57,8 @@ export default function PresetsModal({ onClose }: PresetsModalProps) {
   };
 
   const handleUpdate = (id: string) => {
-    if (editingName.trim()) updateMutation.mutate({ id, name: editingName.trim() });
+    if (editingName.trim())
+      updateMutation.mutate({ id, name: editingName.trim() });
   };
 
   const startEditing = (id: string, name: string) => {
@@ -187,7 +188,9 @@ export default function PresetsModal({ onClose }: PresetsModalProps) {
                         </button>
                         <button
                           onClick={() => {
-                            if (window.confirm(`Delete preset "${preset.name}"?`)) {
+                            if (
+                              window.confirm(`Delete preset "${preset.name}"?`)
+                            ) {
                               deleteMutation.mutate(preset.id);
                             }
                           }}

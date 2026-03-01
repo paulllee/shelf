@@ -42,7 +42,8 @@ export default function MediaModal({ item, onClose }: MediaModalProps) {
   useEffect(() => {
     if (!enums) return;
     if (!item) {
-      if (!country && enums.countries.length > 0) setCountry(enums.countries[0]);
+      if (!country && enums.countries.length > 0)
+        setCountry(enums.countries[0]);
       if (!type && enums.types.length > 0) setType(enums.types[0]);
     }
   }, [enums, item, country, type]);
@@ -70,7 +71,8 @@ export default function MediaModal({ item, onClose }: MediaModalProps) {
       onClose();
     },
     onError: (err: Error) => {
-      if (err instanceof ApiError && err.status === 422) setNameError(err.detail);
+      if (err instanceof ApiError && err.status === 422)
+        setNameError(err.detail);
     },
   });
 
@@ -81,7 +83,8 @@ export default function MediaModal({ item, onClose }: MediaModalProps) {
       onClose();
     },
     onError: (err: Error) => {
-      if (err instanceof ApiError && err.status === 422) setNameError(err.detail);
+      if (err instanceof ApiError && err.status === 422)
+        setNameError(err.detail);
     },
   });
 
@@ -108,7 +111,18 @@ export default function MediaModal({ item, onClose }: MediaModalProps) {
       if (isEdit) updateMutation.mutate(data);
       else createMutation.mutate(data);
     },
-    [name, country, type, status, rating, review, nameError, isEdit, createMutation, updateMutation],
+    [
+      name,
+      country,
+      type,
+      status,
+      rating,
+      review,
+      nameError,
+      isEdit,
+      createMutation,
+      updateMutation,
+    ],
   );
 
   const isPending = createMutation.isPending || updateMutation.isPending;
@@ -132,9 +146,7 @@ export default function MediaModal({ item, onClose }: MediaModalProps) {
             autoFocus
             required
           />
-          {nameError && (
-            <p className="text-error text-sm mt-1">{nameError}</p>
-          )}
+          {nameError && <p className="text-error text-sm mt-1">{nameError}</p>}
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -148,7 +160,9 @@ export default function MediaModal({ item, onClose }: MediaModalProps) {
               onChange={(e) => setCountry(e.target.value)}
             >
               {enums?.countries.map((c) => (
-                <option key={c} value={c}>{c}</option>
+                <option key={c} value={c}>
+                  {c}
+                </option>
               ))}
             </select>
           </div>
@@ -162,7 +176,9 @@ export default function MediaModal({ item, onClose }: MediaModalProps) {
               onChange={(e) => setType(e.target.value)}
             >
               {enums?.types.map((t) => (
-                <option key={t} value={t}>{t}</option>
+                <option key={t} value={t}>
+                  {t}
+                </option>
               ))}
             </select>
           </div>
@@ -179,7 +195,9 @@ export default function MediaModal({ item, onClose }: MediaModalProps) {
               onChange={(e) => setStatus(e.target.value)}
             >
               {enums?.statuses.map((s) => (
-                <option key={s} value={s}>{s}</option>
+                <option key={s} value={s}>
+                  {s}
+                </option>
               ))}
             </select>
           </div>

@@ -1,5 +1,12 @@
 import { apiFetch } from "./client";
-import type { Activity, ActivityFormData, Habit, HabitFormData, Preset, PresetFormData } from "../types";
+import type {
+  Activity,
+  ActivityFormData,
+  Habit,
+  HabitFormData,
+  Preset,
+  PresetFormData,
+} from "../types";
 
 export function fetchHabits(): Promise<Habit[]> {
   return apiFetch<Habit[]>("/habits");
@@ -72,7 +79,10 @@ export function createPreset(data: PresetFormData): Promise<Preset> {
   });
 }
 
-export function updatePreset(id: string, data: PresetFormData): Promise<Preset> {
+export function updatePreset(
+  id: string,
+  data: PresetFormData,
+): Promise<Preset> {
   return apiFetch<Preset>(`/preset/${encodeURIComponent(id)}`, {
     method: "PUT",
     body: JSON.stringify(data),

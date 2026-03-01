@@ -34,9 +34,13 @@ export default function WorkoutSection() {
         </div>
         <div className="text-center py-12 text-base-content/60 bg-base-100 rounded-lg">
           <p>no workouts yet</p>
-          <p className="text-sm mt-2">click &quot;add workout&quot; to log your first workout</p>
+          <p className="text-sm mt-2">
+            click &quot;add workout&quot; to log your first workout
+          </p>
         </div>
-        {showAddModal && <WorkoutFormModal onClose={() => setShowAddModal(false)} />}
+        {showAddModal && (
+          <WorkoutFormModal onClose={() => setShowAddModal(false)} />
+        )}
       </>
     );
   }

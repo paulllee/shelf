@@ -116,9 +116,7 @@ def parse_md_to_workout(md_path: Path) -> Workout:
             for e in g.get("exercises", []):
                 sets = []
                 for s in e.get("sets", []):
-                    sets.append(
-                        WorkoutSet(reps=s.get("reps"), weight=s.get("weight"))
-                    )
+                    sets.append(WorkoutSet(reps=s.get("reps"), weight=s.get("weight")))
                 exercises.append(Exercise(name=e.get("name", ""), sets=sets))
             groups.append(
                 ExerciseGroup(
@@ -171,9 +169,7 @@ def parse_md_to_template(md_path: Path) -> WorkoutTemplate:
             for e in g.get("exercises", []):
                 sets = []
                 for s in e.get("sets", []):
-                    sets.append(
-                        WorkoutSet(reps=s.get("reps"), weight=s.get("weight"))
-                    )
+                    sets.append(WorkoutSet(reps=s.get("reps"), weight=s.get("weight")))
                 exercises.append(Exercise(name=e.get("name", ""), sets=sets))
             groups.append(
                 ExerciseGroup(
@@ -340,7 +336,9 @@ async def lifespan(app: FastAPI):
     app.state.parse_md_to_habit = parse_md_to_habit
     app.state.parse_all_habits = lambda: parse_all_habits(app.state.habits_dir)
     app.state.parse_md_to_activity = parse_md_to_activity
-    app.state.parse_all_activities = lambda: parse_all_activities(app.state.activities_dir)
+    app.state.parse_all_activities = lambda: parse_all_activities(
+        app.state.activities_dir
+    )
     app.state.parse_md_to_preset = parse_md_to_preset
     app.state.parse_all_presets = lambda: parse_all_presets(app.state.presets_dir)
 
@@ -359,7 +357,9 @@ async def lifespan(app: FastAPI):
     poll_activity_task = asyncio.create_task(
         poll_activity_items(app, interval_in_seconds=5)
     )
-    poll_preset_task = asyncio.create_task(poll_preset_items(app, interval_in_seconds=5))
+    poll_preset_task = asyncio.create_task(
+        poll_preset_items(app, interval_in_seconds=5)
+    )
 
     yield
 

@@ -82,7 +82,7 @@ export interface EnumValues {
 export interface Habit {
   id: string;
   name: string;
-  days: number[];       // 0=Sun … 6=Sat
+  days: number[]; // 0=Sun … 6=Sat
   color: string;
   completions: string[]; // YYYY-MM-DD
 }

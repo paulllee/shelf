@@ -2,7 +2,14 @@ from pathlib import Path
 
 import frontmatter
 
-from app.models import ActivityModel, HabitModel, MediaModel, PresetModel, WorkoutModel, WorkoutTemplateModel
+from app.models import (
+    ActivityModel,
+    HabitModel,
+    MediaModel,
+    PresetModel,
+    WorkoutModel,
+    WorkoutTemplateModel,
+)
 
 
 def write_media_item(media_item: MediaModel, file_path: Path) -> None:

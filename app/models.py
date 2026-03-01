@@ -183,8 +183,8 @@ class WorkoutTemplateModel(BaseModel):
 @dataclass
 class Habit:
     name: str
-    days: list[int]         # 0=Sun … 6=Sat
-    color: str              # hex color string
+    days: list[int]  # 0=Sun … 6=Sat
+    color: str  # hex color string
     completions: list[str]  # YYYY-MM-DD strings
 
     @property

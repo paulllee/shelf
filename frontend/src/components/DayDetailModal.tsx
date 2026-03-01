@@ -1,7 +1,11 @@
 import { useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Check, Trash2, Plus, ChevronDown, ChevronUp, X } from "lucide-react";
-import { toggleCompletion, createActivity, deleteActivity } from "../api/habits";
+import {
+  toggleCompletion,
+  createActivity,
+  deleteActivity,
+} from "../api/habits";
 import type { Activity, Habit } from "../types";
 
 interface DayDetailModalProps {
@@ -21,11 +25,27 @@ function formatDateStr(date: Date): string {
 
 function formatDateLabel(date: Date): string {
   const days = [
-    "sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday",
+    "sunday",
+    "monday",
+    "tuesday",
+    "wednesday",
+    "thursday",
+    "friday",
+    "saturday",
   ];
   const months = [
-    "jan", "feb", "mar", "apr", "may", "jun",
-    "jul", "aug", "sep", "oct", "nov", "dec",
+    "jan",
+    "feb",
+    "mar",
+    "apr",
+    "may",
+    "jun",
+    "jul",
+    "aug",
+    "sep",
+    "oct",
+    "nov",
+    "dec",
   ];
   return `${days[date.getDay()]}, ${months[date.getMonth()]} ${date.getDate()}, ${date.getFullYear()}`;
 }
@@ -52,8 +72,7 @@ export default function DayDetailModal({
   });
 
   const addActivityMutation = useMutation({
-    mutationFn: (name: string) =>
-      createActivity({ name, date: dateStr }),
+    mutationFn: (name: string) => createActivity({ name, date: dateStr }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["activities"] });
       setNewActivityName("");
@@ -64,7 +83,8 @@ export default function DayDetailModal({
 
   const deleteActivityMutation = useMutation({
     mutationFn: deleteActivity,
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["activities"] }),
+    onSuccess: () =>
+      queryClient.invalidateQueries({ queryKey: ["activities"] }),
   });
 
   const habitsForDay = habits.filter((h) => h.days.includes(date.getDay()));
@@ -85,7 +105,8 @@ export default function DayDetailModal({
   );
 
   const totalExpected = habitsForDay.length + completedUnscheduledHabits.length;
-  const totalCompleted = completedHabits.length + completedUnscheduledHabits.length;
+  const totalCompleted =
+    completedHabits.length + completedUnscheduledHabits.length;
   const hasItems =
     habitsForDay.length > 0 ||
     activitiesForDay.length > 0 ||
@@ -280,7 +301,9 @@ export default function DayDetailModal({
                     </span>
                     <button
                       onClick={() => {
-                        if (window.confirm(`Delete activity "${activity.name}"?`)) {
+                        if (
+                          window.confirm(`Delete activity "${activity.name}"?`)
+                        ) {
                           deleteActivityMutation.mutate(activity.id);
                         }
                       }}
@@ -317,7 +340,9 @@ export default function DayDetailModal({
                   {unscheduledNotCompleted.map((habit) => (
                     <button
                       key={habit.id}
-                      onClick={() => toggleMutation.mutate({ habitId: habit.id })}
+                      onClick={() =>
+                        toggleMutation.mutate({ habitId: habit.id })
+                      }
                       className="w-full flex items-center gap-3 p-3 bg-base-200 rounded-lg opacity-40 hover:opacity-100 hover:bg-base-100 transition-all"
                     >
                       <div

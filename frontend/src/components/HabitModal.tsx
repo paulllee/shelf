@@ -24,9 +24,7 @@ interface HabitModalProps {
 
 export default function HabitModal({ habit, onClose }: HabitModalProps) {
   const [name, setName] = useState(habit?.name ?? "");
-  const [selectedDays, setSelectedDays] = useState<number[]>(
-    habit?.days ?? [],
-  );
+  const [selectedDays, setSelectedDays] = useState<number[]>(habit?.days ?? []);
   const [selectedColor, setSelectedColor] = useState(
     habit?.color ?? PRESET_COLORS[0],
   );

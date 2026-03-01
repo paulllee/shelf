@@ -66,9 +66,7 @@ def parse_activity_to_dict(activity: Activity) -> dict:
 
 @router.get("/habits")
 async def get_habits(request: Request) -> list[dict]:
-    habits: list[Habit] = sorted(
-        request.app.state.habit_items, key=lambda h: h.name
-    )
+    habits: list[Habit] = sorted(request.app.state.habit_items, key=lambda h: h.name)
     return [parse_habit_to_dict(h) for h in habits]
 
 
@@ -116,13 +114,13 @@ async def delete_habit(request: Request, habit_id: str) -> dict[str, bool]:
 
 
 @router.post("/habit/{habit_id}/toggle/{date}")
-async def toggle_habit_completion(
-    request: Request, habit_id: str, date: str
-) -> dict:
+async def toggle_habit_completion(request: Request, habit_id: str, date: str) -> dict:
     try:
         date_cls.fromisoformat(date)
     except ValueError:
-        raise HTTPException(status_code=400, detail="invalid date format, use YYYY-MM-DD")
+        raise HTTPException(
+            status_code=400, detail="invalid date format, use YYYY-MM-DD"
+        )
 
     md_path: Path = try_get_habit_md(request, habit_id)
     habit: Habit = request.app.state.parse_md_to_habit(md_path)
@@ -201,9 +199,7 @@ async def get_habit_presets(request: Request) -> list[str]:
 
 @router.get("/presets")
 async def get_presets(request: Request) -> list[dict]:
-    presets: list[Preset] = sorted(
-        request.app.state.preset_items, key=lambda p: p.name
-    )
+    presets: list[Preset] = sorted(request.app.state.preset_items, key=lambda p: p.name)
     return [{"id": p.id, "name": p.name} for p in presets]
 
 
@@ -221,9 +217,7 @@ async def create_preset(request: Request, preset: PresetModel) -> dict:
 
 
 @router.put("/preset/{preset_id}")
-async def update_preset(
-    request: Request, preset_id: str, preset: PresetModel
-) -> dict:
+async def update_preset(request: Request, preset_id: str, preset: PresetModel) -> dict:
     old_md_path: Path = try_get_preset_md(request, preset_id)
     new_md_path: Path = get_presets_dir(request) / f"{preset.id}.md"
 
