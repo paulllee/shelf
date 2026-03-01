@@ -19,6 +19,10 @@ format-all:
 dev-api:
 	uv run fastapi dev app/main.py --host 0.0.0.0 --port 8000
 
+## install: install frontend npm dependencies
+install:
+	cd frontend && npm install && cd ..
+
 ## dev-ui: run vite frontend only
 dev-ui:
 	cd frontend && npm run dev

@@ -2,6 +2,7 @@ import { Check, Trash2, Edit2, MoreVertical } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 import type { Habit } from "../types";
 import { formatDateStr } from "../utils/date";
+import confetti from "canvas-confetti";
 
 interface HabitListProps {
   habits: Habit[];
@@ -69,7 +70,23 @@ export default function HabitList({
           >
             <div className="flex items-center gap-3">
               <button
-                onClick={() => onToggle(habit.id, dateStr)}
+                onClick={(e) => {
+                  if (!completed) {
+                    const rect = e.currentTarget.getBoundingClientRect();
+                    confetti({
+                      origin: {
+                        x: (rect.left + rect.width / 2) / window.innerWidth,
+                        y: (rect.top + rect.height / 2) / window.innerHeight,
+                      },
+                      spread: 70,
+                      startVelocity: 25,
+                      particleCount: 60,
+                      scalar: 0.8,
+                      colors: [habit.color, "#ffffff", habit.color + "99"],
+                    });
+                  }
+                  onToggle(habit.id, dateStr);
+                }}
                 className="flex-shrink-0 w-14 h-14 sm:w-16 sm:h-16 rounded-xl border-2 transition-colors motion-reduce:transition-none flex items-center justify-center"
                 style={{
                   borderColor: completed ? habit.color : `${habit.color}50`,

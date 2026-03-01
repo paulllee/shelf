@@ -9,6 +9,7 @@ Shelf is a self-hosted, markdown-backed personal tracker for media (movies, show
 ## Commands
 
 ```bash
+make install      # Install frontend npm dependencies
 make dev          # Run both backend (port 8000) and frontend (port 80) dev servers
 make dev-api      # Run FastAPI backend only
 make dev-ui       # Run Vite frontend only (port 5173)
