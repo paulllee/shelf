@@ -74,8 +74,8 @@ export default function HabitSettingsModal({
   };
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-      <div className="bg-base-100 rounded-xl shadow-xl w-full max-w-md flex flex-col max-h-[80vh]">
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50" onClick={onClose}>
+      <div className="bg-base-100 rounded-xl shadow-xl w-full max-w-md flex flex-col max-h-[80vh]" onClick={(e) => e.stopPropagation()}>
         {/* Header */}
         <div className="flex items-center justify-between px-5 py-4 border-b border-base-300">
           <div className="flex gap-1 bg-base-200 rounded-lg p-1">
