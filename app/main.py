@@ -57,9 +57,7 @@ def get_dir_from_config(config_path: str, key: str) -> Path:
 
 
 def validate_dir(dir_path: Path) -> None:
-    if not dir_path.exists():
-        logger.error("Directory %s does not exist", dir_path)
-        sys.exit(1)
+    dir_path.mkdir(parents=True, exist_ok=True)
 
 
 # media parsing
