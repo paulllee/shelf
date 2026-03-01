@@ -1,9 +1,10 @@
 import { useReducer, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { GripVertical } from "lucide-react";
 import Modal from "./Modal";
 import SaveTemplateDialog from "./SaveTemplateDialog";
 import WorkoutTemplates from "./WorkoutTemplates";
+import GroupsEditor from "./GroupsEditor";
+import TemplateFormModal from "./TemplateFormModal";
 import { createWorkout, updateWorkout } from "../api/workouts";
 import { fetchTemplates } from "../api/templates";
 import type {
@@ -278,16 +279,8 @@ export default function WorkoutFormModal({
   );
 
   const [showSaveTemplate, setShowSaveTemplate] = useState(false);
-  const [draggingGroup, setDraggingGroup] = useState<number | null>(null);
-  const [dragOverGroup, setDragOverGroup] = useState<number | null>(null);
-  const [draggingEx, setDraggingEx] = useState<{
-    gi: number;
-    ei: number;
-  } | null>(null);
-  const [dragOverEx, setDragOverEx] = useState<{
-    gi: number;
-    ei: number;
-  } | null>(null);
+  const [editingTemplate, setEditingTemplate] =
+    useState<WorkoutTemplate | null>(null);
 
   const { data: templates = [] } = useQuery({
     queryKey: ["templates"],
@@ -351,6 +344,7 @@ export default function WorkoutFormModal({
               <WorkoutTemplates
                 templates={templates}
                 onUse={handleLoadTemplate}
+                onEdit={setEditingTemplate}
               />
             </div>
           </div>
@@ -392,271 +386,10 @@ export default function WorkoutFormModal({
 
         <div className="divider text-sm">exercise groups</div>
 
-        <div className="space-y-4 mb-4">
-          {state.groups.map((group, gi) => (
-            <div
-              key={gi}
-              onDragOver={(e) => {
-                e.preventDefault();
-                if (draggingGroup !== null && draggingGroup !== gi)
-                  setDragOverGroup(gi);
-              }}
-              onDragLeave={(e) => {
-                if (!e.currentTarget.contains(e.relatedTarget as Node))
-                  setDragOverGroup(null);
-              }}
-              onDrop={() => {
-                if (draggingGroup !== null && draggingGroup !== gi) {
-                  dispatch({
-                    type: "REORDER_GROUPS",
-                    from: draggingGroup,
-                    to: gi,
-                  });
-                }
-                setDraggingGroup(null);
-                setDragOverGroup(null);
-              }}
-              className={`bg-base-200 rounded-lg p-3 sm:p-4 transition-all ${
-                draggingGroup === gi ? "opacity-40" : ""
-              } ${dragOverGroup === gi ? "ring-2 ring-primary/40" : ""}`}
-            >
-              <div className="flex flex-col sm:flex-row gap-2 mb-3">
-                <div
-                  draggable
-                  onDragStart={() => setDraggingGroup(gi)}
-                  onDragEnd={() => {
-                    setDraggingGroup(null);
-                    setDragOverGroup(null);
-                  }}
-                  className="flex items-center self-center cursor-grab active:cursor-grabbing text-base-content/30 hover:text-base-content/60 transition-colors flex-shrink-0"
-                  title="Drag to reorder"
-                >
-                  <GripVertical className="w-4 h-4" />
-                </div>
-                <input
-                  type="text"
-                  className="input input-bordered input-sm w-full sm:flex-1"
-                  placeholder="group name (e.g., chest & triceps)"
-                  value={group.name}
-                  onChange={(e) =>
-                    dispatch({
-                      type: "SET_GROUP_NAME",
-                      groupIdx: gi,
-                      name: e.target.value,
-                    })
-                  }
-                  required
-                />
-                <div className="flex gap-2">
-                  <input
-                    type="number"
-                    className="input input-bordered input-sm flex-1 sm:w-24 sm:flex-none"
-                    placeholder="rest (s)"
-                    value={group.rest_seconds}
-                    onChange={(e) =>
-                      dispatch({
-                        type: "SET_GROUP_REST",
-                        groupIdx: gi,
-                        rest: parseInt(e.target.value) || 0,
-                      })
-                    }
-                    required
-                  />
-                  <button
-                    type="button"
-                    className="btn btn-ghost btn-sm flex-shrink-0"
-                    onClick={() =>
-                      dispatch({ type: "REMOVE_GROUP", groupIdx: gi })
-                    }
-                  >
-                    &times;
-                  </button>
-                </div>
-              </div>
-
-              <div className="space-y-3">
-                {group.exercises.map((exercise, ei) => (
-                  <div
-                    key={ei}
-                    onDragOver={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      if (
-                        draggingEx &&
-                        draggingEx.gi === gi &&
-                        draggingEx.ei !== ei
-                      )
-                        setDragOverEx({ gi, ei });
-                    }}
-                    onDragLeave={(e) => {
-                      if (!e.currentTarget.contains(e.relatedTarget as Node))
-                        setDragOverEx(null);
-                    }}
-                    onDrop={(e) => {
-                      e.stopPropagation();
-                      if (
-                        draggingEx &&
-                        draggingEx.gi === gi &&
-                        draggingEx.ei !== ei
-                      ) {
-                        dispatch({
-                          type: "REORDER_EXERCISES",
-                          groupIdx: gi,
-                          from: draggingEx.ei,
-                          to: ei,
-                        });
-                      }
-                      setDraggingEx(null);
-                      setDragOverEx(null);
-                    }}
-                    className={`bg-base-300 rounded p-3 transition-all ${
-                      draggingEx?.gi === gi && draggingEx?.ei === ei
-                        ? "opacity-40"
-                        : ""
-                    } ${dragOverEx?.gi === gi && dragOverEx?.ei === ei ? "ring-2 ring-primary/40" : ""}`}
-                  >
-                    <div className="flex gap-2 mb-2">
-                      <div
-                        draggable
-                        onDragStart={() => setDraggingEx({ gi, ei })}
-                        onDragEnd={() => {
-                          setDraggingEx(null);
-                          setDragOverEx(null);
-                        }}
-                        className="flex items-center cursor-grab active:cursor-grabbing text-base-content/30 hover:text-base-content/60 transition-colors flex-shrink-0"
-                        title="Drag to reorder"
-                      >
-                        <GripVertical className="w-4 h-4" />
-                      </div>
-                      <input
-                        type="text"
-                        className="input input-bordered input-sm flex-1"
-                        placeholder="exercise name"
-                        value={exercise.name}
-                        onChange={(e) =>
-                          dispatch({
-                            type: "SET_EXERCISE_NAME",
-                            groupIdx: gi,
-                            exerciseIdx: ei,
-                            name: e.target.value,
-                          })
-                        }
-                        required
-                      />
-                      <button
-                        type="button"
-                        className="btn btn-ghost btn-sm"
-                        onClick={() =>
-                          dispatch({
-                            type: "REMOVE_EXERCISE",
-                            groupIdx: gi,
-                            exerciseIdx: ei,
-                          })
-                        }
-                      >
-                        &times;
-                      </button>
-                    </div>
-
-                    <div className="space-y-1">
-                      {exercise.sets.map((set, si) => (
-                        <div
-                          key={si}
-                          className="set-row flex gap-2 items-center"
-                        >
-                          <span className="text-xs text-base-content/50 w-5 flex-shrink-0">
-                            #{si + 1}
-                          </span>
-                          <input
-                            type="number"
-                            className="input input-bordered input-xs flex-1 min-w-0"
-                            placeholder="reps"
-                            min="1"
-                            value={set.reps ?? ""}
-                            onChange={(e) =>
-                              dispatch({
-                                type: "SET_SET_REPS",
-                                groupIdx: gi,
-                                exerciseIdx: ei,
-                                setIdx: si,
-                                reps: (() => {
-                                  const v = parseInt(e.target.value);
-                                  return v > 0 ? v : null;
-                                })(),
-                              })
-                            }
-                          />
-                          <input
-                            type="number"
-                            step="0.5"
-                            className="input input-bordered input-xs flex-1 min-w-0"
-                            placeholder="weight"
-                            value={set.weight ?? ""}
-                            onChange={(e) =>
-                              dispatch({
-                                type: "SET_SET_WEIGHT",
-                                groupIdx: gi,
-                                exerciseIdx: ei,
-                                setIdx: si,
-                                weight: e.target.value
-                                  ? parseFloat(e.target.value)
-                                  : null,
-                              })
-                            }
-                          />
-                          <button
-                            type="button"
-                            className="btn btn-ghost btn-xs flex-shrink-0"
-                            onClick={() =>
-                              dispatch({
-                                type: "REMOVE_SET",
-                                groupIdx: gi,
-                                exerciseIdx: ei,
-                                setIdx: si,
-                              })
-                            }
-                          >
-                            &times;
-                          </button>
-                        </div>
-                      ))}
-                    </div>
-
-                    <button
-                      type="button"
-                      className="btn btn-ghost btn-xs mt-1"
-                      onClick={() =>
-                        dispatch({
-                          type: "ADD_SET",
-                          groupIdx: gi,
-                          exerciseIdx: ei,
-                        })
-                      }
-                    >
-                      + add set
-                    </button>
-                  </div>
-                ))}
-              </div>
-
-              <button
-                type="button"
-                className="btn btn-ghost btn-xs mt-2"
-                onClick={() => dispatch({ type: "ADD_EXERCISE", groupIdx: gi })}
-              >
-                + add exercise
-              </button>
-            </div>
-          ))}
-        </div>
-
-        <button
-          type="button"
-          className="btn btn-ghost btn-sm w-full mb-4"
-          onClick={() => dispatch({ type: "ADD_GROUP" })}
-        >
-          + add group
-        </button>
+        <GroupsEditor
+          groups={state.groups}
+          onChange={(g) => dispatch({ type: "SET_GROUPS", groups: g })}
+        />
 
         <div className="mb-4">
           <label className="label mb-2 block">notes</label>
@@ -709,6 +442,13 @@ export default function WorkoutFormModal({
         <SaveTemplateDialog
           groups={state.groups}
           onClose={() => setShowSaveTemplate(false)}
+        />
+      )}
+
+      {editingTemplate && (
+        <TemplateFormModal
+          editTemplate={editingTemplate}
+          onClose={() => setEditingTemplate(null)}
         />
       )}
     </Modal>

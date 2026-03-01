@@ -1,15 +1,18 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { Pencil } from "lucide-react";
 import { deleteTemplate } from "../api/templates";
 import type { WorkoutTemplate } from "../types";
 
 interface WorkoutTemplatesProps {
   templates: WorkoutTemplate[];
   onUse: (template: WorkoutTemplate) => void;
+  onEdit?: (template: WorkoutTemplate) => void;
 }
 
 export default function WorkoutTemplates({
   templates,
   onUse,
+  onEdit,
 }: WorkoutTemplatesProps) {
   const queryClient = useQueryClient();
 
@@ -46,6 +49,15 @@ export default function WorkoutTemplates({
             >
               use
             </button>
+            {onEdit && (
+              <button
+                type="button"
+                className="btn btn-ghost btn-xs"
+                onClick={() => onEdit(template)}
+              >
+                <Pencil className="w-3 h-3" />
+              </button>
+            )}
             <button
               type="button"
               className="btn btn-ghost btn-xs"

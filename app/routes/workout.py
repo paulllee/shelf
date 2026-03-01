@@ -196,6 +196,20 @@ async def create_template(request: Request, template: WorkoutTemplateModel) -> d
     return parse_template_to_dict(parsed)
 
 
+@router.put("/template/{template_id}")
+async def update_template(
+    request: Request, template_id: str, template: WorkoutTemplateModel
+) -> dict:
+    old_md_path: Path = try_get_template_md(request, template_id)
+    new_md_path: Path = get_template_dir(request) / f"{template.id}.md"
+    if template_id != template.id:
+        old_md_path.unlink()
+    write_template(template, new_md_path)
+    request.app.state.template_items = request.app.state.parse_all_templates()
+    parsed: WorkoutTemplate = request.app.state.parse_md_to_template(new_md_path)
+    return parse_template_to_dict(parsed)
+
+
 @router.delete("/template/{template_id}")
 async def delete_template(request: Request, template_id: str) -> dict[str, bool]:
     try_get_template_md(request, template_id).unlink()

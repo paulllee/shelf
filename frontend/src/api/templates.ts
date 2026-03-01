@@ -14,6 +14,16 @@ export function createTemplate(
   });
 }
 
+export function updateTemplate(
+  id: string,
+  data: WorkoutTemplateFormData,
+): Promise<WorkoutTemplate> {
+  return apiFetch<WorkoutTemplate>(`/template/${encodeURIComponent(id)}`, {
+    method: "PUT",
+    body: JSON.stringify(data),
+  });
+}
+
 export function deleteTemplate(id: string): Promise<{ ok: boolean }> {
   return apiFetch<{ ok: boolean }>(`/template/${encodeURIComponent(id)}`, {
     method: "DELETE",
