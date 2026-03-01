@@ -2,9 +2,9 @@
 
 a self-hosted, markdown-backed personal tracker for media, workouts, and habits
 
-![habits](docs/shelf-habits.png)
-![media](docs/shelf-media.png)
-![workouts](docs/shelf-workout.png)
+| Media | Workouts | Habits |
+|-------|----------|--------|
+| ![media](docs/shelf-media.png) | ![workouts](docs/shelf-workout.png) | ![habits](docs/shelf-habits.png) |
 
 ## features
 
