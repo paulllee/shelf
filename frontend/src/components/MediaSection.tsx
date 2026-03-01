@@ -1,5 +1,6 @@
 import { useState, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { Plus } from "lucide-react";
 import { useLocalStorage } from "../hooks/useLocalStorage";
 import { fetchMedia } from "../api/media";
 import type { MediaItem } from "../types";
@@ -14,6 +15,7 @@ export default function MediaSection() {
   const [typeFilter, setTypeFilter] = useState("");
   const [countryFilter, setCountryFilter] = useState("");
   const [editItem, setEditItem] = useState<MediaItem | null>(null);
+  const [showAddModal, setShowAddModal] = useState(false);
 
   const { data: items = [], isLoading } = useQuery({
     queryKey: ["media", tab],
@@ -48,22 +50,33 @@ export default function MediaSection() {
 
   return (
     <>
-      <div role="tablist" className="tabs tabs-boxed mb-6">
-        {STATUSES.map((s) => (
-          <a
-            key={s}
-            role="tab"
-            className={`tab ${tab === s ? "tab-active" : ""}`}
-            onClick={() => {
-              setTab(s);
-              setTypeFilter("");
-              setCountryFilter("");
-            }}
-          >
-            {s}
-          </a>
-        ))}
+      <div className="flex items-center gap-3 mb-6">
+        <div role="tablist" className="tabs tabs-boxed flex-1">
+          {STATUSES.map((s) => (
+            <a
+              key={s}
+              role="tab"
+              className={`tab ${tab === s ? "tab-active" : ""}`}
+              onClick={() => {
+                setTab(s);
+                setTypeFilter("");
+                setCountryFilter("");
+              }}
+            >
+              {s}
+            </a>
+          ))}
+        </div>
+        <button
+          onClick={() => setShowAddModal(true)}
+          className="h-9 sm:h-10 px-3 sm:px-4 rounded-full bg-primary border border-primary/80 text-primary-content hover:brightness-110 transition-all flex items-center gap-1.5 text-sm font-semibold flex-shrink-0"
+        >
+          <Plus className="w-4 h-4" />
+          <span className="hidden sm:inline">add media</span>
+        </button>
       </div>
+
+      {showAddModal && <MediaModal onClose={() => setShowAddModal(false)} />}
 
       {isLoading ? (
         <span className="loading loading-spinner loading-lg" />

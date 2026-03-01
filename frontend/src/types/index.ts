@@ -78,3 +78,38 @@ export interface EnumValues {
   types: string[];
   statuses: string[];
 }
+
+export interface Habit {
+  id: string;
+  name: string;
+  days: number[];       // 0=Sun … 6=Sat
+  color: string;
+  completions: string[]; // YYYY-MM-DD
+}
+
+export interface HabitFormData {
+  name: string;
+  days: number[];
+  color: string;
+  completions?: string[];
+}
+
+export interface Activity {
+  id: string;
+  name: string;
+  date: string; // YYYY-MM-DD
+}
+
+export interface ActivityFormData {
+  name: string;
+  date: string;
+}
+
+export interface Preset {
+  id: string;
+  name: string;
+}
+
+export interface PresetFormData {
+  name: string;
+}

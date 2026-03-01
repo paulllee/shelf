@@ -14,18 +14,22 @@ from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 
 from app.models import (
+    Activity,
     Exercise,
     ExerciseGroup,
+    Habit,
     Media,
     MediaCountry,
     MediaStatus,
     MediaType,
+    Preset,
     Workout,
     WorkoutSet,
     WorkoutTemplate,
 )
 from app.routes import media as media_routes
 from app.routes import workout as workout_routes
+from app.routes import habits as habits_routes
 
 logger: logging.Logger = logging.getLogger("uvicorn.error")
 
@@ -198,6 +202,111 @@ def parse_all_templates(template_dir: Path) -> list[WorkoutTemplate]:
     ]
 
 
+# habit parsing
+
+
+def parse_md_to_habit(md_path: Path) -> Habit:
+    try:
+        with md_path.open("r", encoding="utf-8") as f:
+            post: frontmatter.Post = frontmatter.load(f)
+        days_data: Any = post.get("days", [])
+        completions_data: Any = post.get("completions", [])
+        return Habit(
+            name=str(post.get("name", "")),
+            days=list(days_data),
+            color=str(post.get("color", "#605dff")),
+            completions=list(completions_data),
+        )
+    except Exception:
+        logger.exception("Failed to parse %s", md_path)
+        raise HTTPException(status_code=404, detail=f"failed to parse {md_path}")
+
+
+def parse_all_habits(habits_dir: Path) -> list[Habit]:
+    if not habits_dir.exists():
+        return []
+    return [
+        parse_md_to_habit(p)
+        for p in habits_dir.iterdir()
+        if p.is_file() and p.suffix == ".md"
+    ]
+
+
+async def poll_habit_items(app: FastAPI, interval_in_seconds: int) -> None:
+    while True:
+        logger.info("Refreshing habit items")
+        app.state.habit_items = parse_all_habits(app.state.habits_dir)
+        await asyncio.sleep(interval_in_seconds)
+
+
+# activity parsing
+
+
+def parse_md_to_activity(md_path: Path) -> Activity:
+    try:
+        with md_path.open("r", encoding="utf-8") as f:
+            post: frontmatter.Post = frontmatter.load(f)
+
+        date_val: Any = post.get("date")
+        if isinstance(date_val, str):
+            date_val = date.fromisoformat(date_val)
+
+        return Activity(
+            name=str(post.get("name", "")),
+            date=date_val,
+        )
+    except Exception:
+        logger.exception("Failed to parse %s", md_path)
+        raise HTTPException(status_code=404, detail=f"failed to parse {md_path}")
+
+
+def parse_all_activities(activities_dir: Path) -> list[Activity]:
+    if not activities_dir.exists():
+        return []
+    return [
+        parse_md_to_activity(p)
+        for p in activities_dir.iterdir()
+        if p.is_file() and p.suffix == ".md"
+    ]
+
+
+async def poll_activity_items(app: FastAPI, interval_in_seconds: int) -> None:
+    while True:
+        logger.info("Refreshing activity items")
+        app.state.activity_items = parse_all_activities(app.state.activities_dir)
+        await asyncio.sleep(interval_in_seconds)
+
+
+# preset parsing
+
+
+def parse_md_to_preset(md_path: Path) -> Preset:
+    try:
+        with md_path.open("r", encoding="utf-8") as f:
+            post: frontmatter.Post = frontmatter.load(f)
+        return Preset(name=str(post.get("name", "")))
+    except Exception:
+        logger.exception("Failed to parse %s", md_path)
+        raise HTTPException(status_code=404, detail=f"failed to parse {md_path}")
+
+
+def parse_all_presets(presets_dir: Path) -> list[Preset]:
+    if not presets_dir.exists():
+        return []
+    return [
+        parse_md_to_preset(p)
+        for p in presets_dir.iterdir()
+        if p.is_file() and p.suffix == ".md"
+    ]
+
+
+async def poll_preset_items(app: FastAPI, interval_in_seconds: int) -> None:
+    while True:
+        logger.info("Refreshing preset items")
+        app.state.preset_items = parse_all_presets(app.state.presets_dir)
+        await asyncio.sleep(interval_in_seconds)
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # load directories from config
@@ -221,18 +330,45 @@ async def lifespan(app: FastAPI):
     # initial load of templates
     app.state.template_items = parse_all_templates(app.state.template_dir)
 
+    app.state.habits_dir = get_dir_from_config("./config.toml", "habits_dir")
+    validate_dir(app.state.habits_dir)
+    app.state.activities_dir = get_dir_from_config("./config.toml", "activities_dir")
+    validate_dir(app.state.activities_dir)
+    app.state.presets_dir = get_dir_from_config("./config.toml", "presets_dir")
+    validate_dir(app.state.presets_dir)
+
+    app.state.parse_md_to_habit = parse_md_to_habit
+    app.state.parse_all_habits = lambda: parse_all_habits(app.state.habits_dir)
+    app.state.parse_md_to_activity = parse_md_to_activity
+    app.state.parse_all_activities = lambda: parse_all_activities(app.state.activities_dir)
+    app.state.parse_md_to_preset = parse_md_to_preset
+    app.state.parse_all_presets = lambda: parse_all_presets(app.state.presets_dir)
+
+    # initial load of habits, activities and presets
+    app.state.habit_items = parse_all_habits(app.state.habits_dir)
+    app.state.activity_items = parse_all_activities(app.state.activities_dir)
+    app.state.preset_items = parse_all_presets(app.state.presets_dir)
+
     # start polling tasks for manual file edits
     logger.info("Starting background polling tasks")
     poll_media_task = asyncio.create_task(poll_media_items(app, interval_in_seconds=5))
     poll_workout_task = asyncio.create_task(
         poll_workout_items(app, interval_in_seconds=5)
     )
+    poll_habit_task = asyncio.create_task(poll_habit_items(app, interval_in_seconds=5))
+    poll_activity_task = asyncio.create_task(
+        poll_activity_items(app, interval_in_seconds=5)
+    )
+    poll_preset_task = asyncio.create_task(poll_preset_items(app, interval_in_seconds=5))
 
     yield
 
     logger.info("Shutting down background tasks")
     poll_media_task.cancel()
     poll_workout_task.cancel()
+    poll_habit_task.cancel()
+    poll_activity_task.cancel()
+    poll_preset_task.cancel()
 
 
 app: FastAPI = FastAPI(lifespan=lifespan)
@@ -252,6 +388,7 @@ app.mount(
 
 app.include_router(media_routes.router, prefix="/api")
 app.include_router(workout_routes.router, prefix="/api")
+app.include_router(habits_routes.router, prefix="/api")
 
 
 @app.get("/api/meta/enums")

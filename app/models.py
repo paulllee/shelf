@@ -175,3 +175,65 @@ class WorkoutTemplateModel(BaseModel):
     @property
     def id(self) -> str:
         return slugify(self.name).lower()
+
+
+# habits
+
+
+@dataclass
+class Habit:
+    name: str
+    days: list[int]         # 0=Sun … 6=Sat
+    color: str              # hex color string
+    completions: list[str]  # YYYY-MM-DD strings
+
+    @property
+    def id(self) -> str:
+        return slugify(self.name).lower()
+
+
+@dataclass
+class Activity:
+    name: str
+    date: date
+
+    @property
+    def id(self) -> str:
+        return f"{self.date.isoformat()}-{slugify(self.name).lower()}"
+
+
+class HabitModel(BaseModel):
+    name: str
+    days: list[int]
+    color: str
+    completions: list[str] = []
+
+    @property
+    def id(self) -> str:
+        return slugify(self.name).lower()
+
+
+class ActivityModel(BaseModel):
+    name: str
+    date: date
+
+    @property
+    def id(self) -> str:
+        return f"{self.date.isoformat()}-{slugify(self.name).lower()}"
+
+
+@dataclass
+class Preset:
+    name: str
+
+    @property
+    def id(self) -> str:
+        return slugify(self.name).lower()
+
+
+class PresetModel(BaseModel):
+    name: str
+
+    @property
+    def id(self) -> str:
+        return slugify(self.name).lower()

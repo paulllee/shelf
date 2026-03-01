@@ -1,0 +1,199 @@
+import { useState } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { ChevronDown, ChevronUp, Plus, Settings } from "lucide-react";
+import HabitList from "./HabitList";
+import HabitCalendar from "./HabitCalendar";
+import HabitModal from "./HabitModal";
+import ActivityModal from "./ActivityModal";
+import DayDetailModal from "./DayDetailModal";
+import PresetsModal from "./PresetsModal";
+import {
+  fetchHabits,
+  fetchActivities,
+  fetchPresets,
+  toggleCompletion,
+  deleteHabit,
+} from "../api/habits";
+import type { Habit } from "../types";
+
+function formatDateStr(date: Date): string {
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, "0");
+  const d = String(date.getDate()).padStart(2, "0");
+  return `${y}-${m}-${d}`;
+}
+
+export default function HabitSection() {
+  const { data: habits = [] } = useQuery({
+    queryKey: ["habits"],
+    queryFn: fetchHabits,
+  });
+  const { data: activities = [] } = useQuery({
+    queryKey: ["activities"],
+    queryFn: () => fetchActivities(),
+  });
+  const { data: presetsData = [] } = useQuery({
+    queryKey: ["presets"],
+    queryFn: fetchPresets,
+  });
+  const presets = presetsData.map((p) => p.name);
+
+  const [currentDate, setCurrentDate] = useState(new Date());
+  const [editingHabit, setEditingHabit] = useState<Habit | null>(null);
+  const [showAddHabitModal, setShowAddHabitModal] = useState(false);
+  const [showActivityModal, setShowActivityModal] = useState(false);
+  const [showPresetsModal, setShowPresetsModal] = useState(false);
+  const [selectedDayDetail, setSelectedDayDetail] = useState<Date | null>(null);
+  const [isOtherHabitsExpanded, setIsOtherHabitsExpanded] = useState(false);
+
+  const queryClient = useQueryClient();
+
+  const toggleMutation = useMutation({
+    mutationFn: ({ habitId, dateStr }: { habitId: string; dateStr: string }) =>
+      toggleCompletion(habitId, dateStr),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["habits"] }),
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: deleteHabit,
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["habits"] }),
+  });
+
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  const todaysHabits = habits.filter((h) => h.days.includes(today.getDay()));
+  const otherHabits = habits.filter(
+    (h) => !todaysHabits.some((th) => th.id === h.id),
+  );
+
+  const handleToggle = (habitId: string, dateStr: string) => {
+    toggleMutation.mutate({ habitId, dateStr });
+  };
+
+  const handleDelete = (id: string) => {
+    deleteMutation.mutate(id);
+  };
+
+  return (
+    <div className="space-y-6">
+      <div>
+        {/* Header row matching figma layout */}
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-[18px] font-semibold">today's habits</h2>
+          <div className="flex gap-2">
+            {/* Presets button */}
+            <button
+              onClick={() => setShowPresetsModal(true)}
+              className="h-9 sm:h-10 px-3 sm:px-4 rounded-full border border-primary/30 bg-base-200 text-base-content/50 hover:border-primary hover:text-primary transition-all flex items-center gap-1.5 text-sm font-semibold"
+              title="Manage activity presets"
+            >
+              <Settings className="w-4 h-4" />
+              <span className="hidden sm:inline">presets</span>
+            </button>
+            {/* Add activity button */}
+            <button
+              onClick={() => setShowActivityModal(true)}
+              className="h-9 sm:h-10 px-3 sm:px-4 rounded-full border border-warning bg-base-200 text-warning hover:bg-warning/10 transition-all flex items-center gap-1.5 text-sm font-semibold"
+            >
+              <Plus className="w-4 h-4" />
+              <span className="hidden sm:inline">add activity</span>
+            </button>
+            {/* Add habit button */}
+            <button
+              onClick={() => setShowAddHabitModal(true)}
+              className="h-9 sm:h-10 px-4 sm:px-5 rounded-full bg-primary border border-primary/80 text-primary-content hover:brightness-110 transition-all flex items-center gap-1.5 text-sm font-semibold relative overflow-hidden"
+            >
+              <div className="absolute inset-0 rounded-full shadow-[inset_0px_0.5px_0px_1.5px_rgba(255,255,255,0.06)]" />
+              <Plus className="w-4 h-4 relative" />
+              <span className="hidden sm:inline relative">add habit</span>
+            </button>
+          </div>
+        </div>
+
+        <HabitList
+          habits={todaysHabits}
+          date={today}
+          onToggle={handleToggle}
+          onEdit={setEditingHabit}
+          onDelete={handleDelete}
+        />
+      </div>
+
+      <HabitCalendar
+        currentDate={currentDate}
+        habits={habits}
+        activities={activities}
+        onPreviousMonth={() =>
+          setCurrentDate(
+            new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1),
+          )
+        }
+        onNextMonth={() =>
+          setCurrentDate(
+            new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1),
+          )
+        }
+        onDayClick={setSelectedDayDetail}
+        onJumpToToday={() => setCurrentDate(new Date())}
+      />
+
+      {otherHabits.length > 0 && (
+        <div>
+          <button
+            onClick={() => setIsOtherHabitsExpanded(!isOtherHabitsExpanded)}
+            className="flex items-center gap-2 text-base-content font-semibold mb-4 hover:text-primary transition-colors"
+          >
+            {isOtherHabitsExpanded ? (
+              <ChevronUp className="w-4 h-4" />
+            ) : (
+              <ChevronDown className="w-4 h-4" />
+            )}
+            other habits ({otherHabits.length})
+          </button>
+          {isOtherHabitsExpanded && (
+            <HabitList
+              habits={otherHabits}
+              date={today}
+              onToggle={handleToggle}
+              onEdit={setEditingHabit}
+              onDelete={handleDelete}
+            />
+          )}
+        </div>
+      )}
+
+      {(editingHabit || showAddHabitModal) && (
+        <HabitModal
+          habit={editingHabit ?? undefined}
+          onClose={() => {
+            setEditingHabit(null);
+            setShowAddHabitModal(false);
+          }}
+        />
+      )}
+
+      {showActivityModal && (
+        <ActivityModal
+          date={formatDateStr(today)}
+          presets={presets}
+          onClose={() => setShowActivityModal(false)}
+        />
+      )}
+
+      {showPresetsModal && (
+        <PresetsModal onClose={() => setShowPresetsModal(false)} />
+      )}
+
+      {selectedDayDetail && (
+        <DayDetailModal
+          date={selectedDayDetail}
+          habits={habits}
+          activities={activities}
+          presets={presets}
+          onClose={() => setSelectedDayDetail(null)}
+        />
+      )}
+    </div>
+  );
+}

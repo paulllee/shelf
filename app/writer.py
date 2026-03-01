@@ -2,7 +2,7 @@ from pathlib import Path
 
 import frontmatter
 
-from app.models import MediaModel, WorkoutModel, WorkoutTemplateModel
+from app.models import ActivityModel, HabitModel, MediaModel, PresetModel, WorkoutModel, WorkoutTemplateModel
 
 
 def write_media_item(media_item: MediaModel, file_path: Path) -> None:
@@ -50,6 +50,46 @@ def write_workout(workout: WorkoutModel, file_path: Path) -> None:
             }
         )
     post["groups"] = groups
+
+    with open(file_path, "wb") as f:
+        frontmatter.dump(post, f)
+        f.write(b"\n")
+
+
+def write_habit(habit: HabitModel, file_path: Path) -> None:
+    """
+    serializes a Habit to a markdown file with frontmatter
+    """
+    post = frontmatter.Post(content="")
+    post["name"] = habit.name
+    post["days"] = habit.days
+    post["color"] = habit.color
+    post["completions"] = habit.completions
+
+    with open(file_path, "wb") as f:
+        frontmatter.dump(post, f)
+        f.write(b"\n")
+
+
+def write_activity(activity: ActivityModel, file_path: Path) -> None:
+    """
+    serializes an Activity to a markdown file with frontmatter
+    """
+    post = frontmatter.Post(content="")
+    post["name"] = activity.name
+    post["date"] = activity.date.isoformat()
+
+    with open(file_path, "wb") as f:
+        frontmatter.dump(post, f)
+        f.write(b"\n")
+
+
+def write_preset(preset: PresetModel, file_path: Path) -> None:
+    """
+    serializes a Preset to a markdown file with frontmatter
+    """
+    post = frontmatter.Post(content="")
+    post["name"] = preset.name
 
     with open(file_path, "wb") as f:
         frontmatter.dump(post, f)
