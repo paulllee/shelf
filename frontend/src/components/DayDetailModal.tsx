@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Check, Trash2, Plus, ChevronDown, ChevronUp, X } from "lucide-react";
 import {
@@ -63,21 +63,33 @@ export default function DayDetailModal({
       queryClient.invalidateQueries({ queryKey: ["activities"] }),
   });
 
-  const habitsForDay = habits.filter((h) => h.days.includes(date.getDay()));
-  const activitiesForDay = activities.filter((a) => a.date === dateStr);
-  const scheduledHabitIds = new Set(habitsForDay.map((h) => h.id));
-
-  const completedHabits = habitsForDay.filter((h) =>
-    h.completions.includes(dateStr),
+  const habitsForDay = useMemo(
+    () => habits.filter((h) => h.days.includes(date.getDay())),
+    [habits, date],
   );
-  const incompletedHabits = habitsForDay.filter(
-    (h) => !h.completions.includes(dateStr),
+  const activitiesForDay = useMemo(
+    () => activities.filter((a) => a.date === dateStr),
+    [activities, dateStr],
   );
-  const completedUnscheduledHabits = habits.filter(
-    (h) => h.completions.includes(dateStr) && !scheduledHabitIds.has(h.id),
+  const scheduledHabitIds = useMemo(
+    () => new Set(habitsForDay.map((h) => h.id)),
+    [habitsForDay],
   );
-  const unscheduledNotCompleted = habits.filter(
-    (h) => !h.completions.includes(dateStr) && !scheduledHabitIds.has(h.id),
+  const completedHabits = useMemo(
+    () => habitsForDay.filter((h) => h.completions.includes(dateStr)),
+    [habitsForDay, dateStr],
+  );
+  const incompletedHabits = useMemo(
+    () => habitsForDay.filter((h) => !h.completions.includes(dateStr)),
+    [habitsForDay, dateStr],
+  );
+  const completedUnscheduledHabits = useMemo(
+    () => habits.filter((h) => h.completions.includes(dateStr) && !scheduledHabitIds.has(h.id)),
+    [habits, dateStr, scheduledHabitIds],
+  );
+  const unscheduledNotCompleted = useMemo(
+    () => habits.filter((h) => !h.completions.includes(dateStr) && !scheduledHabitIds.has(h.id)),
+    [habits, dateStr, scheduledHabitIds],
   );
 
   const totalExpected = habitsForDay.length + completedUnscheduledHabits.length;
@@ -303,7 +315,7 @@ export default function DayDetailModal({
           {unscheduledNotCompleted.length > 0 && (
             <div>
               <button
-                onClick={() => setIsOtherHabitsExpanded(!isOtherHabitsExpanded)}
+                onClick={() => setIsOtherHabitsExpanded((prev) => !prev)}
                 className="flex items-center gap-2 text-base-content/40 text-xs font-semibold mb-2 hover:text-base-content/60 transition-colors motion-reduce:transition-none"
               >
                 {isOtherHabitsExpanded ? (

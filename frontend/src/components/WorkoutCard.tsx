@@ -1,4 +1,4 @@
-import { forwardRef } from "react";
+import { forwardRef, useMemo } from "react";
 import type { Workout } from "../types";
 
 interface WorkoutCardProps {
@@ -27,11 +27,14 @@ function formatTime(timeStr: string): string {
 
 const WorkoutCard = forwardRef<HTMLDivElement, WorkoutCardProps>(
   ({ workout, onClick }, ref) => {
-    const exercises = workout.groups.flatMap((g) =>
-      g.exercises.map((e) => e.name),
+    const exercises = useMemo(
+      () => workout.groups.flatMap((g) => g.exercises.map((e) => e.name)),
+      [workout.groups],
     );
-    const preview =
-      exercises.slice(0, 3).join(", ") + (exercises.length > 3 ? ", ..." : "");
+    const preview = useMemo(
+      () => exercises.slice(0, 3).join(", ") + (exercises.length > 3 ? ", ..." : ""),
+      [exercises],
+    );
 
     return (
       <div

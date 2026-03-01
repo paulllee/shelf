@@ -1,6 +1,8 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { fetchCalendar } from "../api/workouts";
+
+const DAY_HEADERS = ["su", "mo", "tu", "we", "th", "fr", "sa"] as const;
 
 interface WorkoutCalendarProps {
   onDateClick: (dateStr: string) => void;
@@ -24,7 +26,7 @@ export default function WorkoutCalendar({ onDateClick }: WorkoutCalendarProps) {
     );
   }
 
-  const workoutDateSet = new Set(cal.workout_dates);
+  const workoutDateSet = useMemo(() => new Set(cal.workout_dates), [cal]);
 
   const goToday = () => {
     setYear(today.getFullYear());
@@ -74,7 +76,7 @@ export default function WorkoutCalendar({ onDateClick }: WorkoutCalendarProps) {
       </div>
 
       <div className="grid grid-cols-7 gap-0.5 sm:gap-1 text-center text-xs mb-2">
-        {["su", "mo", "tu", "we", "th", "fr", "sa"].map((d) => (
+        {DAY_HEADERS.map((d) => (
           <div key={d} className="text-base-content/50">
             {d}
           </div>
