@@ -22,7 +22,7 @@ export default function Header({ section, onSectionChange }: HeaderProps) {
           <button
             key={tab}
             onClick={() => onSectionChange(tab)}
-            className={`h-9 sm:h-10 px-3 sm:px-4 rounded-full transition-all text-sm font-semibold ${
+            className={`h-9 sm:h-10 px-3 sm:px-4 rounded-full transition-colors motion-reduce:transition-none text-sm font-semibold ${
               section === tab
                 ? "bg-primary/20 text-primary"
                 : "text-base-content/50 hover:text-base-content"

@@ -12,7 +12,7 @@ import { ApiError } from "../api/client";
 import type { MediaItem, MediaFormData } from "../types";
 
 const inputCls =
-  "w-full bg-base-200 text-base-content px-4 py-3 rounded-lg border border-primary/20 focus:border-primary focus:outline-none transition-colors placeholder:text-base-content/30";
+  "w-full bg-base-200 text-base-content px-4 py-3 rounded-lg border border-primary/20 focus:border-primary focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 transition-colors motion-reduce:transition-none placeholder:text-base-content/30";
 
 interface MediaModalProps {
   item?: MediaItem | null;
@@ -135,10 +135,13 @@ export default function MediaModal({ item, onClose }: MediaModalProps) {
 
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
-          <label className="block text-base-content text-sm font-semibold mb-2">
+          <label htmlFor="media-name" className="block text-base-content text-sm font-semibold mb-2">
             name
           </label>
           <input
+            id="media-name"
+            name="name"
+            autoComplete="off"
             type="text"
             className={inputCls}
             value={name}
@@ -151,10 +154,12 @@ export default function MediaModal({ item, onClose }: MediaModalProps) {
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
-            <label className="block text-base-content text-sm font-semibold mb-2">
+            <label htmlFor="media-country" className="block text-base-content text-sm font-semibold mb-2">
               country
             </label>
             <select
+              id="media-country"
+              name="country"
               className={inputCls}
               value={country}
               onChange={(e) => setCountry(e.target.value)}
@@ -167,10 +172,12 @@ export default function MediaModal({ item, onClose }: MediaModalProps) {
             </select>
           </div>
           <div>
-            <label className="block text-base-content text-sm font-semibold mb-2">
+            <label htmlFor="media-type" className="block text-base-content text-sm font-semibold mb-2">
               type
             </label>
             <select
+              id="media-type"
+              name="type"
               className={inputCls}
               value={type}
               onChange={(e) => setType(e.target.value)}
@@ -186,10 +193,12 @@ export default function MediaModal({ item, onClose }: MediaModalProps) {
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
-            <label className="block text-base-content text-sm font-semibold mb-2">
+            <label htmlFor="media-status" className="block text-base-content text-sm font-semibold mb-2">
               status
             </label>
             <select
+              id="media-status"
+              name="status"
               className={inputCls}
               value={status}
               onChange={(e) => setStatus(e.target.value)}
@@ -202,11 +211,17 @@ export default function MediaModal({ item, onClose }: MediaModalProps) {
             </select>
           </div>
           <div>
-            <label className="block text-base-content text-sm font-semibold mb-2">
+            <label htmlFor="media-rating" className="block text-base-content text-sm font-semibold mb-2">
               rating
             </label>
             <input
-              type="text"
+              id="media-rating"
+              name="rating"
+              autoComplete="off"
+              type="number"
+              step="0.5"
+              min="0"
+              max="10"
               className={inputCls}
               value={rating}
               onChange={(e) => setRating(e.target.value)}
@@ -216,10 +231,12 @@ export default function MediaModal({ item, onClose }: MediaModalProps) {
         </div>
 
         <div>
-          <label className="block text-base-content text-sm font-semibold mb-2">
+          <label htmlFor="media-review" className="block text-base-content text-sm font-semibold mb-2">
             review
           </label>
           <textarea
+            id="media-review"
+            name="review"
             className={`${inputCls} h-24 resize-none`}
             value={review}
             onChange={(e) => setReview(e.target.value)}
@@ -235,7 +252,7 @@ export default function MediaModal({ item, onClose }: MediaModalProps) {
                 if (confirm("delete this media item?")) deleteMutation.mutate();
               }}
               disabled={deleteMutation.isPending}
-              className="text-error/60 hover:text-error text-sm font-semibold transition-colors"
+              className="text-error/60 hover:text-error text-sm font-semibold transition-colors motion-reduce:transition-none"
             >
               delete
             </button>
@@ -244,14 +261,14 @@ export default function MediaModal({ item, onClose }: MediaModalProps) {
           <button
             type="button"
             onClick={onClose}
-            className="px-4 py-2.5 bg-base-200 text-base-content rounded-full border border-primary/20 hover:border-primary transition-colors font-semibold text-sm"
+            className="px-4 py-2.5 bg-base-200 text-base-content rounded-full border border-primary/20 hover:border-primary transition-colors motion-reduce:transition-none font-semibold text-sm"
           >
             cancel
           </button>
           <button
             type="submit"
             disabled={isPending || !!nameError}
-            className="px-4 py-2.5 bg-primary text-primary-content rounded-full border border-primary/80 font-semibold text-sm hover:brightness-110 transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:brightness-100 relative overflow-hidden"
+            className="px-4 py-2.5 bg-primary text-primary-content rounded-full border border-primary/80 font-semibold text-sm hover:brightness-110 transition-[filter,opacity] motion-reduce:transition-none disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:brightness-100 relative overflow-hidden"
           >
             <div className="absolute inset-0 rounded-full shadow-[inset_0px_0.5px_0px_1.5px_rgba(255,255,255,0.06)]" />
             <span className="relative">

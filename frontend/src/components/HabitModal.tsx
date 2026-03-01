@@ -83,7 +83,7 @@ export default function HabitModal({ habit, onClose }: HabitModalProps) {
           </h2>
           <button
             onClick={onClose}
-            className="text-base-content/50 hover:text-base-content transition-colors"
+            className="text-base-content/50 hover:text-base-content transition-colors motion-reduce:transition-none"
             aria-label="Close"
           >
             <X className="w-6 h-6" />
@@ -92,15 +92,18 @@ export default function HabitModal({ habit, onClose }: HabitModalProps) {
 
         <form onSubmit={handleSubmit} className="space-y-5">
           <div>
-            <label className="block text-base-content text-sm font-semibold mb-2">
+            <label htmlFor="habit-name" className="block text-base-content text-sm font-semibold mb-2">
               habit name
             </label>
             <input
+              id="habit-name"
+              name="name"
+              autoComplete="off"
               type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="e.g., morning meditation"
-              className="w-full bg-base-200 text-base-content px-4 py-3 rounded-lg border border-primary/20 focus:border-primary focus:outline-none transition-colors placeholder:text-base-content/30"
+              className="w-full bg-base-200 text-base-content px-4 py-3 rounded-lg border border-primary/20 focus:border-primary focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 transition-colors placeholder:text-base-content/30"
               autoFocus
             />
           </div>
@@ -140,7 +143,7 @@ export default function HabitModal({ habit, onClose }: HabitModalProps) {
                   key={index}
                   type="button"
                   onClick={() => toggleDay(index)}
-                  className={`aspect-square rounded-lg text-xs font-semibold uppercase transition-all ${
+                  className={`aspect-square rounded-lg text-xs font-semibold uppercase transition-colors motion-reduce:transition-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 ${
                     selectedDays.includes(index)
                       ? "bg-primary text-primary-content shadow-[0px_2px_4px_0px_rgba(96,93,255,0.3)]"
                       : "bg-base-200 text-base-content/50 border border-primary/20 hover:border-primary"
@@ -162,7 +165,7 @@ export default function HabitModal({ habit, onClose }: HabitModalProps) {
                   key={color}
                   type="button"
                   onClick={() => setSelectedColor(color)}
-                  className={`aspect-square rounded-full transition-all ${
+                  className={`aspect-square rounded-full transition-[transform] motion-reduce:transition-none ${
                     selectedColor === color
                       ? "ring-2 ring-offset-2 ring-offset-base-300 ring-base-content scale-110"
                       : "hover:scale-105"
@@ -185,14 +188,14 @@ export default function HabitModal({ habit, onClose }: HabitModalProps) {
               type="button"
               onClick={onClose}
               disabled={isPending}
-              className="flex-1 bg-base-200 text-base-content px-4 py-3 rounded-full border border-primary/20 hover:border-primary transition-colors font-semibold text-sm"
+              className="flex-1 bg-base-200 text-base-content px-4 py-3 rounded-full border border-primary/20 hover:border-primary transition-colors motion-reduce:transition-none font-semibold text-sm"
             >
               cancel
             </button>
             <button
               type="submit"
               disabled={!name.trim() || selectedDays.length === 0 || isPending}
-              className="flex-1 bg-primary text-primary-content px-4 py-3 rounded-full border border-primary/80 font-semibold text-sm shadow-[0px_3px_2px_-2px_rgba(96,93,255,0.3),0px_4px_3px_-2px_rgba(96,93,255,0.3)] hover:brightness-110 transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:brightness-100 relative overflow-hidden"
+              className="flex-1 bg-primary text-primary-content px-4 py-3 rounded-full border border-primary/80 font-semibold text-sm shadow-[0px_3px_2px_-2px_rgba(96,93,255,0.3),0px_4px_3px_-2px_rgba(96,93,255,0.3)] hover:brightness-110 transition-[filter,opacity] motion-reduce:transition-none disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:brightness-100 relative overflow-hidden"
             >
               <div className="absolute inset-0 rounded-full shadow-[inset_0px_0.5px_0px_1.5px_rgba(255,255,255,0.06)]" />
               <span className="relative">

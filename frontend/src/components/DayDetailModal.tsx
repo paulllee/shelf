@@ -7,6 +7,7 @@ import {
   deleteActivity,
 } from "../api/habits";
 import type { Activity, Habit } from "../types";
+import { formatDateStr } from "../utils/date";
 
 interface DayDetailModalProps {
   date: Date;
@@ -16,38 +17,13 @@ interface DayDetailModalProps {
   onClose: () => void;
 }
 
-function formatDateStr(date: Date): string {
-  const y = date.getFullYear();
-  const m = String(date.getMonth() + 1).padStart(2, "0");
-  const d = String(date.getDate()).padStart(2, "0");
-  return `${y}-${m}-${d}`;
-}
-
 function formatDateLabel(date: Date): string {
-  const days = [
-    "sunday",
-    "monday",
-    "tuesday",
-    "wednesday",
-    "thursday",
-    "friday",
-    "saturday",
-  ];
-  const months = [
-    "jan",
-    "feb",
-    "mar",
-    "apr",
-    "may",
-    "jun",
-    "jul",
-    "aug",
-    "sep",
-    "oct",
-    "nov",
-    "dec",
-  ];
-  return `${days[date.getDay()]}, ${months[date.getMonth()]} ${date.getDate()}, ${date.getFullYear()}`;
+  return date.toLocaleDateString("default", {
+    weekday: "long",
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
 }
 
 export default function DayDetailModal({
@@ -118,7 +94,7 @@ export default function DayDetailModal({
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50" onClick={onClose}>
-      <div className="bg-base-300 rounded-xl max-w-md w-full p-4 sm:p-6 shadow-[0px_4px_12px_0px_rgba(0,0,0,0.3)] max-h-[80vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+      <div className="bg-base-300 rounded-xl max-w-md w-full p-4 sm:p-6 shadow-[0px_4px_12px_0px_rgba(0,0,0,0.3)] max-h-[80vh] overflow-y-auto overscroll-contain" onClick={(e) => e.stopPropagation()}>
         <div className="flex items-center justify-between mb-4 sm:mb-6">
           <div>
             <h2 className="text-base-content text-lg sm:text-xl font-bold">
@@ -130,7 +106,7 @@ export default function DayDetailModal({
           </div>
           <button
             onClick={onClose}
-            className="text-base-content/50 hover:text-base-content transition-colors p-1"
+            className="text-base-content/50 hover:text-base-content transition-colors motion-reduce:transition-none p-1"
             aria-label="Close"
           >
             <X className="w-5 h-5 sm:w-6 sm:h-6" />
@@ -149,7 +125,7 @@ export default function DayDetailModal({
                   <button
                     key={habit.id}
                     onClick={() => toggleMutation.mutate({ habitId: habit.id })}
-                    className="w-full flex items-center gap-3 p-3 bg-base-200 rounded-lg hover:bg-base-100 transition-colors"
+                    className="w-full flex items-center gap-3 p-3 bg-base-200 rounded-lg hover:bg-base-100 transition-colors motion-reduce:transition-none"
                   >
                     <div
                       className="w-3 h-3 rounded-full flex-shrink-0"
@@ -176,7 +152,7 @@ export default function DayDetailModal({
                   <button
                     key={habit.id}
                     onClick={() => toggleMutation.mutate({ habitId: habit.id })}
-                    className="w-full flex items-center gap-3 p-3 bg-base-200 rounded-lg hover:bg-base-100 transition-colors"
+                    className="w-full flex items-center gap-3 p-3 bg-base-200 rounded-lg hover:bg-base-100 transition-colors motion-reduce:transition-none"
                   >
                     <div
                       className="w-3 h-3 rounded-full flex-shrink-0"
@@ -202,7 +178,7 @@ export default function DayDetailModal({
                   <button
                     key={habit.id}
                     onClick={() => toggleMutation.mutate({ habitId: habit.id })}
-                    className="w-full flex items-center gap-3 p-3 bg-base-200 rounded-lg opacity-60 hover:opacity-100 hover:bg-base-100 transition-all"
+                    className="w-full flex items-center gap-3 p-3 bg-base-200 rounded-lg opacity-60 hover:opacity-100 hover:bg-base-100 transition-colors motion-reduce:transition-none"
                   >
                     <div
                       className="w-3 h-3 rounded-full flex-shrink-0"
@@ -226,7 +202,7 @@ export default function DayDetailModal({
                   setIsAddingActivity(true);
                   setShowPresets(presets.length > 0);
                 }}
-                className="text-warning hover:text-warning/70 transition-colors"
+                className="text-warning hover:text-warning/70 transition-colors motion-reduce:transition-none"
                 aria-label="Add activity"
               >
                 <Plus className="w-4 h-4" />
@@ -249,13 +225,14 @@ export default function DayDetailModal({
                       }
                     }}
                     placeholder="activity name..."
-                    className="flex-1 bg-base-200 text-base-content px-3 py-2 rounded-lg border border-warning focus:outline-none text-sm placeholder:text-base-content/30"
+                    className="flex-1 bg-base-200 text-base-content px-3 py-2 rounded-lg border border-warning focus:outline-none focus-visible:ring-2 focus-visible:ring-warning/50 text-sm placeholder:text-base-content/30"
                     autoFocus
                   />
                   <button
                     onClick={() => handleAddActivity(newActivityName)}
                     disabled={addActivityMutation.isPending}
-                    className="px-3 py-2 bg-warning text-white rounded-lg hover:brightness-110 transition-all"
+                    aria-label="Confirm add activity"
+                    className="px-3 py-2 bg-warning text-white rounded-lg hover:brightness-110 transition-[filter] motion-reduce:transition-none"
                   >
                     <Check className="w-4 h-4" />
                   </button>
@@ -265,7 +242,8 @@ export default function DayDetailModal({
                       setNewActivityName("");
                       setShowPresets(false);
                     }}
-                    className="px-3 py-2 bg-base-200 text-base-content/50 rounded-lg hover:text-base-content transition-colors"
+                    aria-label="Cancel adding activity"
+                    className="px-3 py-2 bg-base-200 text-base-content/50 rounded-lg hover:text-base-content transition-colors motion-reduce:transition-none"
                   >
                     <X className="w-4 h-4" />
                   </button>
@@ -278,7 +256,7 @@ export default function DayDetailModal({
                         key={preset}
                         onClick={() => handleAddActivity(preset)}
                         disabled={addActivityMutation.isPending}
-                        className="px-3 py-1 bg-base-200 text-base-content text-xs rounded-full border border-warning/30 hover:border-warning hover:bg-warning/10 transition-all"
+                        className="px-3 py-1 bg-base-200 text-base-content text-xs rounded-full border border-warning/30 hover:border-warning hover:bg-warning/10 transition-colors motion-reduce:transition-none"
                       >
                         {preset}
                       </button>
@@ -307,8 +285,8 @@ export default function DayDetailModal({
                           deleteActivityMutation.mutate(activity.id);
                         }
                       }}
-                      className="p-1 text-base-content/30 hover:text-error transition-colors opacity-0 group-hover:opacity-100"
-                      aria-label="Delete activity"
+                      className="p-1 text-base-content/30 hover:text-error transition-colors motion-reduce:transition-none opacity-0 group-hover:opacity-100"
+                      aria-label={`Delete activity "${activity.name}"`}
                     >
                       <Trash2 className="w-4 h-4" />
                     </button>
@@ -326,7 +304,7 @@ export default function DayDetailModal({
             <div>
               <button
                 onClick={() => setIsOtherHabitsExpanded(!isOtherHabitsExpanded)}
-                className="flex items-center gap-2 text-base-content/40 text-xs font-semibold mb-2 hover:text-base-content/60 transition-colors"
+                className="flex items-center gap-2 text-base-content/40 text-xs font-semibold mb-2 hover:text-base-content/60 transition-colors motion-reduce:transition-none"
               >
                 {isOtherHabitsExpanded ? (
                   <ChevronUp className="w-3 h-3" />
@@ -343,7 +321,7 @@ export default function DayDetailModal({
                       onClick={() =>
                         toggleMutation.mutate({ habitId: habit.id })
                       }
-                      className="w-full flex items-center gap-3 p-3 bg-base-200 rounded-lg opacity-40 hover:opacity-100 hover:bg-base-100 transition-all"
+                      className="w-full flex items-center gap-3 p-3 bg-base-200 rounded-lg opacity-40 hover:opacity-100 hover:bg-base-100 transition-colors motion-reduce:transition-none"
                     >
                       <div
                         className="w-3 h-3 rounded-full flex-shrink-0"

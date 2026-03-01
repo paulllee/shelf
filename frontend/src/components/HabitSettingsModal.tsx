@@ -143,7 +143,7 @@ export default function HabitSettingsModal({
                   <button
                     onClick={handleAdd}
                     disabled={createMutation.isPending}
-                    className="px-3 py-2 bg-warning text-white rounded-lg hover:brightness-110 transition-all"
+                    className="px-3 py-2 bg-warning text-white rounded-lg hover:brightness-110 transition-[filter] motion-reduce:transition-none"
                   >
                     <Check className="w-4 h-4" />
                   </button>
@@ -160,7 +160,7 @@ export default function HabitSettingsModal({
               ) : (
                 <button
                   onClick={() => setIsAdding(true)}
-                  className="w-full flex items-center justify-center gap-2 p-3 bg-base-200 text-warning rounded-lg border border-warning/30 hover:border-warning hover:bg-warning/10 transition-all font-semibold text-sm"
+                  className="w-full flex items-center justify-center gap-2 p-3 bg-base-200 text-warning rounded-lg border border-warning/30 hover:border-warning hover:bg-warning/10 transition-colors motion-reduce:transition-none font-semibold text-sm"
                 >
                   <Plus className="w-4 h-4" />
                   add new preset

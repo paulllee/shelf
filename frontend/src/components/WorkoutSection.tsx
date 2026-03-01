@@ -26,7 +26,7 @@ export default function WorkoutSection() {
         <div className="flex justify-end mb-4">
           <button
             onClick={() => setShowAddModal(true)}
-            className="h-9 sm:h-10 px-3 sm:px-4 rounded-full bg-primary border border-primary/80 text-primary-content hover:brightness-110 transition-all flex items-center gap-1.5 text-sm font-semibold"
+            className="h-9 sm:h-10 px-3 sm:px-4 rounded-full bg-primary border border-primary/80 text-primary-content hover:brightness-110 transition-[filter] motion-reduce:transition-none flex items-center gap-1.5 text-sm font-semibold"
           >
             <Plus className="w-4 h-4" />
             <span className="hidden sm:inline">add workout</span>
@@ -50,7 +50,7 @@ export default function WorkoutSection() {
       <div className="flex justify-end mb-4">
         <button
           onClick={() => setShowAddModal(true)}
-          className="h-9 sm:h-10 px-3 sm:px-4 rounded-full bg-primary border border-primary/80 text-primary-content hover:brightness-110 transition-all flex items-center gap-1.5 text-sm font-semibold"
+          className="h-9 sm:h-10 px-3 sm:px-4 rounded-full bg-primary border border-primary/80 text-primary-content hover:brightness-110 transition-[filter] motion-reduce:transition-none flex items-center gap-1.5 text-sm font-semibold"
         >
           <Plus className="w-4 h-4" />
           <span className="hidden sm:inline">add workout</span>

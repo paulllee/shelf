@@ -124,26 +124,26 @@ export default function WorkoutViewModal({
             if (confirm("delete this workout?")) deleteMutation.mutate();
           }}
           disabled={deleteMutation.isPending}
-          className="text-error/60 hover:text-error text-sm font-semibold transition-colors"
+          className="text-error/60 hover:text-error text-sm font-semibold transition-colors motion-reduce:transition-none"
         >
           delete
         </button>
         <div className="flex-1" />
         <button
           onClick={() => setShowRepeat(true)}
-          className="px-4 py-2.5 bg-base-200 text-base-content rounded-full border border-primary/20 hover:border-primary transition-colors font-semibold text-sm"
+          className="px-4 py-2.5 bg-base-200 text-base-content rounded-full border border-primary/20 hover:border-primary transition-colors motion-reduce:transition-none font-semibold text-sm"
         >
           repeat
         </button>
         <button
           onClick={() => setShowEdit(true)}
-          className="px-4 py-2.5 bg-base-200 text-base-content rounded-full border border-primary/20 hover:border-primary transition-colors font-semibold text-sm"
+          className="px-4 py-2.5 bg-base-200 text-base-content rounded-full border border-primary/20 hover:border-primary transition-colors motion-reduce:transition-none font-semibold text-sm"
         >
           edit
         </button>
         <button
           onClick={onClose}
-          className="px-4 py-2.5 bg-primary text-primary-content rounded-full border border-primary/80 font-semibold text-sm hover:brightness-110 transition-all relative overflow-hidden"
+          className="px-4 py-2.5 bg-primary text-primary-content rounded-full border border-primary/80 font-semibold text-sm hover:brightness-110 transition-[filter] motion-reduce:transition-none relative overflow-hidden"
         >
           <div className="absolute inset-0 rounded-full shadow-[inset_0px_0.5px_0px_1.5px_rgba(255,255,255,0.06)]" />
           <span className="relative">close</span>

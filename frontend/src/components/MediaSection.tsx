@@ -53,9 +53,10 @@ export default function MediaSection() {
       <div className="flex items-center gap-3 mb-6">
         <div role="tablist" className="tabs tabs-boxed flex-1">
           {STATUSES.map((s) => (
-            <a
+            <button
               key={s}
               role="tab"
+              aria-selected={tab === s}
               className={`tab ${tab === s ? "tab-active" : ""}`}
               onClick={() => {
                 setTab(s);
@@ -64,12 +65,12 @@ export default function MediaSection() {
               }}
             >
               {s}
-            </a>
+            </button>
           ))}
         </div>
         <button
           onClick={() => setShowAddModal(true)}
-          className="h-9 sm:h-10 px-3 sm:px-4 rounded-full bg-primary border border-primary/80 text-primary-content hover:brightness-110 transition-all flex items-center gap-1.5 text-sm font-semibold flex-shrink-0"
+          className="h-9 sm:h-10 px-3 sm:px-4 rounded-full bg-primary border border-primary/80 text-primary-content hover:brightness-110 transition-[filter] motion-reduce:transition-none flex items-center gap-1.5 text-sm font-semibold flex-shrink-0"
         >
           <Plus className="w-4 h-4" />
           <span className="hidden sm:inline">add media</span>

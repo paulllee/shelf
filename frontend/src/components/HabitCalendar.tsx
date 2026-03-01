@@ -1,5 +1,6 @@
 import { ChevronLeft, ChevronRight, Calendar } from "lucide-react";
 import type { Activity, Habit } from "../types";
+import { formatDateStr } from "../utils/date";
 
 interface HabitCalendarProps {
   currentDate: Date;
@@ -11,27 +12,6 @@ interface HabitCalendarProps {
   onJumpToToday: () => void;
 }
 
-const MONTH_NAMES = [
-  "jan",
-  "feb",
-  "mar",
-  "apr",
-  "may",
-  "jun",
-  "jul",
-  "aug",
-  "sep",
-  "oct",
-  "nov",
-  "dec",
-];
-
-function formatDateStr(date: Date): string {
-  const y = date.getFullYear();
-  const m = String(date.getMonth() + 1).padStart(2, "0");
-  const d = String(date.getDate()).padStart(2, "0");
-  return `${y}-${m}-${d}`;
-}
 
 function getHabitsForDay(habits: Habit[], date: Date): Habit[] {
   return habits.filter((h) => h.days.includes(date.getDay()));
@@ -111,10 +91,18 @@ export default function HabitCalendar({
     const hasHabits = habitsForDay.length > 0;
     const activityCount = activitiesForDay.length;
 
+    const dateLabel = date.toLocaleDateString("default", {
+      weekday: "long",
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    });
+
     return (
       <button
         key={day}
         onClick={() => onDayClick(date)}
+        aria-label={dateLabel}
         className="aspect-square flex items-center justify-center relative group cursor-pointer rounded-lg transition-colors hover:bg-primary/10"
       >
         <div className="relative w-full h-full flex items-center justify-center">
@@ -206,7 +194,7 @@ export default function HabitCalendar({
         </button>
         <div className="flex items-center gap-2 sm:gap-3">
           <div className="text-base-content text-sm font-semibold">
-            {MONTH_NAMES[month]} {year}
+            {new Date(year, month).toLocaleDateString("default", { month: "short" })} {year}
           </div>
           <button
             onClick={onJumpToToday}

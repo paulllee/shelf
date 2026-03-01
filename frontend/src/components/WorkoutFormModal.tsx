@@ -406,7 +406,7 @@ export default function WorkoutFormModal({
         <div className="flex flex-wrap gap-2 pt-4">
           <button
             type="button"
-            className="text-base-content/50 hover:text-base-content text-sm font-semibold transition-colors"
+            className="text-base-content/50 hover:text-base-content text-sm font-semibold transition-colors motion-reduce:transition-none"
             onClick={() => setShowSaveTemplate(true)}
           >
             save as template
@@ -415,14 +415,14 @@ export default function WorkoutFormModal({
           <button
             type="button"
             onClick={onClose}
-            className="px-4 py-2.5 bg-base-200 text-base-content rounded-full border border-primary/20 hover:border-primary transition-colors font-semibold text-sm"
+            className="px-4 py-2.5 bg-base-200 text-base-content rounded-full border border-primary/20 hover:border-primary transition-colors motion-reduce:transition-none font-semibold text-sm"
           >
             cancel
           </button>
           <button
             type="submit"
             disabled={isPending}
-            className="px-4 py-2.5 bg-primary text-primary-content rounded-full border border-primary/80 font-semibold text-sm hover:brightness-110 transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:brightness-100 relative overflow-hidden"
+            className="px-4 py-2.5 bg-primary text-primary-content rounded-full border border-primary/80 font-semibold text-sm hover:brightness-110 transition-[filter,opacity] motion-reduce:transition-none disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:brightness-100 relative overflow-hidden"
           >
             <div className="absolute inset-0 rounded-full shadow-[inset_0px_0.5px_0px_1.5px_rgba(255,255,255,0.06)]" />
             <span className="relative">

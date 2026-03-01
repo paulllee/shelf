@@ -96,10 +96,12 @@ export default function MediaTable({ items, onEdit }: MediaTableProps) {
             className="hover:bg-base-200 cursor-pointer"
             onClick={() => onEdit(item)}
           >
-            <td className="font-medium">{item.name}</td>
+            <td className="font-medium max-w-xs">
+              <span className="block truncate">{item.name}</span>
+            </td>
             <td>{item.type !== "undefined" ? item.type : "-"}</td>
             <td>{item.country !== "undefined" ? item.country : "-"}</td>
-            <td>{item.rating && item.rating !== "n/a" ? item.rating : "-"}</td>
+            <td className="tabular-nums">{item.rating && item.rating !== "n/a" ? item.rating : "-"}</td>
             <td className="text-right">
               <span className="text-base-content/40 text-sm">edit</span>
             </td>

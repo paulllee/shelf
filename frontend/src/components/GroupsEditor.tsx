@@ -82,7 +82,7 @@ export default function GroupsEditor({ groups, onChange }: GroupsEditorProps) {
             setDraggingGroup(null);
             setDragOverGroup(null);
           }}
-          className={`bg-base-200 rounded-lg p-3 sm:p-4 transition-all ${
+          className={`bg-base-200 rounded-lg p-3 sm:p-4 transition-[opacity,box-shadow] motion-reduce:transition-none ${
             draggingGroup === gi ? "opacity-40" : ""
           } ${dragOverGroup === gi ? "ring-2 ring-primary/40" : ""}`}
         >
@@ -191,7 +191,7 @@ export default function GroupsEditor({ groups, onChange }: GroupsEditorProps) {
                   setDraggingEx(null);
                   setDragOverEx(null);
                 }}
-                className={`bg-base-300 rounded p-3 transition-all ${
+                className={`bg-base-300 rounded p-3 transition-[opacity,box-shadow] motion-reduce:transition-none ${
                   draggingEx?.gi === gi && draggingEx?.ei === ei
                     ? "opacity-40"
                     : ""

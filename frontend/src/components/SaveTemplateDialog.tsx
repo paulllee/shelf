@@ -48,7 +48,7 @@ export default function SaveTemplateDialog({
           </h2>
           <button
             onClick={onClose}
-            className="text-base-content/50 hover:text-base-content transition-colors"
+            className="text-base-content/50 hover:text-base-content transition-colors motion-reduce:transition-none"
             aria-label="Close"
           >
             <X className="w-6 h-6" />
@@ -81,14 +81,14 @@ export default function SaveTemplateDialog({
           <div className="flex gap-3">
             <button
               onClick={onClose}
-              className="flex-1 bg-base-200 text-base-content px-4 py-3 rounded-full border border-primary/20 hover:border-primary transition-colors font-semibold text-sm"
+              className="flex-1 bg-base-200 text-base-content px-4 py-3 rounded-full border border-primary/20 hover:border-primary transition-colors motion-reduce:transition-none font-semibold text-sm"
             >
               cancel
             </button>
             <button
               onClick={handleSave}
               disabled={mutation.isPending}
-              className="flex-1 bg-primary text-primary-content px-4 py-3 rounded-full border border-primary/80 font-semibold text-sm hover:brightness-110 transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:brightness-100 relative overflow-hidden"
+              className="flex-1 bg-primary text-primary-content px-4 py-3 rounded-full border border-primary/80 font-semibold text-sm hover:brightness-110 transition-[filter,opacity] motion-reduce:transition-none disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:brightness-100 relative overflow-hidden"
             >
               <div className="absolute inset-0 rounded-full shadow-[inset_0px_0.5px_0px_1.5px_rgba(255,255,255,0.06)]" />
               <span className="relative">

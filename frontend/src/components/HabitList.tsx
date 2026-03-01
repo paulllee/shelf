@@ -1,6 +1,7 @@
 import { Check, Trash2, Edit2, MoreVertical } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 import type { Habit } from "../types";
+import { formatDateStr } from "../utils/date";
 
 interface HabitListProps {
   habits: Habit[];
@@ -8,13 +9,6 @@ interface HabitListProps {
   onToggle: (habitId: string, dateStr: string) => void;
   onEdit: (habit: Habit) => void;
   onDelete: (habitId: string) => void;
-}
-
-function formatDateStr(date: Date): string {
-  const y = date.getFullYear();
-  const m = String(date.getMonth() + 1).padStart(2, "0");
-  const d = String(date.getDate()).padStart(2, "0");
-  return `${y}-${m}-${d}`;
 }
 
 function getDaysText(days: number[]): string {
@@ -76,7 +70,7 @@ export default function HabitList({
             <div className="flex items-center gap-3">
               <button
                 onClick={() => onToggle(habit.id, dateStr)}
-                className="flex-shrink-0 w-14 h-14 sm:w-16 sm:h-16 rounded-xl border-2 transition-all flex items-center justify-center"
+                className="flex-shrink-0 w-14 h-14 sm:w-16 sm:h-16 rounded-xl border-2 transition-colors motion-reduce:transition-none flex items-center justify-center"
                 style={{
                   borderColor: completed ? habit.color : `${habit.color}50`,
                   backgroundColor: completed ? habit.color : "transparent",
@@ -92,7 +86,7 @@ export default function HabitList({
 
               <div className="flex-1 min-w-0">
                 <h3
-                  className={`text-sm sm:text-base font-semibold transition-all ${
+                  className={`text-sm sm:text-base font-semibold transition-colors motion-reduce:transition-none ${
                     completed
                       ? "text-base-content/50 line-through"
                       : "text-base-content"

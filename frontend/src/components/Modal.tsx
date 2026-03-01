@@ -37,7 +37,7 @@ export default function Modal({
       onClick={onClose}
     >
       <div
-        className={`bg-base-300 rounded-xl w-full ${maxWidth} max-h-[85vh] sm:max-h-[90vh] overflow-y-auto shadow-[0px_4px_12px_0px_rgba(0,0,0,0.3)] relative p-6`}
+        className={`bg-base-300 rounded-xl w-full ${maxWidth} max-h-[85vh] sm:max-h-[90vh] overflow-y-auto overscroll-contain shadow-[0px_4px_12px_0px_rgba(0,0,0,0.3)] relative p-6`}
         onClick={(e) => e.stopPropagation()}
       >
         <button

@@ -15,13 +15,7 @@ import {
   deleteHabit,
 } from "../api/habits";
 import type { Habit } from "../types";
-
-function formatDateStr(date: Date): string {
-  const y = date.getFullYear();
-  const m = String(date.getMonth() + 1).padStart(2, "0");
-  const d = String(date.getDate()).padStart(2, "0");
-  return `${y}-${m}-${d}`;
-}
+import { formatDateStr } from "../utils/date";
 
 export default function HabitSection() {
   const { data: habits = [] } = useQuery({
@@ -85,8 +79,8 @@ export default function HabitSection() {
             {habits.length > 0 && (
               <button
                 onClick={() => setShowSettingsModal(true)}
-                className="text-base-content/40 hover:text-base-content transition-colors"
-                title="Manage habits & presets"
+                className="text-base-content/40 hover:text-base-content transition-colors motion-reduce:transition-none"
+                aria-label="Manage habits and presets"
               >
                 <Settings className="w-4 h-4" />
               </button>
@@ -96,7 +90,8 @@ export default function HabitSection() {
             {/* Add activity button */}
             <button
               onClick={() => setShowActivityModal(true)}
-              className="h-9 sm:h-10 px-3 sm:px-4 rounded-full border border-warning bg-base-200 text-warning hover:bg-warning/10 transition-all flex items-center gap-1.5 text-sm font-semibold"
+              aria-label="Add activity"
+              className="h-9 sm:h-10 px-3 sm:px-4 rounded-full border border-warning bg-base-200 text-warning hover:bg-warning/10 transition-colors motion-reduce:transition-none flex items-center gap-1.5 text-sm font-semibold"
             >
               <Plus className="w-4 h-4" />
               <span className="hidden sm:inline">add activity</span>
@@ -104,7 +99,8 @@ export default function HabitSection() {
             {/* Add habit button */}
             <button
               onClick={() => setShowAddHabitModal(true)}
-              className="h-9 sm:h-10 px-4 sm:px-5 rounded-full bg-primary border border-primary/80 text-primary-content hover:brightness-110 transition-all flex items-center gap-1.5 text-sm font-semibold relative overflow-hidden"
+              aria-label="Add habit"
+              className="h-9 sm:h-10 px-4 sm:px-5 rounded-full bg-primary border border-primary/80 text-primary-content hover:brightness-110 transition-[filter] motion-reduce:transition-none flex items-center gap-1.5 text-sm font-semibold relative overflow-hidden"
             >
               <div className="absolute inset-0 rounded-full shadow-[inset_0px_0.5px_0px_1.5px_rgba(255,255,255,0.06)]" />
               <Plus className="w-4 h-4 relative" />
@@ -144,7 +140,7 @@ export default function HabitSection() {
         <div>
           <button
             onClick={() => setIsOtherHabitsExpanded(!isOtherHabitsExpanded)}
-            className="flex items-center gap-2 text-base-content font-semibold mb-4 hover:text-primary transition-colors"
+            className="flex items-center gap-2 text-base-content font-semibold mb-4 hover:text-primary transition-colors motion-reduce:transition-none"
           >
             {isOtherHabitsExpanded ? (
               <ChevronUp className="w-4 h-4" />
