@@ -32,16 +32,16 @@ export default function WorkoutTemplates({
       {templates.map((template) => (
         <div
           key={template.id}
-          className="flex items-center justify-between bg-base-300 rounded-lg px-3 py-2"
+          className="flex flex-col gap-1.5 sm:flex-row sm:items-center sm:justify-between bg-base-300 rounded-lg px-3 py-2"
         >
-          <div className="flex-1">
+          <div className="min-w-0">
             <span className="font-medium">{template.name}</span>
             <span className="text-xs text-base-content/50 ml-2">
               {template.groups.length} group
               {template.groups.length !== 1 ? "s" : ""}
             </span>
           </div>
-          <div className="flex gap-1">
+          <div className="flex gap-1 self-end sm:self-auto flex-shrink-0">
             <button
               type="button"
               className="btn btn-primary btn-xs"

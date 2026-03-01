@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { ChevronDown, ChevronUp, Plus, Settings } from "lucide-react";
+import { ChevronDown, ChevronUp, Plus, Settings, X } from "lucide-react";
 import HabitList from "./HabitList";
+import AllHabitsList from "./AllHabitsList";
 import HabitCalendar from "./HabitCalendar";
 import HabitModal from "./HabitModal";
 import ActivityModal from "./ActivityModal";
@@ -45,6 +46,7 @@ export default function HabitSection() {
   const [showPresetsModal, setShowPresetsModal] = useState(false);
   const [selectedDayDetail, setSelectedDayDetail] = useState<Date | null>(null);
   const [isOtherHabitsExpanded, setIsOtherHabitsExpanded] = useState(false);
+  const [showAllHabitsModal, setShowAllHabitsModal] = useState(false);
 
   const queryClient = useQueryClient();
 
@@ -80,7 +82,18 @@ export default function HabitSection() {
       <div>
         {/* Header row matching figma layout */}
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-[18px] font-semibold">today's habits</h2>
+          <div className="flex items-center gap-2">
+            <h2 className="text-[18px] font-semibold">today's habits</h2>
+            {habits.length > 0 && (
+              <button
+                onClick={() => setShowAllHabitsModal(true)}
+                className="px-2 py-0.5 rounded-full bg-base-300 text-base-content/60 text-xs font-semibold hover:bg-base-content/20 hover:text-base-content transition-colors"
+                title="Manage all habits"
+              >
+                {habits.length}
+              </button>
+            )}
+          </div>
           <div className="flex gap-2">
             {/* Presets button */}
             <button
@@ -160,6 +173,32 @@ export default function HabitSection() {
               onDelete={handleDelete}
             />
           )}
+        </div>
+      )}
+
+      {showAllHabitsModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+          <div className="bg-base-100 rounded-xl shadow-xl w-full max-w-md flex flex-col max-h-[80vh]">
+            <div className="flex items-center justify-between px-5 py-4 border-b border-base-300">
+              <h2 className="text-base font-semibold">all habits</h2>
+              <button
+                onClick={() => setShowAllHabitsModal(false)}
+                className="p-1.5 rounded-lg text-base-content/40 hover:text-base-content hover:bg-base-200 transition-colors"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+            <div className="overflow-y-auto p-4">
+              <AllHabitsList
+                habits={habits}
+                onEdit={(habit) => {
+                  setShowAllHabitsModal(false);
+                  setEditingHabit(habit);
+                }}
+                onDelete={handleDelete}
+              />
+            </div>
+          </div>
         </div>
       )}
 

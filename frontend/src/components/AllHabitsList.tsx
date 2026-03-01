@@ -1,20 +1,11 @@
-import { Check, Trash2, Edit2, MoreVertical } from "lucide-react";
+import { Edit2, Trash2, MoreVertical } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 import type { Habit } from "../types";
 
-interface HabitListProps {
+interface AllHabitsListProps {
   habits: Habit[];
-  date: Date;
-  onToggle: (habitId: string, dateStr: string) => void;
   onEdit: (habit: Habit) => void;
   onDelete: (habitId: string) => void;
-}
-
-function formatDateStr(date: Date): string {
-  const y = date.getFullYear();
-  const m = String(date.getMonth() + 1).padStart(2, "0");
-  const d = String(date.getDate()).padStart(2, "0");
-  return `${y}-${m}-${d}`;
 }
 
 function getDaysText(days: number[]): string {
@@ -31,14 +22,11 @@ function getDaysText(days: number[]): string {
     .join(", ");
 }
 
-export default function HabitList({
+export default function AllHabitsList({
   habits,
-  date,
-  onToggle,
   onEdit,
   onDelete,
-}: HabitListProps) {
-  const dateStr = formatDateStr(date);
+}: AllHabitsListProps) {
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
   const menuRef = useRef<HTMLDivElement>(null);
 
@@ -55,67 +43,38 @@ export default function HabitList({
 
   if (habits.length === 0) {
     return (
-      <div className="bg-base-200 rounded-lg p-6 text-center">
-        <p className="text-base-content/50 text-sm">
-          no habits scheduled for today
-        </p>
+      <div className="bg-base-200 rounded-lg p-6 text-center shadow-sm">
+        <p className="text-base-content/50 text-sm">no habits yet</p>
       </div>
     );
   }
 
   return (
-    <div className="space-y-3">
-      {habits.map((habit) => {
-        const completed = habit.completions.includes(dateStr);
-        const isMenuOpen = openMenuId === habit.id;
-        return (
-          <div
-            key={habit.id}
-            className="bg-base-200 rounded-lg p-3 sm:p-4 shadow-sm"
-          >
-            <div className="flex items-center gap-3">
-              <button
-                onClick={() => onToggle(habit.id, dateStr)}
-                className="flex-shrink-0 w-14 h-14 sm:w-16 sm:h-16 rounded-xl border-2 transition-all flex items-center justify-center"
-                style={{
-                  borderColor: completed ? habit.color : `${habit.color}50`,
-                  backgroundColor: completed ? habit.color : "transparent",
-                }}
-              >
-                {completed && (
-                  <Check
-                    className="w-7 h-7 sm:w-8 sm:h-8 text-white"
-                    strokeWidth={3}
-                  />
-                )}
-              </button>
-
+    <div className="bg-base-200 rounded-lg shadow-sm overflow-hidden">
+      <div className="divide-y divide-base-300">
+        {habits.map((habit) => {
+          const isMenuOpen = openMenuId === habit.id;
+          return (
+            <div
+              key={habit.id}
+              className="flex items-center gap-3 px-4 py-3"
+            >
+              <div
+                className="w-3 h-3 rounded-full flex-shrink-0"
+                style={{ backgroundColor: habit.color }}
+              />
               <div className="flex-1 min-w-0">
-                <h3
-                  className={`text-sm sm:text-base font-semibold transition-all ${
-                    completed
-                      ? "text-base-content/50 line-through"
-                      : "text-base-content"
-                  }`}
-                >
+                <div className="text-sm font-semibold text-base-content leading-tight">
                   {habit.name}
-                </h3>
-                <div className="flex items-center gap-2 mt-1">
-                  <div
-                    className="w-3 h-3 rounded-full"
-                    style={{ backgroundColor: habit.color }}
-                  />
-                  <span className="text-base-content/50 text-xs">
-                    {getDaysText(habit.days)}
-                  </span>
+                </div>
+                <div className="text-xs text-base-content/50 mt-0.5">
+                  {getDaysText(habit.days)}
                 </div>
               </div>
 
               <div className="relative" ref={isMenuOpen ? menuRef : null}>
                 <button
-                  onClick={() =>
-                    setOpenMenuId(isMenuOpen ? null : habit.id)
-                  }
+                  onClick={() => setOpenMenuId(isMenuOpen ? null : habit.id)}
                   className="p-2 rounded-lg text-base-content/40 hover:text-base-content hover:bg-base-300 transition-colors"
                   aria-label="More options"
                 >
@@ -150,9 +109,9 @@ export default function HabitList({
                 )}
               </div>
             </div>
-          </div>
-        );
-      })}
+          );
+        })}
+      </div>
     </div>
   );
 }

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { GripVertical } from "lucide-react";
+import { GripVertical, ChevronUp, ChevronDown } from "lucide-react";
 import type { ExerciseGroup, Exercise, WorkoutSet } from "../types";
 
 interface GroupsEditorProps {
@@ -27,6 +27,13 @@ function removeAt<T>(arr: T[], idx: number): T[] {
   return arr.filter((_, i) => i !== idx);
 }
 
+function moveItem<T>(arr: T[], from: number, to: number): T[] {
+  const next = [...arr];
+  const [item] = next.splice(from, 1);
+  next.splice(to, 0, item);
+  return next;
+}
+
 export default function GroupsEditor({ groups, onChange }: GroupsEditorProps) {
   const [draggingGroup, setDraggingGroup] = useState<number | null>(null);
   const [dragOverGroup, setDragOverGroup] = useState<number | null>(null);
@@ -40,20 +47,15 @@ export default function GroupsEditor({ groups, onChange }: GroupsEditorProps) {
   } | null>(null);
 
   function reorderGroups(from: number, to: number) {
-    const next = [...groups];
-    const [item] = next.splice(from, 1);
-    next.splice(to, 0, item);
-    onChange(next);
+    onChange(moveItem(groups, from, to));
   }
 
   function reorderExercises(gi: number, from: number, to: number) {
     onChange(
-      updateAt(groups, gi, (g) => {
-        const exercises = [...g.exercises];
-        const [item] = exercises.splice(from, 1);
-        exercises.splice(to, 0, item);
-        return { ...g, exercises };
-      }),
+      updateAt(groups, gi, (g) => ({
+        ...g,
+        exercises: moveItem(g.exercises, from, to),
+      })),
     );
   }
 
@@ -64,6 +66,7 @@ export default function GroupsEditor({ groups, onChange }: GroupsEditorProps) {
           key={gi}
           onDragOver={(e) => {
             e.preventDefault();
+            // Only handle group drag, not exercise drag
             if (draggingGroup !== null && draggingGroup !== gi)
               setDragOverGroup(gi);
           }}
@@ -72,6 +75,7 @@ export default function GroupsEditor({ groups, onChange }: GroupsEditorProps) {
               setDragOverGroup(null);
           }}
           onDrop={() => {
+            // Only handle if a group is being dragged (not an exercise)
             if (draggingGroup !== null && draggingGroup !== gi) {
               reorderGroups(draggingGroup, gi);
             }
@@ -83,17 +87,44 @@ export default function GroupsEditor({ groups, onChange }: GroupsEditorProps) {
           } ${dragOverGroup === gi ? "ring-2 ring-primary/40" : ""}`}
         >
           <div className="flex flex-col sm:flex-row gap-2 mb-3">
-            <div
-              draggable
-              onDragStart={() => setDraggingGroup(gi)}
-              onDragEnd={() => {
-                setDraggingGroup(null);
-                setDragOverGroup(null);
-              }}
-              className="flex items-center self-center cursor-grab active:cursor-grabbing text-base-content/30 hover:text-base-content/60 transition-colors flex-shrink-0"
-              title="Drag to reorder"
-            >
-              <GripVertical className="w-4 h-4" />
+            {/* Reorder controls: drag handle (desktop) + up/down arrows */}
+            <div className="flex items-center self-center gap-1 flex-shrink-0">
+              <div
+                draggable
+                onDragStart={() => setDraggingGroup(gi)}
+                onDragEnd={() => {
+                  setDraggingGroup(null);
+                  setDragOverGroup(null);
+                }}
+                className="hidden sm:flex items-center cursor-grab active:cursor-grabbing text-base-content/30 hover:text-base-content/60 transition-colors"
+                title="Drag to reorder"
+              >
+                <GripVertical className="w-4 h-4" />
+              </div>
+              {groups.length > 1 && (
+                <div className="flex flex-col">
+                  <button
+                    type="button"
+                    onClick={() => gi > 0 && reorderGroups(gi, gi - 1)}
+                    disabled={gi === 0}
+                    className="p-0.5 text-base-content/30 hover:text-base-content/70 disabled:opacity-20 disabled:cursor-not-allowed transition-colors"
+                    aria-label="Move group up"
+                  >
+                    <ChevronUp className="w-3.5 h-3.5" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      gi < groups.length - 1 && reorderGroups(gi, gi + 1)
+                    }
+                    disabled={gi === groups.length - 1}
+                    className="p-0.5 text-base-content/30 hover:text-base-content/70 disabled:opacity-20 disabled:cursor-not-allowed transition-colors"
+                    aria-label="Move group down"
+                  >
+                    <ChevronDown className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              )}
             </div>
             <input
               type="text"
@@ -141,25 +172,20 @@ export default function GroupsEditor({ groups, onChange }: GroupsEditorProps) {
                 key={ei}
                 onDragOver={(e) => {
                   e.preventDefault();
-                  e.stopPropagation();
-                  if (
-                    draggingEx &&
-                    draggingEx.gi === gi &&
-                    draggingEx.ei !== ei
-                  )
+                  // Only handle exercise drag — don't stop propagation for group drag
+                  if (draggingEx && draggingEx.gi === gi && draggingEx.ei !== ei) {
+                    e.stopPropagation();
                     setDragOverEx({ gi, ei });
+                  }
                 }}
                 onDragLeave={(e) => {
                   if (!e.currentTarget.contains(e.relatedTarget as Node))
                     setDragOverEx(null);
                 }}
                 onDrop={(e) => {
-                  e.stopPropagation();
-                  if (
-                    draggingEx &&
-                    draggingEx.gi === gi &&
-                    draggingEx.ei !== ei
-                  ) {
+                  // Only handle exercise drop — don't stop propagation for group drag
+                  if (draggingEx && draggingEx.gi === gi && draggingEx.ei !== ei) {
+                    e.stopPropagation();
                     reorderExercises(gi, draggingEx.ei, ei);
                   }
                   setDraggingEx(null);
@@ -172,17 +198,47 @@ export default function GroupsEditor({ groups, onChange }: GroupsEditorProps) {
                 } ${dragOverEx?.gi === gi && dragOverEx?.ei === ei ? "ring-2 ring-primary/40" : ""}`}
               >
                 <div className="flex gap-2 mb-2">
-                  <div
-                    draggable
-                    onDragStart={() => setDraggingEx({ gi, ei })}
-                    onDragEnd={() => {
-                      setDraggingEx(null);
-                      setDragOverEx(null);
-                    }}
-                    className="flex items-center cursor-grab active:cursor-grabbing text-base-content/30 hover:text-base-content/60 transition-colors flex-shrink-0"
-                    title="Drag to reorder"
-                  >
-                    <GripVertical className="w-4 h-4" />
+                  {/* Reorder controls: drag handle (desktop) + up/down arrows */}
+                  <div className="flex items-center gap-1 flex-shrink-0">
+                    <div
+                      draggable
+                      onDragStart={() => setDraggingEx({ gi, ei })}
+                      onDragEnd={() => {
+                        setDraggingEx(null);
+                        setDragOverEx(null);
+                      }}
+                      className="hidden sm:flex items-center cursor-grab active:cursor-grabbing text-base-content/30 hover:text-base-content/60 transition-colors"
+                      title="Drag to reorder"
+                    >
+                      <GripVertical className="w-4 h-4" />
+                    </div>
+                    {group.exercises.length > 1 && (
+                      <div className="flex flex-col">
+                        <button
+                          type="button"
+                          onClick={() =>
+                            ei > 0 && reorderExercises(gi, ei, ei - 1)
+                          }
+                          disabled={ei === 0}
+                          className="p-0.5 text-base-content/30 hover:text-base-content/70 disabled:opacity-20 disabled:cursor-not-allowed transition-colors"
+                          aria-label="Move exercise up"
+                        >
+                          <ChevronUp className="w-3.5 h-3.5" />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() =>
+                            ei < group.exercises.length - 1 &&
+                            reorderExercises(gi, ei, ei + 1)
+                          }
+                          disabled={ei === group.exercises.length - 1}
+                          className="p-0.5 text-base-content/30 hover:text-base-content/70 disabled:opacity-20 disabled:cursor-not-allowed transition-colors"
+                          aria-label="Move exercise down"
+                        >
+                          <ChevronDown className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    )}
                   </div>
                   <input
                     type="text"
