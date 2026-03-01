@@ -117,8 +117,8 @@ export default function DayDetailModal({
   };
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-      <div className="bg-base-300 rounded-xl max-w-md w-full p-4 sm:p-6 shadow-[0px_4px_12px_0px_rgba(0,0,0,0.3)] max-h-[80vh] overflow-y-auto">
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50" onClick={onClose}>
+      <div className="bg-base-300 rounded-xl max-w-md w-full p-4 sm:p-6 shadow-[0px_4px_12px_0px_rgba(0,0,0,0.3)] max-h-[80vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
         <div className="flex items-center justify-between mb-4 sm:mb-6">
           <div>
             <h2 className="text-base-content text-lg sm:text-xl font-bold">
