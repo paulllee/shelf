@@ -1,13 +1,12 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { ChevronDown, ChevronUp, Plus, Settings, X } from "lucide-react";
+import { ChevronDown, ChevronUp, Plus, Settings } from "lucide-react";
 import HabitList from "./HabitList";
-import AllHabitsList from "./AllHabitsList";
 import HabitCalendar from "./HabitCalendar";
 import HabitModal from "./HabitModal";
 import ActivityModal from "./ActivityModal";
 import DayDetailModal from "./DayDetailModal";
-import PresetsModal from "./PresetsModal";
+import HabitSettingsModal from "./HabitSettingsModal";
 import {
   fetchHabits,
   fetchActivities,
@@ -43,10 +42,9 @@ export default function HabitSection() {
   const [editingHabit, setEditingHabit] = useState<Habit | null>(null);
   const [showAddHabitModal, setShowAddHabitModal] = useState(false);
   const [showActivityModal, setShowActivityModal] = useState(false);
-  const [showPresetsModal, setShowPresetsModal] = useState(false);
   const [selectedDayDetail, setSelectedDayDetail] = useState<Date | null>(null);
   const [isOtherHabitsExpanded, setIsOtherHabitsExpanded] = useState(false);
-  const [showAllHabitsModal, setShowAllHabitsModal] = useState(false);
+  const [showSettingsModal, setShowSettingsModal] = useState(false);
 
   const queryClient = useQueryClient();
 
@@ -86,24 +84,15 @@ export default function HabitSection() {
             <h2 className="text-[18px] font-semibold">today's habits</h2>
             {habits.length > 0 && (
               <button
-                onClick={() => setShowAllHabitsModal(true)}
-                className="px-2 py-0.5 rounded-full bg-base-300 text-base-content/60 text-xs font-semibold hover:bg-base-content/20 hover:text-base-content transition-colors"
-                title="Manage all habits"
+                onClick={() => setShowSettingsModal(true)}
+                className="text-base-content/40 hover:text-base-content transition-colors"
+                title="Manage habits & presets"
               >
-                {habits.length}
+                <Settings className="w-4 h-4" />
               </button>
             )}
           </div>
           <div className="flex gap-2">
-            {/* Presets button */}
-            <button
-              onClick={() => setShowPresetsModal(true)}
-              className="h-9 sm:h-10 px-3 sm:px-4 rounded-full border border-primary/30 bg-base-200 text-base-content/50 hover:border-primary hover:text-primary transition-all flex items-center gap-1.5 text-sm font-semibold"
-              title="Manage activity presets"
-            >
-              <Settings className="w-4 h-4" />
-              <span className="hidden sm:inline">presets</span>
-            </button>
             {/* Add activity button */}
             <button
               onClick={() => setShowActivityModal(true)}
@@ -176,30 +165,16 @@ export default function HabitSection() {
         </div>
       )}
 
-      {showAllHabitsModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-          <div className="bg-base-100 rounded-xl shadow-xl w-full max-w-md flex flex-col max-h-[80vh]">
-            <div className="flex items-center justify-between px-5 py-4 border-b border-base-300">
-              <h2 className="text-base font-semibold">all habits</h2>
-              <button
-                onClick={() => setShowAllHabitsModal(false)}
-                className="p-1.5 rounded-lg text-base-content/40 hover:text-base-content hover:bg-base-200 transition-colors"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            </div>
-            <div className="overflow-y-auto p-4">
-              <AllHabitsList
-                habits={habits}
-                onEdit={(habit) => {
-                  setShowAllHabitsModal(false);
-                  setEditingHabit(habit);
-                }}
-                onDelete={handleDelete}
-              />
-            </div>
-          </div>
-        </div>
+      {showSettingsModal && (
+        <HabitSettingsModal
+          habits={habits}
+          onEdit={(habit) => {
+            setShowSettingsModal(false);
+            setEditingHabit(habit);
+          }}
+          onDelete={handleDelete}
+          onClose={() => setShowSettingsModal(false)}
+        />
       )}
 
       {(editingHabit || showAddHabitModal) && (
@@ -218,10 +193,6 @@ export default function HabitSection() {
           presets={presets}
           onClose={() => setShowActivityModal(false)}
         />
-      )}
-
-      {showPresetsModal && (
-        <PresetsModal onClose={() => setShowPresetsModal(false)} />
       )}
 
       {selectedDayDetail && (
