@@ -85,10 +85,18 @@ def parse_all_media(media_dir: Path) -> list[Media]:
     return [parse_md_to_media(p) for p in media_dir.iterdir() if p.is_file()]
 
 
-async def poll_media_items(app: FastAPI, interval_in_seconds: int) -> None:
+async def poll_all_items(app: FastAPI, interval_in_seconds: int) -> None:
     while True:
-        logger.info("Refreshing media items")
-        app.state.media_items = parse_all_media(app.state.media_dir)
+        try:
+            logger.info("Refreshing all items")
+            app.state.media_items = parse_all_media(app.state.media_dir)
+            app.state.workout_items = parse_all_workouts(app.state.workout_dir)
+            app.state.template_items = parse_all_templates(app.state.template_dir)
+            app.state.habit_items = parse_all_habits(app.state.habits_dir)
+            app.state.activity_items = parse_all_activities(app.state.activities_dir)
+            app.state.preset_items = parse_all_presets(app.state.presets_dir)
+        except Exception:
+            logger.exception("Error during poll")
         await asyncio.sleep(interval_in_seconds)
 
 
@@ -144,13 +152,6 @@ def parse_all_workouts(workout_dir: Path) -> list[Workout]:
         for p in workout_dir.iterdir()
         if p.is_file() and p.suffix == ".md"
     ]
-
-
-async def poll_workout_items(app: FastAPI, interval_in_seconds: int) -> None:
-    while True:
-        logger.info("Refreshing workout items")
-        app.state.workout_items = parse_all_workouts(app.state.workout_dir)
-        await asyncio.sleep(interval_in_seconds)
 
 
 # template parsing
@@ -237,13 +238,6 @@ def parse_all_habits(habits_dir: Path) -> list[Habit]:
     ]
 
 
-async def poll_habit_items(app: FastAPI, interval_in_seconds: int) -> None:
-    while True:
-        logger.info("Refreshing habit items")
-        app.state.habit_items = parse_all_habits(app.state.habits_dir)
-        await asyncio.sleep(interval_in_seconds)
-
-
 # activity parsing
 
 
@@ -275,13 +269,6 @@ def parse_all_activities(activities_dir: Path) -> list[Activity]:
     ]
 
 
-async def poll_activity_items(app: FastAPI, interval_in_seconds: int) -> None:
-    while True:
-        logger.info("Refreshing activity items")
-        app.state.activity_items = parse_all_activities(app.state.activities_dir)
-        await asyncio.sleep(interval_in_seconds)
-
-
 # preset parsing
 
 
@@ -303,13 +290,6 @@ def parse_all_presets(presets_dir: Path) -> list[Preset]:
         for p in presets_dir.iterdir()
         if p.is_file() and p.suffix == ".md"
     ]
-
-
-async def poll_preset_items(app: FastAPI, interval_in_seconds: int) -> None:
-    while True:
-        logger.info("Refreshing preset items")
-        app.state.preset_items = parse_all_presets(app.state.presets_dir)
-        await asyncio.sleep(interval_in_seconds)
 
 
 @asynccontextmanager
@@ -356,28 +336,14 @@ async def lifespan(app: FastAPI):
     app.state.activity_items = parse_all_activities(app.state.activities_dir)
     app.state.preset_items = parse_all_presets(app.state.presets_dir)
 
-    # start polling tasks for manual file edits
-    logger.info("Starting background polling tasks")
-    poll_media_task = asyncio.create_task(poll_media_items(app, interval_in_seconds=5))
-    poll_workout_task = asyncio.create_task(
-        poll_workout_items(app, interval_in_seconds=5)
-    )
-    poll_habit_task = asyncio.create_task(poll_habit_items(app, interval_in_seconds=5))
-    poll_activity_task = asyncio.create_task(
-        poll_activity_items(app, interval_in_seconds=5)
-    )
-    poll_preset_task = asyncio.create_task(
-        poll_preset_items(app, interval_in_seconds=5)
-    )
+    # start polling task for manual file edits
+    logger.info("Starting background polling task")
+    poll_task = asyncio.create_task(poll_all_items(app, interval_in_seconds=5))
 
     yield
 
-    logger.info("Shutting down background tasks")
-    poll_media_task.cancel()
-    poll_workout_task.cancel()
-    poll_habit_task.cancel()
-    poll_activity_task.cancel()
-    poll_preset_task.cancel()
+    logger.info("Shutting down background task")
+    poll_task.cancel()
 
 
 app: FastAPI = FastAPI(lifespan=lifespan)
