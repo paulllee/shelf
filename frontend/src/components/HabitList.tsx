@@ -25,8 +25,13 @@ interface HabitListProps {
 
 const DAY_NAMES = ["su", "mo", "tu", "we", "th", "fr", "sa"];
 const DAY_FULL_NAMES = [
-  "sunday", "monday", "tuesday", "wednesday",
-  "thursday", "friday", "saturday",
+  "sunday",
+  "monday",
+  "tuesday",
+  "wednesday",
+  "thursday",
+  "friday",
+  "saturday",
 ];
 
 function getDaysText(days: number[]): string {
@@ -63,8 +68,7 @@ export default function HabitList({
     const shiftedHere = habit.shifts.find((s) => s.to === dateStr);
     if (shiftedHere) return shiftedHere.from;
     const todayDow = date.getDay();
-    const upcomingDow =
-      habit.days.find((d) => d > todayDow) ?? habit.days[0];
+    const upcomingDow = habit.days.find((d) => d > todayDow) ?? habit.days[0];
     return upcomingDow !== undefined ? getDateForWeekday(upcomingDow) : dateStr;
   }
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
@@ -202,9 +206,13 @@ export default function HabitList({
                             );
                           }
                         })()}
-                      {onShift && habit.days.length < 7 &&
+                      {onShift &&
+                        habit.days.length < 7 &&
                         (() => {
-                          const existingShift = getShiftForDay(habit, habitFromDate);
+                          const existingShift = getShiftForDay(
+                            habit,
+                            habitFromDate,
+                          );
                           if (existingShift && !isShiftedHere) {
                             return (
                               <button
@@ -258,9 +266,13 @@ export default function HabitList({
                   {DAY_NAMES.map((dayName, weekday) => {
                     if (
                       isShiftedHere
-                        ? (habit.days.includes(weekday) && weekday !== fromWeekday) || weekday === date.getDay()
-                        : habit.days.includes(weekday) || weekday === fromWeekday
-                    ) return null;
+                        ? (habit.days.includes(weekday) &&
+                            weekday !== fromWeekday) ||
+                          weekday === date.getDay()
+                        : habit.days.includes(weekday) ||
+                          weekday === fromWeekday
+                    )
+                      return null;
                     return (
                       <button
                         key={weekday}
