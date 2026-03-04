@@ -13,9 +13,12 @@ import {
   fetchPresets,
   toggleCompletion,
   deleteHabit,
+  shiftHabit,
+  cancelShift,
 } from "../api/habits";
 import type { Habit } from "../types";
 import { formatDateStr } from "../utils/date";
+import { getHabitsForDay } from "../utils/habits";
 
 export default function HabitSection() {
   const { data: habits = [] } = useQuery({
@@ -53,14 +56,39 @@ export default function HabitSection() {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["habits"] }),
   });
 
+  const shiftMutation = useMutation({
+    mutationFn: ({
+      habitId,
+      from,
+      to,
+    }: {
+      habitId: string;
+      from: string;
+      to: string | null;
+    }) => shiftHabit(habitId, from, to),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["habits"] }),
+  });
+
+  const cancelShiftMutation = useMutation({
+    mutationFn: ({
+      habitId,
+      fromDate,
+    }: {
+      habitId: string;
+      fromDate: string;
+    }) => cancelShift(habitId, fromDate),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["habits"] }),
+  });
+
   const today = useMemo(() => {
     const d = new Date();
     d.setHours(0, 0, 0, 0);
     return d;
   }, []);
+  const todayStr = useMemo(() => formatDateStr(today), [today]);
 
   const todaysHabits = useMemo(
-    () => habits.filter((h) => h.days.includes(today.getDay())),
+    () => getHabitsForDay(habits, today),
     [habits, today],
   );
   const todaysHabitIds = useMemo(
@@ -68,8 +96,13 @@ export default function HabitSection() {
     [todaysHabits],
   );
   const otherHabits = useMemo(
-    () => habits.filter((h) => !todaysHabitIds.has(h.id)),
-    [habits, todaysHabitIds],
+    () =>
+      habits.filter(
+        (h) =>
+          !todaysHabitIds.has(h.id) &&
+          !h.shifts.some((s) => s.from === todayStr),
+      ),
+    [habits, todaysHabitIds, todayStr],
   );
 
   const handleToggle = (habitId: string, dateStr: string) => {
@@ -78,6 +111,18 @@ export default function HabitSection() {
 
   const handleDelete = (id: string) => {
     deleteMutation.mutate(id);
+  };
+
+  const handleShift = (
+    habitId: string,
+    fromDate: string,
+    toDate: string | null,
+  ) => {
+    shiftMutation.mutate({ habitId, from: fromDate, to: toDate });
+  };
+
+  const handleCancelShift = (habitId: string, fromDate: string) => {
+    cancelShiftMutation.mutate({ habitId, fromDate });
   };
 
   return (
@@ -126,6 +171,8 @@ export default function HabitSection() {
           onToggle={handleToggle}
           onEdit={setEditingHabit}
           onDelete={handleDelete}
+          onShift={handleShift}
+          onCancelShift={handleCancelShift}
         />
       </div>
 

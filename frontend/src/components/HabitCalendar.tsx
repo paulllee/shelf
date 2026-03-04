@@ -2,6 +2,7 @@ import { useMemo } from "react";
 import { ChevronLeft, ChevronRight, Calendar } from "lucide-react";
 import type { Activity, Habit } from "../types";
 import { formatDateStr } from "../utils/date";
+import { getHabitsForDay } from "../utils/habits";
 
 const DAY_HEADERS = ["su", "mo", "tu", "we", "th", "fr", "sa"] as const;
 
@@ -13,11 +14,6 @@ interface HabitCalendarProps {
   onNextMonth: () => void;
   onDayClick: (date: Date) => void;
   onJumpToToday: () => void;
-}
-
-
-function getHabitsForDay(habits: Habit[], date: Date): Habit[] {
-  return habits.filter((h) => h.days.includes(date.getDay()));
 }
 
 function getActivitiesForDay(activities: Activity[], date: Date): Activity[] {
@@ -200,7 +196,10 @@ export default function HabitCalendar({
         </button>
         <div className="flex items-center gap-2 sm:gap-3">
           <div className="text-base-content text-sm font-semibold">
-            {new Date(year, month).toLocaleDateString("default", { month: "short" })} {year}
+            {new Date(year, month).toLocaleDateString("default", {
+              month: "short",
+            })}{" "}
+            {year}
           </div>
           <button
             onClick={onJumpToToday}

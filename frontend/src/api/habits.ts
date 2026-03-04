@@ -94,3 +94,23 @@ export function deletePreset(id: string): Promise<{ ok: boolean }> {
     method: "DELETE",
   });
 }
+
+export function shiftHabit(
+  habitId: string,
+  from: string,
+  to: string | null,
+): Promise<Habit> {
+  const body: { from: string; to?: string } = { from };
+  if (to !== null) body.to = to;
+  return apiFetch<Habit>(`/habit/${encodeURIComponent(habitId)}/shift`, {
+    method: "POST",
+    body: JSON.stringify(body),
+  });
+}
+
+export function cancelShift(habitId: string, fromDate: string): Promise<Habit> {
+  return apiFetch<Habit>(
+    `/habit/${encodeURIComponent(habitId)}/shift/${encodeURIComponent(fromDate)}`,
+    { method: "DELETE" },
+  );
+}

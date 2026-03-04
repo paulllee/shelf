@@ -135,7 +135,10 @@ export default function MediaModal({ item, onClose }: MediaModalProps) {
 
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
-          <label htmlFor="media-name" className="block text-base-content text-sm font-semibold mb-2">
+          <label
+            htmlFor="media-name"
+            className="block text-base-content text-sm font-semibold mb-2"
+          >
             name
           </label>
           <input
@@ -154,7 +157,10 @@ export default function MediaModal({ item, onClose }: MediaModalProps) {
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
-            <label htmlFor="media-country" className="block text-base-content text-sm font-semibold mb-2">
+            <label
+              htmlFor="media-country"
+              className="block text-base-content text-sm font-semibold mb-2"
+            >
               country
             </label>
             <select
@@ -172,7 +178,10 @@ export default function MediaModal({ item, onClose }: MediaModalProps) {
             </select>
           </div>
           <div>
-            <label htmlFor="media-type" className="block text-base-content text-sm font-semibold mb-2">
+            <label
+              htmlFor="media-type"
+              className="block text-base-content text-sm font-semibold mb-2"
+            >
               type
             </label>
             <select
@@ -193,7 +202,10 @@ export default function MediaModal({ item, onClose }: MediaModalProps) {
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
-            <label htmlFor="media-status" className="block text-base-content text-sm font-semibold mb-2">
+            <label
+              htmlFor="media-status"
+              className="block text-base-content text-sm font-semibold mb-2"
+            >
               status
             </label>
             <select
@@ -211,7 +223,10 @@ export default function MediaModal({ item, onClose }: MediaModalProps) {
             </select>
           </div>
           <div>
-            <label htmlFor="media-rating" className="block text-base-content text-sm font-semibold mb-2">
+            <label
+              htmlFor="media-rating"
+              className="block text-base-content text-sm font-semibold mb-2"
+            >
               rating
             </label>
             <input
@@ -231,7 +246,10 @@ export default function MediaModal({ item, onClose }: MediaModalProps) {
         </div>
 
         <div>
-          <label htmlFor="media-review" className="block text-base-content text-sm font-semibold mb-2">
+          <label
+            htmlFor="media-review"
+            className="block text-base-content text-sm font-semibold mb-2"
+          >
             review
           </label>
           <textarea

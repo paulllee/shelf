@@ -8,7 +8,8 @@ export default function ThemeToggle() {
   const toggle = useCallback(() => {
     const next = isDark ? "light" : "dark";
     document.documentElement.setAttribute("data-theme", next);
-    document.documentElement.style.colorScheme = next === "dark" ? "dark" : "light";
+    document.documentElement.style.colorScheme =
+      next === "dark" ? "dark" : "light";
     localStorage.setItem("theme", next);
     setIsDark(!isDark);
   }, [isDark]);

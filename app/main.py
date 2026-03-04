@@ -18,6 +18,7 @@ from app.models import (
     Exercise,
     ExerciseGroup,
     Habit,
+    HabitShift,
     Media,
     MediaCountry,
     MediaStatus,
@@ -205,11 +206,21 @@ def parse_md_to_habit(md_path: Path) -> Habit:
             post: frontmatter.Post = frontmatter.load(f)
         days_data: Any = post.get("days", [])
         completions_data: Any = post.get("completions", [])
+        shifts_data: Any = post.get("shifts", []) or []
+        shifts = [
+            HabitShift(
+                from_date=str(s["from"]),
+                to_date=str(s["to"]) if s.get("to") else None,
+            )
+            for s in shifts_data
+            if isinstance(s, dict) and "from" in s
+        ]
         return Habit(
             name=str(post.get("name", "")),
             days=list(days_data),
             color=str(post.get("color", "#605dff")),
             completions=list(completions_data),
+            shifts=shifts,
         )
     except Exception:
         logger.exception("Failed to parse %s", md_path)

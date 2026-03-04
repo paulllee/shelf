@@ -73,6 +73,15 @@ def write_habit(habit: HabitModel, file_path: Path) -> None:
     post["color"] = habit.color
     post["completions"] = habit.completions
 
+    if habit.shifts:
+        serialized_shifts = []
+        for s in habit.shifts:
+            entry: dict = {"from": s.from_date}
+            if s.to_date:
+                entry["to"] = s.to_date
+            serialized_shifts.append(entry)
+        post["shifts"] = serialized_shifts
+
     with open(file_path, "wb") as f:
         frontmatter.dump(post, f)
         f.write(b"\n")

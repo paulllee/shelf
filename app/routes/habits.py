@@ -2,10 +2,26 @@ from datetime import date as date_cls
 from pathlib import Path
 
 from fastapi import APIRouter, HTTPException, Request
+from pydantic import BaseModel, Field
 from slugify import slugify
 
-from app.models import Activity, ActivityModel, Habit, HabitModel, Preset, PresetModel
+from app.models import (
+    Activity,
+    ActivityModel,
+    Habit,
+    HabitModel,
+    HabitShiftModel,
+    Preset,
+    PresetModel,
+)
 from app.writer import write_activity, write_habit, write_preset
+
+
+class ShiftRequestModel(BaseModel):
+    from_date: str = Field(alias="from")
+    to_date: str | None = Field(default=None, alias="to")
+    model_config = {"populate_by_name": True}
+
 
 router = APIRouter()
 
@@ -50,6 +66,7 @@ def parse_habit_to_dict(habit: Habit) -> dict:
         "days": habit.days,
         "color": habit.color,
         "completions": habit.completions,
+        "shifts": [{"from": s.from_date, "to": s.to_date} for s in habit.shifts],
     }
 
 
@@ -136,6 +153,82 @@ async def toggle_habit_completion(request: Request, habit_id: str, date: str) ->
         days=habit.days,
         color=habit.color,
         completions=completions,
+        shifts=[
+            HabitShiftModel(from_date=s.from_date, to_date=s.to_date)
+            for s in habit.shifts
+        ],
+    )
+    write_habit(habit_model, md_path)
+    request.app.state.habit_items = request.app.state.parse_all_habits()
+
+    parsed: Habit = request.app.state.parse_md_to_habit(md_path)
+    return parse_habit_to_dict(parsed)
+
+
+@router.post("/habit/{habit_id}/shift")
+async def shift_habit(
+    request: Request, habit_id: str, shift: ShiftRequestModel
+) -> dict:
+    try:
+        date_cls.fromisoformat(shift.from_date)
+        if shift.to_date:
+            date_cls.fromisoformat(shift.to_date)
+    except ValueError:
+        raise HTTPException(
+            status_code=400, detail="invalid date format, use YYYY-MM-DD"
+        )
+
+    md_path: Path = try_get_habit_md(request, habit_id)
+    habit: Habit = request.app.state.parse_md_to_habit(md_path)
+
+    # Replace any existing shift with same from_date, then append the new one
+    updated_shifts = [
+        HabitShiftModel(from_date=s.from_date, to_date=s.to_date)
+        for s in habit.shifts
+        if s.from_date != shift.from_date
+    ]
+    updated_shifts.append(
+        HabitShiftModel(from_date=shift.from_date, to_date=shift.to_date)
+    )
+
+    habit_model = HabitModel(
+        name=habit.name,
+        days=habit.days,
+        color=habit.color,
+        completions=habit.completions,
+        shifts=updated_shifts,
+    )
+    write_habit(habit_model, md_path)
+    request.app.state.habit_items = request.app.state.parse_all_habits()
+
+    parsed: Habit = request.app.state.parse_md_to_habit(md_path)
+    return parse_habit_to_dict(parsed)
+
+
+@router.delete("/habit/{habit_id}/shift/{from_date}")
+async def cancel_habit_shift(request: Request, habit_id: str, from_date: str) -> dict:
+    try:
+        date_cls.fromisoformat(from_date)
+    except ValueError:
+        raise HTTPException(
+            status_code=400, detail="invalid date format, use YYYY-MM-DD"
+        )
+
+    md_path: Path = try_get_habit_md(request, habit_id)
+    habit: Habit = request.app.state.parse_md_to_habit(md_path)
+
+    remaining_shifts = [
+        HabitShiftModel(from_date=s.from_date, to_date=s.to_date)
+        for s in habit.shifts
+        if s.from_date != from_date
+    ]
+
+    habit_model = HabitModel(
+        name=habit.name,
+        days=habit.days,
+        color=habit.color,
+        completions=habit.completions,
+        shifts=remaining_shifts,
     )
     write_habit(habit_model, md_path)
     request.app.state.habit_items = request.app.state.parse_all_habits()

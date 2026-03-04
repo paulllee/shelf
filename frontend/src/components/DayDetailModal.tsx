@@ -1,13 +1,16 @@
 import { useState, useMemo } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { Check, Trash2, Plus, ChevronDown, ChevronUp, X } from "lucide-react";
+import { Check, Trash2, Plus, ChevronDown, ChevronUp, X, CalendarClock } from "lucide-react";
 import {
   toggleCompletion,
   createActivity,
   deleteActivity,
+  shiftHabit,
+  cancelShift,
 } from "../api/habits";
 import type { Activity, Habit } from "../types";
 import { formatDateStr } from "../utils/date";
+import { getHabitsForDay } from "../utils/habits";
 
 interface DayDetailModalProps {
   date: Date;
@@ -63,8 +66,29 @@ export default function DayDetailModal({
       queryClient.invalidateQueries({ queryKey: ["activities"] }),
   });
 
+  const shiftMutation = useMutation({
+    mutationFn: ({ habitId, from, to }: { habitId: string; from: string; to: string | null }) =>
+      shiftHabit(habitId, from, to),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["habits"] }),
+  });
+
+  const cancelShiftMutation = useMutation({
+    mutationFn: ({ habitId, fromDate }: { habitId: string; fromDate: string }) =>
+      cancelShift(habitId, fromDate),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["habits"] }),
+  });
+
+  const [shiftPickerHabitId, setShiftPickerHabitId] = useState<string | null>(null);
+
+  function getDateForWeekday(weekday: number): string {
+    const d = new Date(date);
+    d.setDate(d.getDate() - date.getDay() + weekday);
+    d.setHours(0, 0, 0, 0);
+    return formatDateStr(d);
+  }
+
   const habitsForDay = useMemo(
-    () => habits.filter((h) => h.days.includes(date.getDay())),
+    () => getHabitsForDay(habits, date),
     [habits, date],
   );
   const activitiesForDay = useMemo(
@@ -84,11 +108,19 @@ export default function DayDetailModal({
     [habitsForDay, dateStr],
   );
   const completedUnscheduledHabits = useMemo(
-    () => habits.filter((h) => h.completions.includes(dateStr) && !scheduledHabitIds.has(h.id)),
+    () =>
+      habits.filter(
+        (h) => h.completions.includes(dateStr) && !scheduledHabitIds.has(h.id),
+      ),
     [habits, dateStr, scheduledHabitIds],
   );
   const unscheduledNotCompleted = useMemo(
-    () => habits.filter((h) => !h.completions.includes(dateStr) && !scheduledHabitIds.has(h.id)),
+    () =>
+      habits.filter(
+        (h) =>
+          !h.completions.includes(dateStr) &&
+          !scheduledHabitIds.has(h.id),
+      ),
     [habits, dateStr, scheduledHabitIds],
   );
 
@@ -105,8 +137,14 @@ export default function DayDetailModal({
   };
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50" onClick={onClose}>
-      <div className="bg-base-300 rounded-xl max-w-md w-full p-4 sm:p-6 shadow-[0px_4px_12px_0px_rgba(0,0,0,0.3)] max-h-[80vh] overflow-y-auto overscroll-contain" onClick={(e) => e.stopPropagation()}>
+    <div
+      className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50"
+      onClick={onClose}
+    >
+      <div
+        className="bg-base-300 rounded-xl max-w-md w-full p-4 sm:p-6 shadow-[0px_4px_12px_0px_rgba(0,0,0,0.3)] max-h-[80vh] overflow-y-auto overscroll-contain"
+        onClick={(e) => e.stopPropagation()}
+      >
         <div className="flex items-center justify-between mb-4 sm:mb-6">
           <div>
             <h2 className="text-base-content text-lg sm:text-xl font-bold">
@@ -185,23 +223,96 @@ export default function DayDetailModal({
               <h3 className="text-base-content/50 text-sm font-semibold mb-2">
                 not completed
               </h3>
-              <div className="space-y-2">
-                {incompletedHabits.map((habit) => (
-                  <button
-                    key={habit.id}
-                    onClick={() => toggleMutation.mutate({ habitId: habit.id })}
-                    className="w-full flex items-center gap-3 p-3 bg-base-200 rounded-lg opacity-60 hover:opacity-100 hover:bg-base-100 transition-colors motion-reduce:transition-none"
-                  >
-                    <div
-                      className="w-3 h-3 rounded-full flex-shrink-0"
-                      style={{ backgroundColor: habit.color }}
-                    />
-                    <span className="text-base-content text-sm flex-1 text-left">
-                      {habit.name}
-                    </span>
-                    <div className="w-4 h-4 border-2 border-base-content/30 rounded" />
-                  </button>
-                ))}
+              <div className="space-y-1">
+                {incompletedHabits.map((habit) => {
+                  const shiftedHere = habit.shifts.find((s) => s.to === dateStr);
+                  const habitFromDate = shiftedHere ? shiftedHere.from : dateStr;
+                  const fromWeekday = shiftedHere
+                    ? new Date(shiftedHere.from + "T12:00:00").getDay()
+                    : date.getDay();
+                  return (
+                  <div key={habit.id}>
+                    <div className="flex items-center gap-1">
+                      <button
+                        onClick={() => toggleMutation.mutate({ habitId: habit.id })}
+                        className="flex-1 flex items-center gap-3 p-3 bg-base-200 rounded-lg opacity-60 hover:opacity-100 hover:bg-base-100 transition-colors motion-reduce:transition-none"
+                      >
+                        <div
+                          className="w-3 h-3 rounded-full flex-shrink-0"
+                          style={{ backgroundColor: habit.color }}
+                        />
+                        <span className="text-base-content text-sm flex-1 text-left">
+                          {habit.name}
+                        </span>
+                        <div className="w-4 h-4 border-2 border-base-content/30 rounded" />
+                      </button>
+                      {habit.days.length < 7 ? (
+                        <button
+                          onClick={() =>
+                            setShiftPickerHabitId(
+                              shiftPickerHabitId === habit.id ? null : habit.id,
+                            )
+                          }
+                          className="p-2 text-base-content/30 hover:text-primary transition-colors motion-reduce:transition-none"
+                          title="Move to another day"
+                          aria-label="Move to another day"
+                        >
+                          <CalendarClock className="w-4 h-4" />
+                        </button>
+                      ) : (
+                        <div className="p-2 text-base-content/20 cursor-not-allowed" title="Daily habits can't be moved">
+                          <span className="relative inline-block">
+                            <CalendarClock className="w-4 h-4" />
+                            <X className="w-2.5 h-2.5 absolute -bottom-0.5 -right-0.5 stroke-[3]" />
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                    {shiftPickerHabitId === habit.id && (
+                      <div className="mt-1 p-2 bg-base-100 border border-base-300 rounded-lg">
+                        <p className="text-xs text-base-content/50 mb-2">
+                          move to:
+                        </p>
+                        <div className="flex gap-1 flex-wrap">
+                          {["su","mo","tu","we","th","fr","sa"].map((dayName, weekday) => {
+                            if (
+                              shiftedHere
+                                ? (habit.days.includes(weekday) && weekday !== fromWeekday) || weekday === date.getDay()
+                                : habit.days.includes(weekday) || weekday === date.getDay()
+                            ) return null;
+                            return (
+                              <button
+                                key={weekday}
+                                onClick={() => {
+                                  if (shiftedHere && weekday === fromWeekday) {
+                                    cancelShiftMutation.mutate({ habitId: habit.id, fromDate: habitFromDate });
+                                  } else {
+                                    shiftMutation.mutate({
+                                      habitId: habit.id,
+                                      from: habitFromDate,
+                                      to: getDateForWeekday(weekday),
+                                    });
+                                  }
+                                  setShiftPickerHabitId(null);
+                                }}
+                                className="px-3 py-1.5 text-xs rounded-lg bg-base-200 hover:bg-primary hover:text-primary-content transition-colors font-medium"
+                              >
+                                {dayName}
+                              </button>
+                            );
+                          })}
+                          <button
+                            onClick={() => setShiftPickerHabitId(null)}
+                            className="px-3 py-1.5 text-xs rounded-lg bg-base-200 text-base-content/50 hover:text-base-content transition-colors"
+                          >
+                            cancel
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                  );
+                })}
               </div>
             </div>
           )}
@@ -312,7 +423,7 @@ export default function DayDetailModal({
             ) : null}
           </div>
 
-          {unscheduledNotCompleted.length > 0 && (
+{unscheduledNotCompleted.length > 0 && (
             <div>
               <button
                 onClick={() => setIsOtherHabitsExpanded((prev) => !prev)}
@@ -330,9 +441,7 @@ export default function DayDetailModal({
                   {unscheduledNotCompleted.map((habit) => (
                     <button
                       key={habit.id}
-                      onClick={() =>
-                        toggleMutation.mutate({ habitId: habit.id })
-                      }
+                      onClick={() => toggleMutation.mutate({ habitId: habit.id })}
                       className="w-full flex items-center gap-3 p-3 bg-base-200 rounded-lg opacity-40 hover:opacity-100 hover:bg-base-100 transition-colors motion-reduce:transition-none"
                     >
                       <div

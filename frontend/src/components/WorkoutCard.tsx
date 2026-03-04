@@ -32,7 +32,9 @@ const WorkoutCard = forwardRef<HTMLDivElement, WorkoutCardProps>(
       [workout.groups],
     );
     const preview = useMemo(
-      () => exercises.slice(0, 3).join(", ") + (exercises.length > 3 ? ", ..." : ""),
+      () =>
+        exercises.slice(0, 3).join(", ") +
+        (exercises.length > 3 ? ", ..." : ""),
       [exercises],
     );
 

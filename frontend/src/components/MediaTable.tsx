@@ -101,7 +101,9 @@ export default function MediaTable({ items, onEdit }: MediaTableProps) {
             </td>
             <td>{item.type !== "undefined" ? item.type : "-"}</td>
             <td>{item.country !== "undefined" ? item.country : "-"}</td>
-            <td className="tabular-nums">{item.rating && item.rating !== "n/a" ? item.rating : "-"}</td>
+            <td className="tabular-nums">
+              {item.rating && item.rating !== "n/a" ? item.rating : "-"}
+            </td>
             <td className="text-right">
               <span className="text-base-content/40 text-sm">edit</span>
             </td>

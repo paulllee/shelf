@@ -79,12 +79,18 @@ export interface EnumValues {
   statuses: string[];
 }
 
+export interface HabitShift {
+  from: string; // YYYY-MM-DD — original scheduled date
+  to: string | null; // YYYY-MM-DD — new date, or null = skip
+}
+
 export interface Habit {
   id: string;
   name: string;
   days: number[]; // 0=Sun … 6=Sat
   color: string;
   completions: string[]; // YYYY-MM-DD
+  shifts: HabitShift[];
 }
 
 export interface HabitFormData {

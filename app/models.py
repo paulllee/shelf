@@ -1,4 +1,4 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import date, time
 from enum import IntEnum
 from typing import Optional
@@ -181,11 +181,23 @@ class WorkoutTemplateModel(BaseModel):
 
 
 @dataclass
+class HabitShift:
+    from_date: str  # YYYY-MM-DD — the original scheduled date
+    to_date: str | None = None  # YYYY-MM-DD — new date, or None = skip
+
+
+class HabitShiftModel(BaseModel):
+    from_date: str  # YYYY-MM-DD — original scheduled date
+    to_date: str | None = None  # YYYY-MM-DD — new date, or None = skip
+
+
+@dataclass
 class Habit:
     name: str
     days: list[int]  # 0=Sun … 6=Sat
     color: str  # hex color string
     completions: list[str]  # YYYY-MM-DD strings
+    shifts: list[HabitShift] = field(default_factory=list)
 
     @property
     def id(self) -> str:
@@ -207,6 +219,7 @@ class HabitModel(BaseModel):
     days: list[int]
     color: str
     completions: list[str] = []
+    shifts: list[HabitShiftModel] = []
 
     @property
     def id(self) -> str:

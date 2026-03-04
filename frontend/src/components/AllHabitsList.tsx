@@ -55,10 +55,7 @@ export default function AllHabitsList({
         {habits.map((habit) => {
           const isMenuOpen = openMenuId === habit.id;
           return (
-            <div
-              key={habit.id}
-              className="flex items-center gap-3 px-4 py-3"
-            >
+            <div key={habit.id} className="flex items-center gap-3 px-4 py-3">
               <div
                 className="w-3 h-3 rounded-full flex-shrink-0"
                 style={{ backgroundColor: habit.color }}

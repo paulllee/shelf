@@ -173,7 +173,11 @@ export default function GroupsEditor({ groups, onChange }: GroupsEditorProps) {
                 onDragOver={(e) => {
                   e.preventDefault();
                   // Only handle exercise drag — don't stop propagation for group drag
-                  if (draggingEx && draggingEx.gi === gi && draggingEx.ei !== ei) {
+                  if (
+                    draggingEx &&
+                    draggingEx.gi === gi &&
+                    draggingEx.ei !== ei
+                  ) {
                     e.stopPropagation();
                     setDragOverEx({ gi, ei });
                   }
@@ -184,7 +188,11 @@ export default function GroupsEditor({ groups, onChange }: GroupsEditorProps) {
                 }}
                 onDrop={(e) => {
                   // Only handle exercise drop — don't stop propagation for group drag
-                  if (draggingEx && draggingEx.gi === gi && draggingEx.ei !== ei) {
+                  if (
+                    draggingEx &&
+                    draggingEx.gi === gi &&
+                    draggingEx.ei !== ei
+                  ) {
                     e.stopPropagation();
                     reorderExercises(gi, draggingEx.ei, ei);
                   }
