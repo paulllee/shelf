@@ -16,14 +16,17 @@ router = APIRouter()
 
 
 def get_workout_dir(request: Request) -> Path:
+    """Return the workout directory path from app state."""
     return request.app.state.workout_dir
 
 
 def get_template_dir(request: Request) -> Path:
+    """Return the template directory path from app state."""
     return request.app.state.template_dir
 
 
 def try_get_workout_md(request: Request, workout_id: str) -> Path:
+    """Return the markdown file path for a workout, raising 404 if missing."""
     md_path = get_workout_dir(request) / f"{workout_id}.md"
     if not md_path.exists():
         raise HTTPException(status_code=404, detail=f"{workout_id}.md not found")
@@ -31,6 +34,7 @@ def try_get_workout_md(request: Request, workout_id: str) -> Path:
 
 
 def try_get_template_md(request: Request, template_id: str) -> Path:
+    """Return the markdown file path for a template, raising 404 if missing."""
     md_path = get_template_dir(request) / f"{template_id}.md"
     if not md_path.exists():
         raise HTTPException(status_code=404, detail=f"{template_id}.md not found")
@@ -38,6 +42,7 @@ def try_get_template_md(request: Request, template_id: str) -> Path:
 
 
 def parse_template_to_dict(template: WorkoutTemplate) -> dict:
+    """Convert a WorkoutTemplate dataclass to a JSON-serializable dict."""
     return {
         "id": template.id,
         "name": template.name,
@@ -59,6 +64,7 @@ def parse_template_to_dict(template: WorkoutTemplate) -> dict:
 
 
 def parse_workout_to_dict(workout: Workout) -> dict:
+    """Convert a Workout dataclass to a JSON-serializable dict."""
     return {
         "id": workout.id,
         "date": workout.date.isoformat(),
@@ -86,6 +92,7 @@ def parse_workout_to_dict(workout: Workout) -> dict:
 
 @router.get("/workouts")
 async def get_workouts(request: Request) -> list[dict]:
+    """Return all workouts sorted by date and time descending."""
     workouts: list[Workout] = sorted(
         request.app.state.workout_items, key=lambda w: (w.date, w.time), reverse=True
     )
@@ -94,6 +101,7 @@ async def get_workouts(request: Request) -> list[dict]:
 
 @router.get("/workout/{workout_id}")
 async def get_workout(request: Request, workout_id: str) -> dict:
+    """Return a single workout by ID."""
     workout: Workout = request.app.state.parse_md_to_workout(
         try_get_workout_md(request, workout_id)
     )
@@ -102,6 +110,7 @@ async def get_workout(request: Request, workout_id: str) -> dict:
 
 @router.post("/workout")
 async def create_workout(request: Request, workout: WorkoutModel) -> dict:
+    """Create a new workout."""
     md_path: Path = get_workout_dir(request) / f"{workout.id}.md"
     if md_path.exists():
         raise HTTPException(status_code=409, detail="workout already exists")
@@ -117,6 +126,7 @@ async def create_workout(request: Request, workout: WorkoutModel) -> dict:
 async def update_workout(
     request: Request, workout_id: str, workout: WorkoutModel
 ) -> dict:
+    """Update an existing workout, handling ID changes from date/time edits."""
     old_md_path: Path = try_get_workout_md(request, workout_id)
     new_md_path: Path = get_workout_dir(request) / f"{workout.id}.md"
 
@@ -132,6 +142,7 @@ async def update_workout(
 
 @router.delete("/workout/{workout_id}")
 async def delete_workout(request: Request, workout_id: str) -> dict[str, bool]:
+    """Delete a workout by ID."""
     try_get_workout_md(request, workout_id).unlink()
     request.app.state.workout_items = request.app.state.parse_all_workouts()
     return {"ok": True}
@@ -141,6 +152,7 @@ async def delete_workout(request: Request, workout_id: str) -> dict[str, bool]:
 async def get_workout_calendar(
     request: Request, year: int | None = None, month: int | None = None
 ) -> dict:
+    """Return calendar metadata and workout dates for a given month."""
     today: date = date.today()
     year = year or today.year
     month = month or today.month
@@ -177,11 +189,13 @@ async def get_workout_calendar(
 
 @router.get("/templates")
 async def get_templates(request: Request) -> list[dict]:
+    """Return all workout templates."""
     return [parse_template_to_dict(t) for t in request.app.state.template_items]
 
 
 @router.post("/template")
 async def create_template(request: Request, template: WorkoutTemplateModel) -> dict:
+    """Create a new workout template."""
     if not template.groups:
         raise HTTPException(
             status_code=400,
@@ -200,6 +214,7 @@ async def create_template(request: Request, template: WorkoutTemplateModel) -> d
 async def update_template(
     request: Request, template_id: str, template: WorkoutTemplateModel
 ) -> dict:
+    """Update an existing workout template, handling renames."""
     old_md_path: Path = try_get_template_md(request, template_id)
     new_md_path: Path = get_template_dir(request) / f"{template.id}.md"
     if template_id != template.id:
@@ -212,6 +227,7 @@ async def update_template(
 
 @router.delete("/template/{template_id}")
 async def delete_template(request: Request, template_id: str) -> dict[str, bool]:
+    """Delete a workout template by ID."""
     try_get_template_md(request, template_id).unlink()
     request.app.state.template_items = request.app.state.parse_all_templates()
     return {"ok": True}

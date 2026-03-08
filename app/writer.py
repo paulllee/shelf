@@ -13,9 +13,7 @@ from app.models import (
 
 
 def write_media_item(media_item: MediaModel, file_path: Path) -> None:
-    """
-    serializes a MediaItem to a markdown file with frontmatter
-    """
+    """Serialize a MediaItem to a markdown file with frontmatter."""
     post = frontmatter.Post(content=media_item.review or "")
     post["name"] = media_item.name
     post["country"] = media_item.country
@@ -29,18 +27,16 @@ def write_media_item(media_item: MediaModel, file_path: Path) -> None:
 
 
 def write_workout(workout: WorkoutModel, file_path: Path) -> None:
-    """
-    serializes a Workout to a markdown file with frontmatter
-    """
+    """Serialize a Workout to a markdown file with frontmatter."""
     post = frontmatter.Post(content=workout.content or "")
     post["date"] = workout.date.isoformat()
     post["time"] = workout.time.strftime("%H:%M:%S")
 
-    groups = []
+    groups: list[dict] = []
     for group in workout.groups:
-        exercises = []
+        exercises: list[dict] = []
         for exercise in group.exercises:
-            sets = []
+            sets: list[dict] = []
             for s in exercise.sets:
                 set_dict: dict = {}
                 if s.reps is not None:
@@ -64,9 +60,7 @@ def write_workout(workout: WorkoutModel, file_path: Path) -> None:
 
 
 def write_habit(habit: HabitModel, file_path: Path) -> None:
-    """
-    serializes a Habit to a markdown file with frontmatter
-    """
+    """Serialize a Habit to a markdown file with frontmatter."""
     post = frontmatter.Post(content="")
     post["name"] = habit.name
     post["days"] = habit.days
@@ -74,7 +68,7 @@ def write_habit(habit: HabitModel, file_path: Path) -> None:
     post["completions"] = habit.completions
 
     if habit.shifts:
-        serialized_shifts = []
+        serialized_shifts: list[dict] = []
         for s in habit.shifts:
             entry: dict = {"from": s.from_date}
             if s.to_date:
@@ -88,9 +82,7 @@ def write_habit(habit: HabitModel, file_path: Path) -> None:
 
 
 def write_activity(activity: ActivityModel, file_path: Path) -> None:
-    """
-    serializes an Activity to a markdown file with frontmatter
-    """
+    """Serialize an Activity to a markdown file with frontmatter."""
     post = frontmatter.Post(content="")
     post["name"] = activity.name
     post["date"] = activity.date.isoformat()
@@ -101,9 +93,7 @@ def write_activity(activity: ActivityModel, file_path: Path) -> None:
 
 
 def write_preset(preset: PresetModel, file_path: Path) -> None:
-    """
-    serializes a Preset to a markdown file with frontmatter
-    """
+    """Serialize a Preset to a markdown file with frontmatter."""
     post = frontmatter.Post(content="")
     post["name"] = preset.name
 
@@ -113,17 +103,15 @@ def write_preset(preset: PresetModel, file_path: Path) -> None:
 
 
 def write_template(template: WorkoutTemplateModel, file_path: Path) -> None:
-    """
-    serializes a WorkoutTemplate to a markdown file with frontmatter
-    """
+    """Serialize a WorkoutTemplate to a markdown file with frontmatter."""
     post = frontmatter.Post(content="")
     post["name"] = template.name
 
-    groups = []
+    groups: list[dict] = []
     for group in template.groups:
-        exercises = []
+        exercises: list[dict] = []
         for exercise in group.exercises:
-            sets = []
+            sets: list[dict] = []
             for s in exercise.sets:
                 set_dict: dict = {}
                 if s.reps is not None:

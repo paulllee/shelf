@@ -10,12 +10,14 @@ router = APIRouter()
 
 
 def get_media_dir(request: Request) -> Path:
+    """Return the media directory path from app state."""
     return request.app.state.media_dir
 
 
-def try_get_media_md(request: Request, id: str) -> Path:
+def try_get_media_md(request: Request, media_id: str) -> Path:
+    """Return the markdown file path for a media item, raising 404 if missing."""
     media_dir: Path = get_media_dir(request)
-    md_name: str = f"{id}.md"
+    md_name: str = f"{media_id}.md"
     md_path: Path = media_dir / md_name
     if not md_path.exists():
         raise HTTPException(status_code=404, detail=f"{md_name} not found")
@@ -25,6 +27,7 @@ def try_get_media_md(request: Request, id: str) -> Path:
 def is_duplicate_name(
     request: Request, name: str, exclude_id: str | None = None
 ) -> bool:
+    """Check if a media item with the given name already exists."""
     new_id: str = slugify(name).lower()
     for item in request.app.state.media_items:
         if item.id == new_id and item.id != exclude_id:
@@ -33,6 +36,7 @@ def is_duplicate_name(
 
 
 def parse_media_to_dict(media: Media) -> dict:
+    """Convert a Media dataclass to a JSON-serializable dict."""
     return {
         "id": media.id,
         "name": media.name,
@@ -46,6 +50,7 @@ def parse_media_to_dict(media: Media) -> dict:
 
 @router.get("/media")
 async def get_media_items(request: Request, status: str = "queued") -> list[dict]:
+    """Return all media items filtered by status."""
     items: list[Media] = [
         i for i in request.app.state.media_items if i.status == MediaStatus.get(status)
     ]
@@ -56,17 +61,22 @@ async def get_media_items(request: Request, status: str = "queued") -> list[dict
 async def check_name(
     request: Request, name: str, exclude: str | None = None
 ) -> dict[str, bool]:
+    """Check whether a media name would be a duplicate."""
     return {"duplicate": is_duplicate_name(request, name, exclude_id=exclude)}
 
 
-@router.get("/media/{id}")
-async def get_media_item(request: Request, id: str) -> dict:
-    media: Media = request.app.state.parse_md_to_media(try_get_media_md(request, id))
+@router.get("/media/{media_id}")
+async def get_media_item(request: Request, media_id: str) -> dict:
+    """Return a single media item by ID."""
+    media: Media = request.app.state.parse_md_to_media(
+        try_get_media_md(request, media_id)
+    )
     return parse_media_to_dict(media)
 
 
 @router.post("/media")
 async def create_media_item(request: Request, media_item: MediaModel) -> dict:
+    """Create a new media item."""
     if is_duplicate_name(request, media_item.name):
         raise HTTPException(
             status_code=422, detail="a media item with this name already exists"
@@ -82,18 +92,21 @@ async def create_media_item(request: Request, media_item: MediaModel) -> dict:
     return parse_media_to_dict(media)
 
 
-@router.put("/media/{id}")
-async def update_media_item(request: Request, id: str, media_item: MediaModel) -> dict:
-    if is_duplicate_name(request, media_item.name, exclude_id=id):
+@router.put("/media/{media_id}")
+async def update_media_item(
+    request: Request, media_id: str, media_item: MediaModel
+) -> dict:
+    """Update an existing media item, handling renames."""
+    if is_duplicate_name(request, media_item.name, exclude_id=media_id):
         raise HTTPException(
             status_code=422, detail="a media item with this name already exists"
         )
 
     media_dir: Path = get_media_dir(request)
-    old_md_path: Path = try_get_media_md(request, id)
+    old_md_path: Path = try_get_media_md(request, media_id)
     new_id: str = media_item.id
 
-    if id != new_id:
+    if media_id != new_id:
         old_md_path.unlink()
         new_md_path: Path = media_dir / f"{new_id}.md"
         write_media_item(media_item, new_md_path)
@@ -107,8 +120,9 @@ async def update_media_item(request: Request, id: str, media_item: MediaModel) -
     return parse_media_to_dict(media)
 
 
-@router.delete("/media/{id}")
-async def delete_media_item(request: Request, id: str) -> dict[str, bool]:
-    try_get_media_md(request, id).unlink()
+@router.delete("/media/{media_id}")
+async def delete_media_item(request: Request, media_id: str) -> dict[str, bool]:
+    """Delete a media item by ID."""
+    try_get_media_md(request, media_id).unlink()
     request.app.state.media_items = request.app.state.parse_all_media()
     return {"ok": True}

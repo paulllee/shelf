@@ -2,6 +2,7 @@ import asyncio
 import logging
 import sys
 import tomllib
+from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
 from datetime import date, time
 from pathlib import Path
@@ -28,14 +29,15 @@ from app.models import (
     WorkoutSet,
     WorkoutTemplate,
 )
+from app.routes import habits as habits_routes
 from app.routes import media as media_routes
 from app.routes import workout as workout_routes
-from app.routes import habits as habits_routes
 
 logger: logging.Logger = logging.getLogger("uvicorn.error")
 
 
 def get_dir_from_config(config_path: str, key: str) -> Path:
+    """Read a directory path from a TOML config file by key."""
     try:
         with open(config_path, "rb") as f:
             config: dict[str, Any] = tomllib.load(f)
@@ -58,6 +60,7 @@ def get_dir_from_config(config_path: str, key: str) -> Path:
 
 
 def validate_dir(dir_path: Path) -> None:
+    """Ensure a directory exists, creating it and parents if needed."""
     dir_path.mkdir(parents=True, exist_ok=True)
 
 
@@ -65,6 +68,7 @@ def validate_dir(dir_path: Path) -> None:
 
 
 def parse_md_to_media(md_path: Path) -> Media:
+    """Parse a markdown file into a Media dataclass."""
     try:
         with md_path.open("r", encoding="utf-8") as f:
             post: frontmatter.Post = frontmatter.load(f)
@@ -82,10 +86,12 @@ def parse_md_to_media(md_path: Path) -> Media:
 
 
 def parse_all_media(media_dir: Path) -> list[Media]:
+    """Parse all markdown files in the media directory into Media objects."""
     return [parse_md_to_media(p) for p in media_dir.iterdir() if p.is_file()]
 
 
 async def poll_all_items(app: FastAPI, interval_in_seconds: int) -> None:
+    """Periodically refresh all in-memory item caches from disk."""
     while True:
         try:
             logger.info("Refreshing all items")
@@ -104,6 +110,7 @@ async def poll_all_items(app: FastAPI, interval_in_seconds: int) -> None:
 
 
 def parse_md_to_workout(md_path: Path) -> Workout:
+    """Parse a markdown file into a Workout dataclass."""
     try:
         with md_path.open("r", encoding="utf-8") as f:
             post: frontmatter.Post = frontmatter.load(f)
@@ -145,6 +152,7 @@ def parse_md_to_workout(md_path: Path) -> Workout:
 
 
 def parse_all_workouts(workout_dir: Path) -> list[Workout]:
+    """Parse all markdown files in the workout directory into Workout objects."""
     if not workout_dir.exists():
         return []
     return [
@@ -158,6 +166,7 @@ def parse_all_workouts(workout_dir: Path) -> list[Workout]:
 
 
 def parse_md_to_template(md_path: Path) -> WorkoutTemplate:
+    """Parse a markdown file into a WorkoutTemplate dataclass."""
     try:
         with md_path.open("r", encoding="utf-8") as f:
             post: frontmatter.Post = frontmatter.load(f)
@@ -189,6 +198,7 @@ def parse_md_to_template(md_path: Path) -> WorkoutTemplate:
 
 
 def parse_all_templates(template_dir: Path) -> list[WorkoutTemplate]:
+    """Parse all markdown files in the template directory."""
     if not template_dir.exists():
         return []
     return [
@@ -202,6 +212,7 @@ def parse_all_templates(template_dir: Path) -> list[WorkoutTemplate]:
 
 
 def parse_md_to_habit(md_path: Path) -> Habit:
+    """Parse a markdown file into a Habit dataclass."""
     try:
         with md_path.open("r", encoding="utf-8") as f:
             post: frontmatter.Post = frontmatter.load(f)
@@ -229,6 +240,7 @@ def parse_md_to_habit(md_path: Path) -> Habit:
 
 
 def parse_all_habits(habits_dir: Path) -> list[Habit]:
+    """Parse all markdown files in the habits directory."""
     if not habits_dir.exists():
         return []
     return [
@@ -242,6 +254,7 @@ def parse_all_habits(habits_dir: Path) -> list[Habit]:
 
 
 def parse_md_to_activity(md_path: Path) -> Activity:
+    """Parse a markdown file into an Activity dataclass."""
     try:
         with md_path.open("r", encoding="utf-8") as f:
             post: frontmatter.Post = frontmatter.load(f)
@@ -260,6 +273,7 @@ def parse_md_to_activity(md_path: Path) -> Activity:
 
 
 def parse_all_activities(activities_dir: Path) -> list[Activity]:
+    """Parse all markdown files in the activities directory."""
     if not activities_dir.exists():
         return []
     return [
@@ -273,6 +287,7 @@ def parse_all_activities(activities_dir: Path) -> list[Activity]:
 
 
 def parse_md_to_preset(md_path: Path) -> Preset:
+    """Parse a markdown file into a Preset dataclass."""
     try:
         with md_path.open("r", encoding="utf-8") as f:
             post: frontmatter.Post = frontmatter.load(f)
@@ -283,6 +298,7 @@ def parse_md_to_preset(md_path: Path) -> Preset:
 
 
 def parse_all_presets(presets_dir: Path) -> list[Preset]:
+    """Parse all markdown files in the presets directory."""
     if not presets_dir.exists():
         return []
     return [
@@ -293,7 +309,8 @@ def parse_all_presets(presets_dir: Path) -> list[Preset]:
 
 
 @asynccontextmanager
-async def lifespan(app: FastAPI):
+async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
+    """Initialize app state directories, caches, and background polling."""
     # load directories from config
     app.state.media_dir = get_dir_from_config("./config.toml", "media_dir")
     validate_dir(app.state.media_dir)
@@ -368,6 +385,7 @@ app.include_router(habits_routes.router, prefix="/api")
 
 @app.get("/api/meta/enums")
 async def get_enums() -> dict[str, list[str]]:
+    """Return available enum values for media countries, types, and statuses."""
     return {
         "countries": [m.name.lower() for m in MediaCountry if m.name != "UNDEFINED"],
         "types": [m.name.lower() for m in MediaType if m.name != "UNDEFINED"],
@@ -381,6 +399,7 @@ spa_dir: Path = Path(__file__).parent.parent / "static" / "spa"
 
 @app.get("/{full_path:path}")
 async def serve_spa(full_path: str) -> FileResponse:
+    """Serve the SPA index.html or static assets for client-side routing."""
     # try to serve the exact file first (for assets like .js, .css)
     file_path: Path = spa_dir / full_path
     if full_path and file_path.is_file():
