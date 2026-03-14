@@ -451,7 +451,7 @@ export default function DayDetailModal({
                           deleteActivityMutation.mutate(activity.id);
                         }
                       }}
-                      className="p-1 text-base-content/30 hover:text-error transition-colors motion-reduce:transition-none opacity-0 group-hover:opacity-100"
+                      className="p-1 text-base-content/30 hover:text-error transition-colors motion-reduce:transition-none"
                       aria-label={`Delete activity "${activity.name}"`}
                     >
                       <Trash2 className="w-4 h-4" />
