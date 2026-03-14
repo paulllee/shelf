@@ -15,3 +15,6 @@ activities_dir = "./contents/activities"
 
 # path to activity preset markdown files
 presets_dir = "./contents/presets"
+
+# path to task markdown files
+tasks_dir = "./contents/tasks"

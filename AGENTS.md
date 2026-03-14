@@ -31,6 +31,13 @@ Self-hosted markdown-backed tracker for media (movies/shows), workouts, habits, 
 ### Language-Specific
 See CLAUDE.local.md for language-specific standards.
 
+## Environment Variables
+
+| Variable | Required | Purpose |
+|----------|----------|---------|
+| `GEMINI_API_KEY` | No | Enables AI chat in the tasks section. If not set, the app starts normally but the chat endpoint returns 503. |
+| `GEMINI_MODEL` | No | Override the Gemini model used for chat. Defaults to `gemini-3-flash-preview`. |
+
 ## Architecture Decisions
 
 <!-- Record why things are built a certain way so an agent can revisit the reasoning. -->
@@ -41,3 +48,5 @@ See CLAUDE.local.md for language-specific standards.
 - FastAPI path parameter names (e.g. `{id}` vs `{media_id}`) are internal — renaming them does not change URL structure or require frontend changes
 - Logger `%`-style formatting in Python logging calls is intentional (lazy evaluation) — do not convert to f-strings
 - `ruff` does not flag missing docstrings by default; docstring coverage requires manual review or enabling `pydocstyle` rules
+- When implementing cascade delete for hierarchical data (parent/child), always use recursive deletion to handle arbitrary nesting depth — single-level deletes leave orphaned grandchildren
+- AI tool-use chat endpoints need a loop to process multiple tool calls before returning the final text response to the user

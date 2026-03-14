@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field
-from datetime import date, time
+from datetime import date, datetime, time
 from enum import IntEnum
 
 from pydantic import BaseModel
@@ -316,3 +316,39 @@ class PresetModel(BaseModel):
     def id(self) -> str:
         """Generate a URL-safe slug from the preset name."""
         return slugify(self.name).lower()
+
+
+# tasks
+
+
+@dataclass
+class Task:
+    """Internal representation of a task parsed from markdown."""
+
+    title: str
+    status: str  # "open" or "closed"
+    due: date | None
+    parent: str | None
+    notes: str
+    created_at: datetime
+
+    @property
+    def id(self) -> str:
+        """Generate a timestamp + slug ID from created_at and title."""
+        return (
+            f"{self.created_at.strftime('%Y%m%d-%H%M%S')}-{slugify(self.title).lower()}"
+        )
+
+
+class TaskModel(BaseModel):
+    """Pydantic model for task API input."""
+
+    title: str
+    status: str = "open"
+    due: date | None = None
+    parent: str | None = None
+    notes: str | None = None
+
+    def make_id(self, created_at: datetime) -> str:
+        """Generate a timestamp + slug ID from a given datetime and title."""
+        return f"{created_at.strftime('%Y%m%d-%H%M%S')}-{slugify(self.title).lower()}"

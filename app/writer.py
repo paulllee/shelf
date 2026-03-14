@@ -7,6 +7,7 @@ from app.models import (
     HabitModel,
     MediaModel,
     PresetModel,
+    TaskModel,
     WorkoutModel,
     WorkoutTemplateModel,
 )
@@ -96,6 +97,20 @@ def write_preset(preset: PresetModel, file_path: Path) -> None:
     """Serialize a Preset to a markdown file with frontmatter."""
     post = frontmatter.Post(content="")
     post["name"] = preset.name
+
+    with open(file_path, "wb") as f:
+        frontmatter.dump(post, f)
+        f.write(b"\n")
+
+
+def write_task(task: TaskModel, file_path: Path, created_at_iso: str) -> None:
+    """Serialize a Task to a markdown file with frontmatter."""
+    post = frontmatter.Post(content=task.notes or "")
+    post["title"] = task.title
+    post["status"] = task.status
+    post["due"] = task.due.isoformat() if task.due else None
+    post["parent"] = task.parent
+    post["created_at"] = created_at_iso
 
     with open(file_path, "wb") as f:
         frontmatter.dump(post, f)

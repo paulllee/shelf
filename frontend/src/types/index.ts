@@ -119,3 +119,32 @@ export interface Preset {
 export interface PresetFormData {
   name: string;
 }
+
+export interface Task {
+  id: string;
+  title: string;
+  status: string;
+  due: string | null;
+  parent: string | null;
+  notes: string;
+  created_at: string;
+  subtasks: Task[];
+}
+
+export interface TaskFormData {
+  title: string;
+  status?: string;
+  due?: string | null;
+  parent?: string | null;
+  notes?: string | null;
+}
+
+export interface ChatMessage {
+  role: "user" | "assistant";
+  content: string;
+}
+
+export interface ChatResponse {
+  response: string;
+  tasks_changed: boolean;
+}

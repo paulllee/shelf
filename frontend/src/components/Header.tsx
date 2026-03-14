@@ -1,13 +1,13 @@
 import ThemeToggle from "./ThemeToggle";
 
-type Section = "media" | "workouts" | "habits";
+type Section = "media" | "workouts" | "habits" | "tasks";
 
 interface HeaderProps {
   section: Section;
   onSectionChange: (section: Section) => void;
 }
 
-const TABS: Section[] = ["media", "workouts", "habits"];
+const TABS: Section[] = ["media", "workouts", "habits", "tasks"];
 
 export default function Header({ section, onSectionChange }: HeaderProps) {
   return (

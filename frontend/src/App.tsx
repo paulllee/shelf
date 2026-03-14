@@ -3,8 +3,9 @@ import Header from "./components/Header";
 import MediaSection from "./components/MediaSection";
 import WorkoutSection from "./components/WorkoutSection";
 import HabitSection from "./components/HabitSection";
+import TaskSection from "./components/TaskSection";
 
-type Section = "media" | "workouts" | "habits";
+type Section = "media" | "workouts" | "habits" | "tasks";
 
 export default function App() {
   const [section, setSection] = useLocalStorage<Section>(
@@ -19,8 +20,10 @@ export default function App() {
         <MediaSection />
       ) : section === "workouts" ? (
         <WorkoutSection />
-      ) : (
+      ) : section === "habits" ? (
         <HabitSection />
+      ) : (
+        <TaskSection />
       )}
     </div>
   );

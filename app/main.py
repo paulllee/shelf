@@ -4,7 +4,7 @@ import sys
 import tomllib
 from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
-from datetime import date, time
+from datetime import date, datetime, time
 from pathlib import Path
 from typing import Any
 
@@ -25,12 +25,14 @@ from app.models import (
     MediaStatus,
     MediaType,
     Preset,
+    Task,
     Workout,
     WorkoutSet,
     WorkoutTemplate,
 )
 from app.routes import habits as habits_routes
 from app.routes import media as media_routes
+from app.routes import tasks as tasks_routes
 from app.routes import workout as workout_routes
 
 logger: logging.Logger = logging.getLogger("uvicorn.error")
@@ -101,6 +103,7 @@ async def poll_all_items(app: FastAPI, interval_in_seconds: int) -> None:
             app.state.habit_items = parse_all_habits(app.state.habits_dir)
             app.state.activity_items = parse_all_activities(app.state.activities_dir)
             app.state.preset_items = parse_all_presets(app.state.presets_dir)
+            app.state.task_items = parse_all_tasks(app.state.tasks_dir)
         except Exception:
             logger.exception("Error during poll")
         await asyncio.sleep(interval_in_seconds)
@@ -308,6 +311,55 @@ def parse_all_presets(presets_dir: Path) -> list[Preset]:
     ]
 
 
+# task parsing
+
+
+def parse_md_to_task(md_path: Path) -> Task:
+    """Parse a markdown file into a Task dataclass."""
+    try:
+        with md_path.open("r", encoding="utf-8") as f:
+            post: frontmatter.Post = frontmatter.load(f)
+
+        due_val: Any = post.get("due")
+        if isinstance(due_val, str):
+            due_val = date.fromisoformat(due_val)
+        elif not isinstance(due_val, date):
+            due_val = None
+
+        created_at_val: Any = post.get("created_at", "")
+        if isinstance(created_at_val, str):
+            created_at_val = datetime.fromisoformat(created_at_val)
+
+        parent_val: Any = post.get("parent")
+        if parent_val is None or parent_val == "null":
+            parent_val = None
+        else:
+            parent_val = str(parent_val)
+
+        return Task(
+            title=str(post.get("title", "")),
+            status=str(post.get("status", "open")),
+            due=due_val,
+            parent=parent_val,
+            notes=post.content,
+            created_at=created_at_val,
+        )
+    except Exception:
+        logger.exception("Failed to parse %s", md_path)
+        raise HTTPException(status_code=404, detail=f"failed to parse {md_path}")
+
+
+def parse_all_tasks(tasks_dir: Path) -> list[Task]:
+    """Parse all markdown files in the tasks directory."""
+    if not tasks_dir.exists():
+        return []
+    return [
+        parse_md_to_task(p)
+        for p in tasks_dir.iterdir()
+        if p.is_file() and p.suffix == ".md"
+    ]
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     """Initialize app state directories, caches, and background polling."""
@@ -353,6 +405,32 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     app.state.activity_items = parse_all_activities(app.state.activities_dir)
     app.state.preset_items = parse_all_presets(app.state.presets_dir)
 
+    # tasks
+    app.state.tasks_dir = get_dir_from_config("./config.toml", "tasks_dir")
+    validate_dir(app.state.tasks_dir)
+    app.state.parse_md_to_task = parse_md_to_task
+    app.state.parse_all_tasks = lambda: parse_all_tasks(app.state.tasks_dir)
+    app.state.task_items = parse_all_tasks(app.state.tasks_dir)
+
+    # Google GenAI client for AI chat (optional)
+    import os
+
+    gemini_key = os.environ.get("GEMINI_API_KEY")
+    if gemini_key:
+        from google import genai
+
+        app.state.genai_client = genai.Client(api_key=gemini_key)
+        app.state.gemini_model = os.environ.get(
+            "GEMINI_MODEL", "gemini-3-flash-preview"
+        )
+        logger.info(
+            "Google GenAI client initialized (model: %s)", app.state.gemini_model
+        )
+    else:
+        app.state.genai_client = None
+        app.state.gemini_model = None
+        logger.warning("GEMINI_API_KEY not set — AI chat disabled")
+
     # start polling task for manual file edits
     logger.info("Starting background polling task")
     poll_task = asyncio.create_task(poll_all_items(app, interval_in_seconds=5))
@@ -381,6 +459,7 @@ app.mount(
 app.include_router(media_routes.router, prefix="/api")
 app.include_router(workout_routes.router, prefix="/api")
 app.include_router(habits_routes.router, prefix="/api")
+app.include_router(tasks_routes.router, prefix="/api")
 
 
 @app.get("/api/meta/enums")
