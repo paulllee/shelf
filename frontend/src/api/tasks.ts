@@ -1,10 +1,5 @@
 import { apiFetch } from "./client";
-import type {
-  Task,
-  TaskFormData,
-  ChatMessage,
-  ChatResponse,
-} from "../types";
+import type { Task, TaskFormData, ChatMessage, ChatResponse } from "../types";
 
 export function fetchTasks(): Promise<Task[]> {
   return apiFetch<Task[]>("/tasks");

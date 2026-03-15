@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { X } from "lucide-react";
+import Modal from "./Modal";
 import { createActivity } from "../api/habits";
 
 interface ActivityModalProps {
@@ -36,92 +36,77 @@ export default function ActivityModal({
   };
 
   return (
-    <div
-      className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50"
-      onClick={onClose}
-    >
-      <div
-        className="bg-base-300 rounded-xl max-w-md w-full p-6 shadow-[0px_4px_12px_0px_rgba(0,0,0,0.3)]"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-base-content text-xl font-bold">add activity</h2>
-          <button
-            onClick={onClose}
-            className="text-base-content/50 hover:text-base-content transition-colors motion-reduce:transition-none"
-            aria-label="Close"
+    <Modal onClose={onClose} maxWidth="max-w-md">
+      <h2 className="text-base-content text-xl font-bold mb-6 pr-8">
+        add activity
+      </h2>
+
+      <form onSubmit={handleSubmit} className="space-y-5">
+        <div>
+          <label
+            htmlFor="activity-name"
+            className="block text-base-content text-sm font-semibold mb-2"
           >
-            <X className="w-6 h-6" />
-          </button>
+            activity name
+          </label>
+          <input
+            id="activity-name"
+            name="name"
+            autoComplete="off"
+            type="text"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            placeholder="e.g., yoga class"
+            className="w-full bg-base-200 text-base-content px-4 py-3 rounded-lg border border-warning/20 focus:border-warning focus:outline-none focus-visible:ring-2 focus-visible:ring-warning/50 transition-colors motion-reduce:transition-none placeholder:text-base-content/30"
+            autoFocus
+          />
+
+          {presets.length > 0 && (
+            <div className="mt-3">
+              <p className="text-base-content/50 text-xs mb-2">quick add:</p>
+              <div className="flex flex-wrap gap-2">
+                {presets.map((preset) => (
+                  <button
+                    key={preset}
+                    type="button"
+                    onClick={() => handlePresetClick(preset)}
+                    disabled={mutation.isPending}
+                    className="px-3 py-1 bg-base-200 text-base-content text-xs rounded-full border border-warning/30 hover:border-warning hover:bg-warning/10 transition-colors motion-reduce:transition-none"
+                  >
+                    {preset}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-5">
-          <div>
-            <label
-              htmlFor="activity-name"
-              className="block text-base-content text-sm font-semibold mb-2"
-            >
-              activity name
-            </label>
-            <input
-              id="activity-name"
-              name="name"
-              autoComplete="off"
-              type="text"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder="e.g., yoga class"
-              className="w-full bg-base-200 text-base-content px-4 py-3 rounded-lg border border-warning/20 focus:border-warning focus:outline-none focus-visible:ring-2 focus-visible:ring-warning/50 transition-colors placeholder:text-base-content/30"
-              autoFocus
-            />
+        {mutation.isError && (
+          <p className="text-error text-sm">{mutation.error.message}</p>
+        )}
 
-            {presets.length > 0 && (
-              <div className="mt-3">
-                <p className="text-base-content/50 text-xs mb-2">quick add:</p>
-                <div className="flex flex-wrap gap-2">
-                  {presets.map((preset) => (
-                    <button
-                      key={preset}
-                      type="button"
-                      onClick={() => handlePresetClick(preset)}
-                      disabled={mutation.isPending}
-                      className="px-3 py-1 bg-base-200 text-base-content text-xs rounded-full border border-warning/30 hover:border-warning hover:bg-warning/10 transition-colors motion-reduce:transition-none"
-                    >
-                      {preset}
-                    </button>
-                  ))}
-                </div>
-              </div>
+        <div className="flex gap-3 pt-2">
+          <button
+            type="button"
+            onClick={onClose}
+            disabled={mutation.isPending}
+            className="flex-1 bg-base-200 text-base-content px-4 py-3 rounded-full border border-warning/20 hover:border-warning transition-colors motion-reduce:transition-none font-semibold text-sm"
+          >
+            cancel
+          </button>
+          <button
+            type="submit"
+            disabled={!name.trim() || mutation.isPending}
+            className="flex-1 bg-warning text-warning-content px-4 py-3 rounded-full border border-warning/80 font-semibold text-sm hover:brightness-110 transition-[filter,opacity] motion-reduce:transition-none disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:brightness-100"
+          >
+            {mutation.isPending ? (
+              <span className="loading loading-spinner loading-sm" />
+            ) : (
+              "add activity"
             )}
-          </div>
-
-          {mutation.isError && (
-            <p className="text-error text-sm">{mutation.error.message}</p>
-          )}
-
-          <div className="flex gap-3 pt-2">
-            <button
-              type="button"
-              onClick={onClose}
-              disabled={mutation.isPending}
-              className="flex-1 bg-base-200 text-base-content px-4 py-3 rounded-full border border-warning/20 hover:border-warning transition-colors motion-reduce:transition-none font-semibold text-sm"
-            >
-              cancel
-            </button>
-            <button
-              type="submit"
-              disabled={!name.trim() || mutation.isPending}
-              className="flex-1 bg-warning text-white px-4 py-3 rounded-full border border-warning/80 font-semibold text-sm hover:brightness-110 transition-[filter,opacity] motion-reduce:transition-none disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:brightness-100"
-            >
-              {mutation.isPending ? (
-                <span className="loading loading-spinner loading-sm" />
-              ) : (
-                "add activity"
-              )}
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
+          </button>
+        </div>
+      </form>
+    </Modal>
   );
 }

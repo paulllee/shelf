@@ -50,41 +50,49 @@ export default function MediaTable({ items, onEdit }: MediaTableProps) {
     <table className="table table-zebra w-full bg-base-100">
       <thead className="sticky top-0 bg-base-100 z-10">
         <tr className="border-b-2 border-base-300">
-          <th
-            className="text-left cursor-pointer select-none hover:bg-base-200"
-            onClick={() => handleSort("name")}
-          >
-            title
-            <span className="sort-indicator text-xs opacity-50">
-              {indicator("name")}
-            </span>
+          <th className="text-left">
+            <button
+              className="w-full text-left cursor-pointer select-none hover:bg-base-200 px-0 py-0 bg-transparent border-none font-inherit"
+              onClick={() => handleSort("name")}
+            >
+              title
+              <span className="sort-indicator text-xs opacity-50">
+                {indicator("name")}
+              </span>
+            </button>
           </th>
-          <th
-            className="text-left w-24 cursor-pointer select-none hover:bg-base-200"
-            onClick={() => handleSort("type")}
-          >
-            type
-            <span className="sort-indicator text-xs opacity-50">
-              {indicator("type")}
-            </span>
+          <th className="text-left w-24">
+            <button
+              className="w-full text-left cursor-pointer select-none hover:bg-base-200 px-0 py-0 bg-transparent border-none font-inherit"
+              onClick={() => handleSort("type")}
+            >
+              type
+              <span className="sort-indicator text-xs opacity-50">
+                {indicator("type")}
+              </span>
+            </button>
           </th>
-          <th
-            className="text-left w-24 cursor-pointer select-none hover:bg-base-200"
-            onClick={() => handleSort("country")}
-          >
-            country
-            <span className="sort-indicator text-xs opacity-50">
-              {indicator("country")}
-            </span>
+          <th className="text-left w-24">
+            <button
+              className="w-full text-left cursor-pointer select-none hover:bg-base-200 px-0 py-0 bg-transparent border-none font-inherit"
+              onClick={() => handleSort("country")}
+            >
+              country
+              <span className="sort-indicator text-xs opacity-50">
+                {indicator("country")}
+              </span>
+            </button>
           </th>
-          <th
-            className="text-left w-20 cursor-pointer select-none hover:bg-base-200"
-            onClick={() => handleSort("rating")}
-          >
-            rating
-            <span className="sort-indicator text-xs opacity-50">
-              {indicator("rating")}
-            </span>
+          <th className="text-left w-20">
+            <button
+              className="w-full text-left cursor-pointer select-none hover:bg-base-200 px-0 py-0 bg-transparent border-none font-inherit"
+              onClick={() => handleSort("rating")}
+            >
+              rating
+              <span className="sort-indicator text-xs opacity-50">
+                {indicator("rating")}
+              </span>
+            </button>
           </th>
           <th className="w-16" />
         </tr>
@@ -95,6 +103,13 @@ export default function MediaTable({ items, onEdit }: MediaTableProps) {
             key={item.id}
             className="hover:bg-base-200 cursor-pointer"
             onClick={() => onEdit(item)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+                onEdit(item);
+              }
+            }}
+            tabIndex={0}
           >
             <td className="font-medium max-w-xs">
               <span className="block truncate">{item.name}</span>

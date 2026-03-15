@@ -156,11 +156,10 @@ export default function HabitSection() {
             <button
               onClick={() => setShowAddHabitModal(true)}
               aria-label="Add habit"
-              className="h-9 sm:h-10 px-4 sm:px-5 rounded-full bg-primary border border-primary/80 text-primary-content hover:brightness-110 transition-[filter] motion-reduce:transition-none flex items-center gap-1.5 text-sm font-semibold relative overflow-hidden"
+              className="h-9 sm:h-10 px-4 sm:px-5 rounded-full bg-primary border border-primary/80 text-primary-content hover:brightness-110 transition-[filter] motion-reduce:transition-none flex items-center gap-1.5 text-sm font-semibold"
             >
-              <div className="absolute inset-0 rounded-full shadow-[inset_0px_0.5px_0px_1.5px_rgba(255,255,255,0.06)]" />
-              <Plus className="w-4 h-4 relative" />
-              <span className="hidden sm:inline relative">add habit</span>
+              <Plus className="w-4 h-4" />
+              <span className="hidden sm:inline">add habit</span>
             </button>
           </div>
         </div>
@@ -207,15 +206,20 @@ export default function HabitSection() {
             )}
             other habits ({otherHabits.length})
           </button>
-          {isOtherHabitsExpanded && (
-            <HabitList
-              habits={otherHabits}
-              date={today}
-              onToggle={handleToggle}
-              onEdit={setEditingHabit}
-              onDelete={handleDelete}
-            />
-          )}
+          <div
+            className="expand-collapse"
+            data-expanded={isOtherHabitsExpanded}
+          >
+            <div>
+              <HabitList
+                habits={otherHabits}
+                date={today}
+                onToggle={handleToggle}
+                onEdit={setEditingHabit}
+                onDelete={handleDelete}
+              />
+            </div>
+          </div>
         </div>
       )}
 

@@ -16,35 +16,6 @@ export default function WorkoutSection() {
     queryFn: fetchWorkouts,
   });
 
-  if (isLoading) {
-    return <span className="loading loading-spinner loading-lg" />;
-  }
-
-  if (workouts.length === 0) {
-    return (
-      <>
-        <div className="flex justify-end mb-4">
-          <button
-            onClick={() => setShowAddModal(true)}
-            className="h-9 sm:h-10 px-3 sm:px-4 rounded-full bg-primary border border-primary/80 text-primary-content hover:brightness-110 transition-[filter] motion-reduce:transition-none flex items-center gap-1.5 text-sm font-semibold"
-          >
-            <Plus className="w-4 h-4" />
-            <span className="hidden sm:inline">add workout</span>
-          </button>
-        </div>
-        <div className="text-center py-12 text-base-content/60 bg-base-100 rounded-lg">
-          <p>no workouts yet</p>
-          <p className="text-sm mt-2">
-            click &quot;add workout&quot; to log your first workout
-          </p>
-        </div>
-        {showAddModal && (
-          <WorkoutFormModal onClose={() => setShowAddModal(false)} />
-        )}
-      </>
-    );
-  }
-
   return (
     <>
       <div className="flex justify-end mb-4">
@@ -57,15 +28,27 @@ export default function WorkoutSection() {
         </button>
       </div>
 
-      <div className="space-y-3">
-        {workouts.map((workout) => (
-          <WorkoutCard
-            key={workout.id}
-            workout={workout}
-            onClick={() => setViewWorkout(workout)}
-          />
-        ))}
-      </div>
+      {isLoading ? (
+        <span
+          className="loading loading-spinner loading-lg"
+          role="status"
+          aria-label="Loading"
+        />
+      ) : workouts.length === 0 ? (
+        <p className="text-center py-12 text-base-content/60">
+          no workouts yet
+        </p>
+      ) : (
+        <div className="space-y-3">
+          {workouts.map((workout) => (
+            <WorkoutCard
+              key={workout.id}
+              workout={workout}
+              onClick={() => setViewWorkout(workout)}
+            />
+          ))}
+        </div>
+      )}
 
       {viewWorkout && (
         <WorkoutViewModal

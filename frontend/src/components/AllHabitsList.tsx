@@ -1,25 +1,14 @@
 import { Edit2, Trash2, MoreVertical } from "lucide-react";
-import { useState, useEffect, useRef } from "react";
+import { useState, useRef, useCallback } from "react";
 import type { Habit } from "../types";
+import { getDaysText } from "../utils/habits";
+import { useClickOutside } from "../hooks/useClickOutside";
+import { menuItemCls } from "../styles";
 
 interface AllHabitsListProps {
   habits: Habit[];
   onEdit: (habit: Habit) => void;
   onDelete: (habitId: string) => void;
-}
-
-function getDaysText(days: number[]): string {
-  const dayNames = ["sun", "mon", "tue", "wed", "thu", "fri", "sat"];
-  if (days.length === 7) return "every day";
-  if (days.length === 5 && !days.includes(0) && !days.includes(6))
-    return "weekdays";
-  if (days.length === 2 && days.includes(0) && days.includes(6))
-    return "weekends";
-  return days
-    .slice()
-    .sort((a, b) => a - b)
-    .map((d) => dayNames[d])
-    .join(", ");
 }
 
 export default function AllHabitsList({
@@ -29,17 +18,8 @@ export default function AllHabitsList({
 }: AllHabitsListProps) {
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
   const menuRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (!openMenuId) return;
-    function handleClickOutside(e: MouseEvent) {
-      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
-        setOpenMenuId(null);
-      }
-    }
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, [openMenuId]);
+  const closeMenu = useCallback(() => setOpenMenuId(null), []);
+  useClickOutside(menuRef, !!openMenuId, closeMenu);
 
   if (habits.length === 0) {
     return (
@@ -72,7 +52,7 @@ export default function AllHabitsList({
               <div className="relative" ref={isMenuOpen ? menuRef : null}>
                 <button
                   onClick={() => setOpenMenuId(isMenuOpen ? null : habit.id)}
-                  className="p-2 rounded-lg text-base-content/40 hover:text-base-content hover:bg-base-300 transition-colors"
+                  className="p-2 rounded-lg text-base-content/40 hover:text-base-content hover:bg-base-300 transition-colors motion-reduce:transition-none"
                   aria-label="More options"
                 >
                   <MoreVertical className="w-4 h-4" />
@@ -85,7 +65,7 @@ export default function AllHabitsList({
                         setOpenMenuId(null);
                         onEdit(habit);
                       }}
-                      className="flex items-center gap-2 w-full px-4 py-2.5 text-sm text-left hover:bg-base-200 transition-colors"
+                      className={menuItemCls}
                     >
                       <Edit2 className="w-4 h-4 text-base-content/50" />
                       Edit
@@ -97,7 +77,7 @@ export default function AllHabitsList({
                           onDelete(habit.id);
                         }
                       }}
-                      className="flex items-center gap-2 w-full px-4 py-2.5 text-sm text-left text-error hover:bg-base-200 transition-colors"
+                      className={`${menuItemCls} text-error`}
                     >
                       <Trash2 className="w-4 h-4" />
                       Delete

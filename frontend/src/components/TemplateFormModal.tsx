@@ -4,6 +4,7 @@ import Modal from "./Modal";
 import GroupsEditor from "./GroupsEditor";
 import { updateTemplate } from "../api/templates";
 import type { WorkoutTemplate, ExerciseGroup } from "../types";
+import { btnPrimary, btnSecondary, btnInnerGlow } from "../styles";
 
 interface TemplateFormModalProps {
   editTemplate: WorkoutTemplate;
@@ -57,19 +58,15 @@ export default function TemplateFormModal({
         <GroupsEditor groups={groups} onChange={setGroups} />
 
         <div className="flex gap-2 justify-end pt-4">
-          <button
-            type="button"
-            onClick={onClose}
-            className="px-4 py-2.5 bg-base-200 text-base-content rounded-full border border-primary/20 hover:border-primary transition-colors motion-reduce:transition-none font-semibold text-sm"
-          >
+          <button type="button" onClick={onClose} className={btnSecondary}>
             cancel
           </button>
           <button
             type="submit"
             disabled={mutation.isPending}
-            className="px-4 py-2.5 bg-primary text-primary-content rounded-full border border-primary/80 font-semibold text-sm hover:brightness-110 transition-[filter,opacity] motion-reduce:transition-none disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:brightness-100 relative overflow-hidden"
+            className={btnPrimary}
           >
-            <div className="absolute inset-0 rounded-full shadow-[inset_0px_0.5px_0px_1.5px_rgba(255,255,255,0.06)]" />
+            <div className={btnInnerGlow} />
             <span className="relative">
               {mutation.isPending ? (
                 <span className="loading loading-spinner loading-sm" />

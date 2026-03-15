@@ -1,8 +1,9 @@
 import { useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { X } from "lucide-react";
+import Modal from "./Modal";
 import { createHabit, updateHabit } from "../api/habits";
 import type { Habit, HabitFormData } from "../types";
+import { inputCls, btnPrimary, btnSecondary, btnInnerGlow } from "../styles";
 
 const PRESET_COLORS = [
   "#605dff",
@@ -75,151 +76,134 @@ export default function HabitModal({ habit, onClose }: HabitModalProps) {
   };
 
   return (
-    <div
-      className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50"
-      onClick={onClose}
-    >
-      <div
-        className="bg-base-300 rounded-xl max-w-md w-full p-6 shadow-[0px_4px_12px_0px_rgba(0,0,0,0.3)]"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-base-content text-xl font-bold">
-            {habit ? "edit habit" : "add new habit"}
-          </h2>
-          <button
-            onClick={onClose}
-            className="text-base-content/50 hover:text-base-content transition-colors motion-reduce:transition-none"
-            aria-label="Close"
+    <Modal onClose={onClose} maxWidth="max-w-md">
+      <h2 className="text-base-content text-xl font-bold mb-6 pr-8">
+        {habit ? "edit habit" : "add new habit"}
+      </h2>
+
+      <form onSubmit={handleSubmit} className="space-y-5">
+        <div>
+          <label
+            htmlFor="habit-name"
+            className="block text-base-content text-sm font-semibold mb-2"
           >
-            <X className="w-6 h-6" />
-          </button>
+            habit name
+          </label>
+          <input
+            id="habit-name"
+            name="name"
+            autoComplete="off"
+            type="text"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            placeholder="e.g., morning meditation"
+            className={inputCls}
+            autoFocus
+          />
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-5">
-          <div>
-            <label
-              htmlFor="habit-name"
-              className="block text-base-content text-sm font-semibold mb-2"
-            >
-              habit name
-            </label>
-            <input
-              id="habit-name"
-              name="name"
-              autoComplete="off"
-              type="text"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder="e.g., morning meditation"
-              className="w-full bg-base-200 text-base-content px-4 py-3 rounded-lg border border-primary/20 focus:border-primary focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 transition-colors placeholder:text-base-content/30"
-              autoFocus
-            />
-          </div>
-
-          <div>
-            <label className="block text-base-content text-sm font-semibold mb-2">
-              repeat on
-            </label>
-            <div className="flex gap-2 mb-2">
-              <button
-                type="button"
-                onClick={() => setSelectedDays([0, 1, 2, 3, 4, 5, 6])}
-                className="text-primary text-xs hover:underline"
-              >
-                every day
-              </button>
-              <span className="text-base-content/30">•</span>
-              <button
-                type="button"
-                onClick={() => setSelectedDays([1, 2, 3, 4, 5])}
-                className="text-primary text-xs hover:underline"
-              >
-                weekdays
-              </button>
-              <span className="text-base-content/30">•</span>
-              <button
-                type="button"
-                onClick={() => setSelectedDays([0, 6])}
-                className="text-primary text-xs hover:underline"
-              >
-                weekends
-              </button>
-            </div>
-            <div className="grid grid-cols-7 gap-2">
-              {DAY_NAMES.map((day, index) => (
-                <button
-                  key={index}
-                  type="button"
-                  onClick={() => toggleDay(index)}
-                  className={`aspect-square rounded-lg text-xs font-semibold uppercase transition-colors motion-reduce:transition-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 ${
-                    selectedDays.includes(index)
-                      ? "bg-primary text-primary-content shadow-[0px_2px_4px_0px_rgba(96,93,255,0.3)]"
-                      : "bg-base-200 text-base-content/50 border border-primary/20 hover:border-primary"
-                  }`}
-                >
-                  {day[0]}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <div>
-            <label className="block text-base-content text-sm font-semibold mb-2">
-              color
-            </label>
-            <div className="grid grid-cols-8 gap-2">
-              {PRESET_COLORS.map((color) => (
-                <button
-                  key={color}
-                  type="button"
-                  onClick={() => setSelectedColor(color)}
-                  className={`aspect-square rounded-full transition-[transform] motion-reduce:transition-none ${
-                    selectedColor === color
-                      ? "ring-2 ring-offset-2 ring-offset-base-300 ring-base-content scale-110"
-                      : "hover:scale-105"
-                  }`}
-                  style={{ backgroundColor: color }}
-                  aria-label={`Select color ${color}`}
-                />
-              ))}
-            </div>
-          </div>
-
-          {(createMutation.isError || updateMutation.isError) && (
-            <p className="text-error text-sm">
-              {(createMutation.error || updateMutation.error)?.message}
-            </p>
-          )}
-
-          <div className="flex gap-3 pt-2">
+        <div>
+          <label className="block text-base-content text-sm font-semibold mb-2">
+            repeat on
+          </label>
+          <div className="flex gap-2 mb-2">
             <button
               type="button"
-              onClick={onClose}
-              disabled={isPending}
-              className="flex-1 bg-base-200 text-base-content px-4 py-3 rounded-full border border-primary/20 hover:border-primary transition-colors motion-reduce:transition-none font-semibold text-sm"
+              onClick={() => setSelectedDays([0, 1, 2, 3, 4, 5, 6])}
+              className="text-primary text-xs hover:underline"
             >
-              cancel
+              every day
             </button>
+            <span className="text-base-content/30">&bull;</span>
             <button
-              type="submit"
-              disabled={!name.trim() || selectedDays.length === 0 || isPending}
-              className="flex-1 bg-primary text-primary-content px-4 py-3 rounded-full border border-primary/80 font-semibold text-sm shadow-[0px_3px_2px_-2px_rgba(96,93,255,0.3),0px_4px_3px_-2px_rgba(96,93,255,0.3)] hover:brightness-110 transition-[filter,opacity] motion-reduce:transition-none disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:brightness-100 relative overflow-hidden"
+              type="button"
+              onClick={() => setSelectedDays([1, 2, 3, 4, 5])}
+              className="text-primary text-xs hover:underline"
             >
-              <div className="absolute inset-0 rounded-full shadow-[inset_0px_0.5px_0px_1.5px_rgba(255,255,255,0.06)]" />
-              <span className="relative">
-                {isPending ? (
-                  <span className="loading loading-spinner loading-sm" />
-                ) : habit ? (
-                  "save changes"
-                ) : (
-                  "add habit"
-                )}
-              </span>
+              weekdays
+            </button>
+            <span className="text-base-content/30">&bull;</span>
+            <button
+              type="button"
+              onClick={() => setSelectedDays([0, 6])}
+              className="text-primary text-xs hover:underline"
+            >
+              weekends
             </button>
           </div>
-        </form>
-      </div>
-    </div>
+          <div className="grid grid-cols-7 gap-2">
+            {DAY_NAMES.map((day, index) => (
+              <button
+                key={index}
+                type="button"
+                onClick={() => toggleDay(index)}
+                className={`aspect-square rounded-lg text-xs font-semibold uppercase transition-colors motion-reduce:transition-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 ${
+                  selectedDays.includes(index)
+                    ? "bg-primary text-primary-content shadow-sm"
+                    : "bg-base-200 text-base-content/50 border border-primary/20 hover:border-primary"
+                }`}
+              >
+                {day[0]}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div>
+          <label className="block text-base-content text-sm font-semibold mb-2">
+            color
+          </label>
+          <div className="grid grid-cols-8 gap-2">
+            {PRESET_COLORS.map((color) => (
+              <button
+                key={color}
+                type="button"
+                onClick={() => setSelectedColor(color)}
+                className={`aspect-square rounded-full transition-[transform] motion-reduce:transition-none ${
+                  selectedColor === color
+                    ? "ring-2 ring-offset-2 ring-offset-base-300 ring-base-content scale-110"
+                    : "hover:scale-105"
+                }`}
+                style={{ backgroundColor: color }}
+                aria-label={`Select color ${color}`}
+              />
+            ))}
+          </div>
+        </div>
+
+        {(createMutation.isError || updateMutation.isError) && (
+          <p className="text-error text-sm">
+            {(createMutation.error || updateMutation.error)?.message}
+          </p>
+        )}
+
+        <div className="flex gap-3 pt-2">
+          <button
+            type="button"
+            onClick={onClose}
+            disabled={isPending}
+            className={`flex-1 ${btnSecondary}`}
+          >
+            cancel
+          </button>
+          <button
+            type="submit"
+            disabled={!name.trim() || selectedDays.length === 0 || isPending}
+            className={`flex-1 ${btnPrimary}`}
+          >
+            <div className={btnInnerGlow} />
+            <span className="relative">
+              {isPending ? (
+                <span className="loading loading-spinner loading-sm" />
+              ) : habit ? (
+                "save changes"
+              ) : (
+                "add habit"
+              )}
+            </span>
+          </button>
+        </div>
+      </form>
+    </Modal>
   );
 }

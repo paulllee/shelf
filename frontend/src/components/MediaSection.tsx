@@ -80,7 +80,11 @@ export default function MediaSection() {
       {showAddModal && <MediaModal onClose={() => setShowAddModal(false)} />}
 
       {isLoading ? (
-        <span className="loading loading-spinner loading-lg" />
+        <span
+          className="loading loading-spinner loading-lg"
+          role="status"
+          aria-label="Loading"
+        />
       ) : items.length === 0 ? (
         <div className="text-center py-12 text-base-content/60 bg-base-100 rounded-lg">
           <p>no media items in this list</p>
@@ -88,34 +92,32 @@ export default function MediaSection() {
       ) : (
         <>
           <div className="flex flex-col gap-2 sm:flex-row sm:gap-4 mb-4">
-            <div className="form-control">
-              <select
-                className="select select-bordered select-sm w-full sm:w-auto"
-                value={typeFilter}
-                onChange={(e) => setTypeFilter(e.target.value)}
-              >
-                <option value="">all types</option>
-                {types.map((t) => (
-                  <option key={t} value={t}>
-                    {t}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div className="form-control">
-              <select
-                className="select select-bordered select-sm w-full sm:w-auto"
-                value={countryFilter}
-                onChange={(e) => setCountryFilter(e.target.value)}
-              >
-                <option value="">all countries</option>
-                {countries.map((c) => (
-                  <option key={c} value={c}>
-                    {c}
-                  </option>
-                ))}
-              </select>
-            </div>
+            <select
+              className="select select-bordered select-sm w-full sm:w-auto"
+              value={typeFilter}
+              onChange={(e) => setTypeFilter(e.target.value)}
+              aria-label="Filter by type"
+            >
+              <option value="">all types</option>
+              {types.map((t) => (
+                <option key={t} value={t}>
+                  {t}
+                </option>
+              ))}
+            </select>
+            <select
+              className="select select-bordered select-sm w-full sm:w-auto"
+              value={countryFilter}
+              onChange={(e) => setCountryFilter(e.target.value)}
+              aria-label="Filter by country"
+            >
+              <option value="">all countries</option>
+              {countries.map((c) => (
+                <option key={c} value={c}>
+                  {c}
+                </option>
+              ))}
+            </select>
           </div>
 
           {/* mobile card view */}

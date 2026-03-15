@@ -1,6 +1,21 @@
 import type { Habit, HabitShift } from "../types";
 import { formatDateStr } from "./date";
 
+const DAY_NAMES_SHORT = ["sun", "mon", "tue", "wed", "thu", "fri", "sat"];
+
+export function getDaysText(days: number[]): string {
+  if (days.length === 7) return "every day";
+  if (days.length === 5 && !days.includes(0) && !days.includes(6))
+    return "weekdays";
+  if (days.length === 2 && days.includes(0) && days.includes(6))
+    return "weekends";
+  return days
+    .slice()
+    .sort((a, b) => a - b)
+    .map((d) => DAY_NAMES_SHORT[d])
+    .join(", ");
+}
+
 /**
  * Returns the habits that are active on a given date, accounting for shifts and skips.
  *

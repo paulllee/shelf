@@ -16,7 +16,7 @@ export default function ThemeToggle() {
   }, [isDark]);
 
   return (
-    <label className="swap swap-rotate -mt-1.75">
+    <label className="swap swap-rotate -mt-1.75" aria-label="Toggle dark mode">
       <input type="checkbox" checked={isDark} onChange={toggle} />
       <Sun className="swap-on w-6 h-6" />
       <Moon className="swap-off w-6 h-6" />

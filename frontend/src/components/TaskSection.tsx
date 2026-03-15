@@ -59,7 +59,7 @@ function TaskItem({
         {hasSubtasks ? (
           <button
             onClick={() => setExpanded(!expanded)}
-            className="text-base-content/40 hover:text-base-content shrink-0"
+            className="text-base-content/40 hover:text-base-content shrink-0 transition-colors motion-reduce:transition-none"
           >
             {expanded ? (
               <ChevronDown className="w-4 h-4" />
@@ -84,8 +84,15 @@ function TaskItem({
 
         <span
           onClick={() => onEdit(task)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" || e.key === " ") {
+              e.preventDefault();
+              onEdit(task);
+            }
+          }}
           role="button"
-          className={`text-left text-sm leading-none translate-y-px truncate hover:text-primary transition-colors cursor-pointer ${isClosed ? "line-through text-base-content/40" : "text-base-content"}`}
+          tabIndex={0}
+          className={`text-left text-sm leading-none translate-y-px truncate hover:text-primary transition-colors motion-reduce:transition-none cursor-pointer ${isClosed ? "line-through text-base-content/40" : "text-base-content"}`}
         >
           {task.title}
         </span>
@@ -110,8 +117,9 @@ function TaskItem({
         {depth === 0 && (
           <button
             onClick={() => onAddSubtask(task.id)}
-            className="text-base-content/30 hover:text-base-content/60 shrink-0 transition-colors"
+            className="text-base-content/30 hover:text-base-content/60 shrink-0 transition-colors motion-reduce:transition-none"
             title="Add sub-task"
+            aria-label="Add sub-task"
           >
             <Plus className="w-3.5 h-3.5" />
           </button>
@@ -188,7 +196,8 @@ export default function TaskSection() {
       return a.title.localeCompare(b.title);
     });
   const closedTasks = tasks.filter(
-    (t) => t.status === "closed" && !t.subtasks.some((s) => s.status === "open"),
+    (t) =>
+      t.status === "closed" && !t.subtasks.some((s) => s.status === "open"),
   );
   const closedCount = closedTasks.length;
 
@@ -235,7 +244,7 @@ export default function TaskSection() {
               setShowChat(!showChat);
               setTimeout(() => chatInputRef.current?.focus(), 100);
             }}
-            className={`p-2 rounded-lg transition-colors ${showChat ? "bg-primary/20 text-primary" : "text-base-content/50 hover:text-base-content"}`}
+            className={`p-2 rounded-lg transition-colors motion-reduce:transition-none ${showChat ? "bg-primary/20 text-primary" : "text-base-content/50 hover:text-base-content"}`}
             title="AI chat"
           >
             <MessageCircle className="w-4 h-4" />
@@ -246,7 +255,7 @@ export default function TaskSection() {
               setAddSubtaskParent(null);
               setShowModal(true);
             }}
-            className="flex items-center gap-1.5 text-sm font-semibold text-primary hover:text-primary/80 transition-colors"
+            className="flex items-center gap-1.5 text-sm font-semibold text-primary hover:text-primary/80 transition-colors motion-reduce:transition-none"
           >
             <Plus className="w-4 h-4" />
             add task
@@ -262,22 +271,22 @@ export default function TaskSection() {
       ) : (
         <div className="space-y-0.5">
           {openTasks.map((task) => (
-              <TaskItem
-                key={task.id}
-                task={task}
-                onEdit={(t) => {
-                  setEditingTask(t);
-                  setAddSubtaskParent(null);
-                  setShowModal(true);
-                }}
-                onAddSubtask={(parentId) => {
-                  setEditingTask(null);
-                  setAddSubtaskParent(parentId);
-                  setShowModal(true);
-                }}
-                onToggleStatus={(t) => toggleMutation.mutate({ task: t })}
-              />
-            ))}
+            <TaskItem
+              key={task.id}
+              task={task}
+              onEdit={(t) => {
+                setEditingTask(t);
+                setAddSubtaskParent(null);
+                setShowModal(true);
+              }}
+              onAddSubtask={(parentId) => {
+                setEditingTask(null);
+                setAddSubtaskParent(parentId);
+                setShowModal(true);
+              }}
+              onToggleStatus={(t) => toggleMutation.mutate({ task: t })}
+            />
+          ))}
         </div>
       )}
 
@@ -286,7 +295,7 @@ export default function TaskSection() {
         <div>
           <button
             onClick={() => setShowClosed(!showClosed)}
-            className="flex items-center gap-1.5 text-sm font-semibold text-base-content/40 hover:text-base-content/60 transition-colors"
+            className="flex items-center gap-1.5 text-sm font-semibold text-base-content/40 hover:text-base-content/60 transition-colors motion-reduce:transition-none"
           >
             {showClosed ? (
               <ChevronDown className="w-4 h-4" />
@@ -336,8 +345,8 @@ export default function TaskSection() {
                   key={i}
                   className={`text-sm flex ${
                     msg.role === "user"
-                      ? "text-base-content ml-8 justify-end"
-                      : "text-base-content/70 mr-8"
+                      ? "text-base-content ml-4 sm:ml-8 justify-end"
+                      : "text-base-content/70 mr-4 sm:mr-8"
                   }`}
                 >
                   <span
@@ -350,7 +359,7 @@ export default function TaskSection() {
                 </div>
               ))}
               {chatLoading && (
-                <div className="text-sm text-base-content/50 mr-8">
+                <div className="text-sm text-base-content/50 mr-4 sm:mr-8">
                   <span className="inline-block px-3 py-1.5 bg-base-200 rounded-lg">
                     <span className="loading loading-dots loading-xs" />
                   </span>
@@ -380,7 +389,8 @@ export default function TaskSection() {
             <button
               onClick={handleSendChat}
               disabled={!chatInput.trim() || chatLoading}
-              className="p-2 text-primary hover:text-primary/80 disabled:text-base-content/20 transition-colors"
+              className="p-2 text-primary hover:text-primary/80 disabled:text-base-content/20 transition-colors motion-reduce:transition-none"
+              aria-label="Send message"
             >
               <Send className="w-4 h-4" />
             </button>

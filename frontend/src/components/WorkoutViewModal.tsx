@@ -4,6 +4,7 @@ import Modal from "./Modal";
 import WorkoutFormModal from "./WorkoutFormModal";
 import { deleteWorkout } from "../api/workouts";
 import type { Workout } from "../types";
+import { btnPrimary, btnSecondary, btnInnerGlow } from "../styles";
 
 interface WorkoutViewModalProps {
   workout: Workout;
@@ -129,23 +130,14 @@ export default function WorkoutViewModal({
           delete
         </button>
         <div className="flex-1" />
-        <button
-          onClick={() => setShowRepeat(true)}
-          className="px-4 py-2.5 bg-base-200 text-base-content rounded-full border border-primary/20 hover:border-primary transition-colors motion-reduce:transition-none font-semibold text-sm"
-        >
+        <button onClick={() => setShowRepeat(true)} className={btnSecondary}>
           repeat
         </button>
-        <button
-          onClick={() => setShowEdit(true)}
-          className="px-4 py-2.5 bg-base-200 text-base-content rounded-full border border-primary/20 hover:border-primary transition-colors motion-reduce:transition-none font-semibold text-sm"
-        >
+        <button onClick={() => setShowEdit(true)} className={btnSecondary}>
           edit
         </button>
-        <button
-          onClick={onClose}
-          className="px-4 py-2.5 bg-primary text-primary-content rounded-full border border-primary/80 font-semibold text-sm hover:brightness-110 transition-[filter] motion-reduce:transition-none relative overflow-hidden"
-        >
-          <div className="absolute inset-0 rounded-full shadow-[inset_0px_0.5px_0px_1.5px_rgba(255,255,255,0.06)]" />
+        <button onClick={onClose} className={btnPrimary}>
+          <div className={btnInnerGlow} />
           <span className="relative">close</span>
         </button>
       </div>

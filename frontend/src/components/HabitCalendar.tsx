@@ -16,35 +16,12 @@ interface HabitCalendarProps {
   onJumpToToday: () => void;
 }
 
-function getActivitiesForDay(activities: Activity[], date: Date): Activity[] {
-  const dateStr = formatDateStr(date);
-  return activities.filter((a) => a.date === dateStr);
-}
-
-function getCompletionPercentage(habits: Habit[], date: Date): number {
-  const habitsForDay = getHabitsForDay(habits, date);
-  const dateStr = formatDateStr(date);
-
-  const completedHabitIds = habits
-    .filter((h) => h.completions.includes(dateStr))
-    .map((h) => h.id);
-
-  const scheduledHabitIds = new Set(habitsForDay.map((h) => h.id));
-  const completedUnscheduledCount = completedHabitIds.filter(
-    (id) => !scheduledHabitIds.has(id),
-  ).length;
-
-  const totalExpected = habitsForDay.length + completedUnscheduledCount;
-  if (totalExpected === 0) return 0;
-
-  return (completedHabitIds.length / totalExpected) * 100;
-}
-
-function getCompletionColors(habits: Habit[], date: Date): string[] {
-  const dateStr = formatDateStr(date);
-  return habits
-    .filter((h) => h.completions.includes(dateStr))
-    .map((h) => h.color);
+interface DayData {
+  date: Date;
+  percentage: number;
+  colors: string[];
+  hasHabits: boolean;
+  activityCount: number;
 }
 
 export default function HabitCalendar({
@@ -78,20 +55,58 @@ export default function HabitCalendar({
     return result;
   }, [startingDayOfWeek, daysInMonth]);
 
+  // Pre-compute all day data in a single pass instead of per-day
+  const dayDataMap = useMemo(() => {
+    // Build activity lookup by date string
+    const activityByDate = new Map<string, number>();
+    for (const a of activities) {
+      activityByDate.set(a.date, (activityByDate.get(a.date) ?? 0) + 1);
+    }
+
+    const map = new Map<number, DayData>();
+    for (let day = 1; day <= daysInMonth; day++) {
+      const date = new Date(year, month, day);
+      date.setHours(0, 0, 0, 0);
+      const dateStr = formatDateStr(date);
+
+      const habitsForDay = getHabitsForDay(habits, date);
+      const scheduledIds = new Set(habitsForDay.map((h) => h.id));
+
+      const completedColors: string[] = [];
+      let completedCount = 0;
+      let completedUnscheduledCount = 0;
+
+      for (const h of habits) {
+        if (h.completions.includes(dateStr)) {
+          completedColors.push(h.color);
+          completedCount++;
+          if (!scheduledIds.has(h.id)) completedUnscheduledCount++;
+        }
+      }
+
+      const totalExpected = habitsForDay.length + completedUnscheduledCount;
+      const percentage =
+        totalExpected > 0 ? (completedCount / totalExpected) * 100 : 0;
+
+      map.set(day, {
+        date,
+        percentage,
+        colors: completedColors,
+        hasHabits: habitsForDay.length > 0,
+        activityCount: activityByDate.get(dateStr) ?? 0,
+      });
+    }
+    return map;
+  }, [habits, activities, year, month, daysInMonth]);
+
   const renderDay = (day: number | null, index: number) => {
     if (day === null) {
       return <div key={`empty-${index}`} className="aspect-square" />;
     }
 
-    const date = new Date(year, month, day);
-    date.setHours(0, 0, 0, 0);
+    const data = dayDataMap.get(day)!;
+    const { date, percentage, colors, hasHabits, activityCount } = data;
     const isToday = date.getTime() === today.getTime();
-    const percentage = getCompletionPercentage(habits, date);
-    const colors = getCompletionColors(habits, date);
-    const habitsForDay = getHabitsForDay(habits, date);
-    const activitiesForDay = getActivitiesForDay(activities, date);
-    const hasHabits = habitsForDay.length > 0;
-    const activityCount = activitiesForDay.length;
 
     const dateLabel = date.toLocaleDateString("default", {
       weekday: "long",
@@ -105,7 +120,7 @@ export default function HabitCalendar({
         key={day}
         onClick={() => onDayClick(date)}
         aria-label={dateLabel}
-        className="aspect-square flex items-center justify-center relative group cursor-pointer rounded-lg transition-colors hover:bg-primary/10"
+        className="aspect-square flex items-center justify-center relative group cursor-pointer rounded-lg transition-colors motion-reduce:transition-none hover:bg-primary/10"
       >
         <div className="relative w-full h-full flex items-center justify-center">
           {hasHabits && (
@@ -118,7 +133,7 @@ export default function HabitCalendar({
                 cy="18"
                 r="14"
                 fill="none"
-                stroke="rgba(96, 93, 255, 0.15)"
+                className="stroke-primary/15"
                 strokeWidth="2.5"
               />
               {percentage > 0 && colors.length > 0 && (
@@ -173,7 +188,7 @@ export default function HabitCalendar({
           {activityCount > 0 && (
             <div className="absolute top-[2px] right-[2px]">
               <div className="min-w-[16px] h-[16px] bg-warning rounded-full flex items-center justify-center px-[3px]">
-                <span className="text-[9px] font-bold text-white leading-none">
+                <span className="text-[9px] font-bold text-warning-content leading-none">
                   {activityCount}
                 </span>
               </div>
@@ -189,7 +204,7 @@ export default function HabitCalendar({
       <div className="flex items-center justify-between mb-4 sm:mb-6">
         <button
           onClick={onPreviousMonth}
-          className="text-base-content hover:text-primary transition-colors p-1"
+          className="text-base-content hover:text-primary transition-colors motion-reduce:transition-none p-1"
           aria-label="Previous month"
         >
           <ChevronLeft className="w-5 h-5" />
@@ -203,7 +218,7 @@ export default function HabitCalendar({
           </div>
           <button
             onClick={onJumpToToday}
-            className="text-primary hover:text-primary/70 transition-colors p-1"
+            className="text-primary hover:text-primary/70 transition-colors motion-reduce:transition-none p-1"
             aria-label="Jump to today"
             title="Jump to today"
           >
@@ -212,7 +227,7 @@ export default function HabitCalendar({
         </div>
         <button
           onClick={onNextMonth}
-          className="text-base-content hover:text-primary transition-colors p-1"
+          className="text-base-content hover:text-primary transition-colors motion-reduce:transition-none p-1"
           aria-label="Next month"
         >
           <ChevronRight className="w-5 h-5" />

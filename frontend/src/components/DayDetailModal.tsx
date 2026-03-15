@@ -9,6 +9,7 @@ import {
   X,
   CalendarClock,
 } from "lucide-react";
+import Modal from "./Modal";
 import {
   toggleCompletion,
   createActivity,
@@ -157,346 +158,249 @@ export default function DayDetailModal({
   };
 
   return (
-    <div
-      className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50"
-      onClick={onClose}
-    >
-      <div
-        className="bg-base-300 rounded-xl max-w-md w-full p-4 sm:p-6 shadow-[0px_4px_12px_0px_rgba(0,0,0,0.3)] max-h-[80vh] overflow-y-auto overscroll-contain"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <div className="flex items-center justify-between mb-4 sm:mb-6">
+    <Modal onClose={onClose} maxWidth="max-w-md">
+      <div className="mb-4 sm:mb-6 pr-8">
+        <h2 className="text-base-content text-lg sm:text-xl font-bold">
+          {formatDateLabel(date)}
+        </h2>
+        <p className="text-base-content/50 text-xs mt-1">
+          {totalCompleted} of {totalExpected} habits completed
+        </p>
+      </div>
+
+      <div className="space-y-4">
+        {completedHabits.length > 0 && (
           <div>
-            <h2 className="text-base-content text-lg sm:text-xl font-bold">
-              {formatDateLabel(date)}
-            </h2>
-            <p className="text-base-content/50 text-xs mt-1">
-              {totalCompleted} of {totalExpected} habits completed
-            </p>
+            <h3 className="text-success text-sm font-semibold mb-2 flex items-center gap-2">
+              <Check className="w-4 h-4" />
+              completed (scheduled)
+            </h3>
+            <div className="space-y-2">
+              {completedHabits.map((habit) => (
+                <button
+                  key={habit.id}
+                  onClick={() => toggleMutation.mutate({ habitId: habit.id })}
+                  className="w-full flex items-center gap-3 p-3 bg-base-200 rounded-lg hover:bg-base-100 transition-colors motion-reduce:transition-none"
+                >
+                  <div
+                    className="w-3 h-3 rounded-full flex-shrink-0"
+                    style={{ backgroundColor: habit.color }}
+                  />
+                  <span className="text-base-content text-sm flex-1 text-left">
+                    {habit.name}
+                  </span>
+                  <Check className="w-4 h-4 text-success" />
+                </button>
+              ))}
+            </div>
           </div>
-          <button
-            onClick={onClose}
-            className="text-base-content/50 hover:text-base-content transition-colors motion-reduce:transition-none p-1"
-            aria-label="Close"
-          >
-            <X className="w-5 h-5 sm:w-6 sm:h-6" />
-          </button>
-        </div>
+        )}
 
-        <div className="space-y-4">
-          {completedHabits.length > 0 && (
-            <div>
-              <h3 className="text-success text-sm font-semibold mb-2 flex items-center gap-2">
-                <Check className="w-4 h-4" />
-                completed (scheduled)
-              </h3>
-              <div className="space-y-2">
-                {completedHabits.map((habit) => (
-                  <button
-                    key={habit.id}
-                    onClick={() => toggleMutation.mutate({ habitId: habit.id })}
-                    className="w-full flex items-center gap-3 p-3 bg-base-200 rounded-lg hover:bg-base-100 transition-colors motion-reduce:transition-none"
-                  >
-                    <div
-                      className="w-3 h-3 rounded-full flex-shrink-0"
-                      style={{ backgroundColor: habit.color }}
-                    />
-                    <span className="text-base-content text-sm flex-1 text-left">
-                      {habit.name}
-                    </span>
-                    <Check className="w-4 h-4 text-success" />
-                  </button>
-                ))}
-              </div>
+        {completedUnscheduledHabits.length > 0 && (
+          <div>
+            <h3 className="text-success text-sm font-semibold mb-2 flex items-center gap-2">
+              <Check className="w-4 h-4" />
+              completed (bonus)
+            </h3>
+            <div className="space-y-2">
+              {completedUnscheduledHabits.map((habit) => (
+                <button
+                  key={habit.id}
+                  onClick={() => toggleMutation.mutate({ habitId: habit.id })}
+                  className="w-full flex items-center gap-3 p-3 bg-base-200 rounded-lg hover:bg-base-100 transition-colors motion-reduce:transition-none"
+                >
+                  <div
+                    className="w-3 h-3 rounded-full flex-shrink-0"
+                    style={{ backgroundColor: habit.color }}
+                  />
+                  <span className="text-base-content text-sm flex-1 text-left">
+                    {habit.name}
+                  </span>
+                  <Check className="w-4 h-4 text-success" />
+                </button>
+              ))}
             </div>
-          )}
+          </div>
+        )}
 
-          {completedUnscheduledHabits.length > 0 && (
-            <div>
-              <h3 className="text-success text-sm font-semibold mb-2 flex items-center gap-2">
-                <Check className="w-4 h-4" />
-                completed (bonus)
-              </h3>
-              <div className="space-y-2">
-                {completedUnscheduledHabits.map((habit) => (
-                  <button
-                    key={habit.id}
-                    onClick={() => toggleMutation.mutate({ habitId: habit.id })}
-                    className="w-full flex items-center gap-3 p-3 bg-base-200 rounded-lg hover:bg-base-100 transition-colors motion-reduce:transition-none"
-                  >
-                    <div
-                      className="w-3 h-3 rounded-full flex-shrink-0"
-                      style={{ backgroundColor: habit.color }}
-                    />
-                    <span className="text-base-content text-sm flex-1 text-left">
-                      {habit.name}
-                    </span>
-                    <Check className="w-4 h-4 text-success" />
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {incompletedHabits.length > 0 && (
-            <div>
-              <h3 className="text-base-content/50 text-sm font-semibold mb-2">
-                not completed
-              </h3>
-              <div className="space-y-1">
-                {incompletedHabits.map((habit) => {
-                  const shiftedHere = habit.shifts.find(
-                    (s) => s.to === dateStr,
-                  );
-                  const habitFromDate = shiftedHere
-                    ? shiftedHere.from
-                    : dateStr;
-                  const fromWeekday = shiftedHere
-                    ? new Date(shiftedHere.from + "T12:00:00").getDay()
-                    : date.getDay();
-                  return (
-                    <div key={habit.id}>
-                      <div className="flex items-center gap-1">
+        {incompletedHabits.length > 0 && (
+          <div>
+            <h3 className="text-base-content/50 text-sm font-semibold mb-2">
+              not completed
+            </h3>
+            <div className="space-y-1">
+              {incompletedHabits.map((habit) => {
+                const shiftedHere = habit.shifts.find((s) => s.to === dateStr);
+                const habitFromDate = shiftedHere ? shiftedHere.from : dateStr;
+                const fromWeekday = shiftedHere
+                  ? new Date(shiftedHere.from + "T12:00:00").getDay()
+                  : date.getDay();
+                return (
+                  <div key={habit.id}>
+                    <div className="flex items-center gap-1">
+                      <button
+                        onClick={() =>
+                          toggleMutation.mutate({ habitId: habit.id })
+                        }
+                        className="flex-1 flex items-center gap-3 p-3 bg-base-200 rounded-lg opacity-60 hover:opacity-100 hover:bg-base-100 transition-colors motion-reduce:transition-none"
+                      >
+                        <div
+                          className="w-3 h-3 rounded-full flex-shrink-0"
+                          style={{ backgroundColor: habit.color }}
+                        />
+                        <span className="text-base-content text-sm flex-1 text-left">
+                          {habit.name}
+                        </span>
+                        <div className="w-4 h-4 border-2 border-base-content/30 rounded" />
+                      </button>
+                      {habit.days.length < 7 ? (
                         <button
                           onClick={() =>
-                            toggleMutation.mutate({ habitId: habit.id })
+                            setShiftPickerHabitId(
+                              shiftPickerHabitId === habit.id ? null : habit.id,
+                            )
                           }
-                          className="flex-1 flex items-center gap-3 p-3 bg-base-200 rounded-lg opacity-60 hover:opacity-100 hover:bg-base-100 transition-colors motion-reduce:transition-none"
+                          className="p-2 text-base-content/30 hover:text-primary transition-colors motion-reduce:transition-none"
+                          title="Move to another day"
+                          aria-label="Move to another day"
                         >
-                          <div
-                            className="w-3 h-3 rounded-full flex-shrink-0"
-                            style={{ backgroundColor: habit.color }}
-                          />
-                          <span className="text-base-content text-sm flex-1 text-left">
-                            {habit.name}
-                          </span>
-                          <div className="w-4 h-4 border-2 border-base-content/30 rounded" />
+                          <CalendarClock className="w-4 h-4" />
                         </button>
-                        {habit.days.length < 7 ? (
-                          <button
-                            onClick={() =>
-                              setShiftPickerHabitId(
-                                shiftPickerHabitId === habit.id
-                                  ? null
-                                  : habit.id,
-                              )
-                            }
-                            className="p-2 text-base-content/30 hover:text-primary transition-colors motion-reduce:transition-none"
-                            title="Move to another day"
-                            aria-label="Move to another day"
-                          >
-                            <CalendarClock className="w-4 h-4" />
-                          </button>
-                        ) : (
-                          <div
-                            className="p-2 text-base-content/20 cursor-not-allowed"
-                            title="Daily habits can't be moved"
-                          >
-                            <span className="relative inline-block">
-                              <CalendarClock className="w-4 h-4" />
-                              <X className="w-2.5 h-2.5 absolute -bottom-0.5 -right-0.5 stroke-[3]" />
-                            </span>
-                          </div>
-                        )}
-                      </div>
-                      {shiftPickerHabitId === habit.id && (
-                        <div className="mt-1 p-2 bg-base-100 border border-base-300 rounded-lg">
-                          <p className="text-xs text-base-content/50 mb-2">
-                            move to:
-                          </p>
-                          <div className="flex gap-1 flex-wrap">
-                            {["su", "mo", "tu", "we", "th", "fr", "sa"].map(
-                              (dayName, weekday) => {
-                                if (
-                                  shiftedHere
-                                    ? (habit.days.includes(weekday) &&
-                                        weekday !== fromWeekday) ||
-                                      weekday === date.getDay()
-                                    : habit.days.includes(weekday) ||
-                                      weekday === date.getDay()
-                                )
-                                  return null;
-                                return (
-                                  <button
-                                    key={weekday}
-                                    onClick={() => {
-                                      if (
-                                        shiftedHere &&
-                                        weekday === fromWeekday
-                                      ) {
-                                        cancelShiftMutation.mutate({
-                                          habitId: habit.id,
-                                          fromDate: habitFromDate,
-                                        });
-                                      } else {
-                                        shiftMutation.mutate({
-                                          habitId: habit.id,
-                                          from: habitFromDate,
-                                          to: getDateForWeekday(weekday),
-                                        });
-                                      }
-                                      setShiftPickerHabitId(null);
-                                    }}
-                                    className="px-3 py-1.5 text-xs rounded-lg bg-base-200 hover:bg-primary hover:text-primary-content transition-colors font-medium"
-                                  >
-                                    {dayName}
-                                  </button>
-                                );
-                              },
-                            )}
-                            <button
-                              onClick={() => setShiftPickerHabitId(null)}
-                              className="px-3 py-1.5 text-xs rounded-lg bg-base-200 text-base-content/50 hover:text-base-content transition-colors"
-                            >
-                              cancel
-                            </button>
-                          </div>
+                      ) : (
+                        <div
+                          className="p-2 text-base-content/20 cursor-not-allowed"
+                          title="Daily habits can't be moved"
+                        >
+                          <CalendarClock className="w-4 h-4" />
                         </div>
                       )}
                     </div>
-                  );
-                })}
-              </div>
+                    {shiftPickerHabitId === habit.id && (
+                      <div className="mt-1 p-2 bg-base-100 border border-base-300 rounded-lg">
+                        <p className="text-xs text-base-content/50 mb-2">
+                          move to:
+                        </p>
+                        <div className="flex gap-1 flex-wrap">
+                          {["su", "mo", "tu", "we", "th", "fr", "sa"].map(
+                            (dayName, weekday) => {
+                              if (
+                                shiftedHere
+                                  ? (habit.days.includes(weekday) &&
+                                      weekday !== fromWeekday) ||
+                                    weekday === date.getDay()
+                                  : habit.days.includes(weekday) ||
+                                    weekday === date.getDay()
+                              )
+                                return null;
+                              return (
+                                <button
+                                  key={weekday}
+                                  onClick={() => {
+                                    if (
+                                      shiftedHere &&
+                                      weekday === fromWeekday
+                                    ) {
+                                      cancelShiftMutation.mutate({
+                                        habitId: habit.id,
+                                        fromDate: habitFromDate,
+                                      });
+                                    } else {
+                                      shiftMutation.mutate({
+                                        habitId: habit.id,
+                                        from: habitFromDate,
+                                        to: getDateForWeekday(weekday),
+                                      });
+                                    }
+                                    setShiftPickerHabitId(null);
+                                  }}
+                                  className="px-3 py-1.5 text-xs rounded-lg bg-base-200 hover:bg-primary hover:text-primary-content transition-colors motion-reduce:transition-none font-medium"
+                                >
+                                  {dayName}
+                                </button>
+                              );
+                            },
+                          )}
+                          <button
+                            onClick={() => setShiftPickerHabitId(null)}
+                            className="px-3 py-1.5 text-xs rounded-lg bg-base-200 text-base-content/50 hover:text-base-content transition-colors motion-reduce:transition-none"
+                          >
+                            cancel
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
             </div>
-          )}
+          </div>
+        )}
 
-          <div>
-            <div className="flex items-center justify-between mb-2">
-              <h3 className="text-warning text-sm font-semibold">activities</h3>
-              <button
-                onClick={() => {
-                  setIsAddingActivity(true);
-                  setShowPresets(presets.length > 0);
-                }}
-                className="text-warning hover:text-warning/70 transition-colors motion-reduce:transition-none"
-                aria-label="Add activity"
-              >
-                <Plus className="w-4 h-4" />
-              </button>
-            </div>
+        <div>
+          <div className="flex items-center justify-between mb-2">
+            <h3 className="text-warning text-sm font-semibold">activities</h3>
+            <button
+              onClick={() => {
+                setIsAddingActivity(true);
+                setShowPresets(presets.length > 0);
+              }}
+              className="text-warning hover:text-warning/70 transition-colors motion-reduce:transition-none"
+              aria-label="Add activity"
+            >
+              <Plus className="w-4 h-4" />
+            </button>
+          </div>
 
-            {isAddingActivity && (
-              <div className="mb-3 space-y-2">
-                <div className="flex gap-2">
-                  <input
-                    type="text"
-                    value={newActivityName}
-                    onChange={(e) => setNewActivityName(e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter") handleAddActivity(newActivityName);
-                      else if (e.key === "Escape") {
-                        setIsAddingActivity(false);
-                        setNewActivityName("");
-                        setShowPresets(false);
-                      }
-                    }}
-                    placeholder="activity name..."
-                    className="flex-1 bg-base-200 text-base-content px-3 py-2 rounded-lg border border-warning focus:outline-none focus-visible:ring-2 focus-visible:ring-warning/50 text-sm placeholder:text-base-content/30"
-                    autoFocus
-                  />
-                  <button
-                    onClick={() => handleAddActivity(newActivityName)}
-                    disabled={addActivityMutation.isPending}
-                    aria-label="Confirm add activity"
-                    className="px-3 py-2 bg-warning text-white rounded-lg hover:brightness-110 transition-[filter] motion-reduce:transition-none"
-                  >
-                    <Check className="w-4 h-4" />
-                  </button>
-                  <button
-                    onClick={() => {
+          {isAddingActivity && (
+            <div className="mb-3 space-y-2">
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  value={newActivityName}
+                  onChange={(e) => setNewActivityName(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") handleAddActivity(newActivityName);
+                    else if (e.key === "Escape") {
                       setIsAddingActivity(false);
                       setNewActivityName("");
                       setShowPresets(false);
-                    }}
-                    aria-label="Cancel adding activity"
-                    className="px-3 py-2 bg-base-200 text-base-content/50 rounded-lg hover:text-base-content transition-colors motion-reduce:transition-none"
-                  >
-                    <X className="w-4 h-4" />
-                  </button>
-                </div>
-
-                {showPresets && presets.length > 0 && (
-                  <div className="flex flex-wrap gap-2">
-                    {presets.map((preset) => (
-                      <button
-                        key={preset}
-                        onClick={() => handleAddActivity(preset)}
-                        disabled={addActivityMutation.isPending}
-                        className="px-3 py-1 bg-base-200 text-base-content text-xs rounded-full border border-warning/30 hover:border-warning hover:bg-warning/10 transition-colors motion-reduce:transition-none"
-                      >
-                        {preset}
-                      </button>
-                    ))}
-                  </div>
-                )}
+                    }
+                  }}
+                  placeholder="activity name..."
+                  className="flex-1 bg-base-200 text-base-content px-3 py-2 rounded-lg border border-warning focus:outline-none focus-visible:ring-2 focus-visible:ring-warning/50 text-sm placeholder:text-base-content/30"
+                  autoFocus
+                />
+                <button
+                  onClick={() => handleAddActivity(newActivityName)}
+                  disabled={addActivityMutation.isPending}
+                  aria-label="Confirm add activity"
+                  className="px-3 py-2 bg-warning text-warning-content rounded-lg hover:brightness-110 transition-[filter] motion-reduce:transition-none"
+                >
+                  <Check className="w-4 h-4" />
+                </button>
+                <button
+                  onClick={() => {
+                    setIsAddingActivity(false);
+                    setNewActivityName("");
+                    setShowPresets(false);
+                  }}
+                  aria-label="Cancel adding activity"
+                  className="px-3 py-2 bg-base-200 text-base-content/50 rounded-lg hover:text-base-content transition-colors motion-reduce:transition-none"
+                >
+                  <X className="w-4 h-4" />
+                </button>
               </div>
-            )}
 
-            {activitiesForDay.length > 0 ? (
-              <div className="space-y-2">
-                {activitiesForDay.map((activity) => (
-                  <div
-                    key={activity.id}
-                    className="flex items-center gap-3 p-3 bg-base-200 rounded-lg group"
-                  >
-                    <div className="w-2 h-2 bg-warning rounded-full flex-shrink-0" />
-                    <span className="text-base-content text-sm flex-1">
-                      {activity.name}
-                    </span>
+              {showPresets && presets.length > 0 && (
+                <div className="flex flex-wrap gap-2">
+                  {presets.map((preset) => (
                     <button
-                      onClick={() => {
-                        if (
-                          window.confirm(`Delete activity "${activity.name}"?`)
-                        ) {
-                          deleteActivityMutation.mutate(activity.id);
-                        }
-                      }}
-                      className="p-1 text-base-content/30 hover:text-error transition-colors motion-reduce:transition-none"
-                      aria-label={`Delete activity "${activity.name}"`}
+                      key={preset}
+                      onClick={() => handleAddActivity(preset)}
+                      disabled={addActivityMutation.isPending}
+                      className="px-3 py-1 bg-base-200 text-base-content text-xs rounded-full border border-warning/30 hover:border-warning hover:bg-warning/10 transition-colors motion-reduce:transition-none"
                     >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
-                  </div>
-                ))}
-              </div>
-            ) : !isAddingActivity ? (
-              <p className="text-base-content/30 text-xs italic">
-                no activities for this day
-              </p>
-            ) : null}
-          </div>
-
-          {unscheduledNotCompleted.length > 0 && (
-            <div>
-              <button
-                onClick={() => setIsOtherHabitsExpanded((prev) => !prev)}
-                className="flex items-center gap-2 text-base-content/40 text-xs font-semibold mb-2 hover:text-base-content/60 transition-colors motion-reduce:transition-none"
-              >
-                {isOtherHabitsExpanded ? (
-                  <ChevronUp className="w-3 h-3" />
-                ) : (
-                  <ChevronDown className="w-3 h-3" />
-                )}
-                other habits ({unscheduledNotCompleted.length})
-              </button>
-              {isOtherHabitsExpanded && (
-                <div className="space-y-2">
-                  {unscheduledNotCompleted.map((habit) => (
-                    <button
-                      key={habit.id}
-                      onClick={() =>
-                        toggleMutation.mutate({ habitId: habit.id })
-                      }
-                      className="w-full flex items-center gap-3 p-3 bg-base-200 rounded-lg opacity-40 hover:opacity-100 hover:bg-base-100 transition-colors motion-reduce:transition-none"
-                    >
-                      <div
-                        className="w-3 h-3 rounded-full flex-shrink-0"
-                        style={{ backgroundColor: habit.color }}
-                      />
-                      <span className="text-base-content text-sm flex-1 text-left">
-                        {habit.name}
-                      </span>
-                      <div className="w-4 h-4 border-2 border-base-content/20 rounded" />
+                      {preset}
                     </button>
                   ))}
                 </div>
@@ -504,15 +408,84 @@ export default function DayDetailModal({
             </div>
           )}
 
-          {!hasItems && !isAddingActivity && (
-            <div className="text-center py-8">
-              <p className="text-base-content/50 text-sm">
-                no habits or activities for this day
-              </p>
+          {activitiesForDay.length > 0 ? (
+            <div className="space-y-2">
+              {activitiesForDay.map((activity) => (
+                <div
+                  key={activity.id}
+                  className="flex items-center gap-3 p-3 bg-base-200 rounded-lg group"
+                >
+                  <div className="w-2 h-2 bg-warning rounded-full flex-shrink-0" />
+                  <span className="text-base-content text-sm flex-1">
+                    {activity.name}
+                  </span>
+                  <button
+                    onClick={() => {
+                      if (
+                        window.confirm(`Delete activity "${activity.name}"?`)
+                      ) {
+                        deleteActivityMutation.mutate(activity.id);
+                      }
+                    }}
+                    className="p-1 text-base-content/30 hover:text-error transition-colors motion-reduce:transition-none"
+                    aria-label={`Delete activity "${activity.name}"`}
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                </div>
+              ))}
             </div>
-          )}
+          ) : !isAddingActivity ? (
+            <p className="text-base-content/30 text-xs italic">
+              no activities for this day
+            </p>
+          ) : null}
         </div>
+
+        {unscheduledNotCompleted.length > 0 && (
+          <div>
+            <button
+              onClick={() => setIsOtherHabitsExpanded((prev) => !prev)}
+              className="flex items-center gap-2 text-base-content/40 text-xs font-semibold mb-2 hover:text-base-content/60 transition-colors motion-reduce:transition-none"
+            >
+              {isOtherHabitsExpanded ? (
+                <ChevronUp className="w-3 h-3" />
+              ) : (
+                <ChevronDown className="w-3 h-3" />
+              )}
+              other habits ({unscheduledNotCompleted.length})
+            </button>
+            {isOtherHabitsExpanded && (
+              <div className="space-y-2">
+                {unscheduledNotCompleted.map((habit) => (
+                  <button
+                    key={habit.id}
+                    onClick={() => toggleMutation.mutate({ habitId: habit.id })}
+                    className="w-full flex items-center gap-3 p-3 bg-base-200 rounded-lg opacity-40 hover:opacity-100 hover:bg-base-100 transition-colors motion-reduce:transition-none"
+                  >
+                    <div
+                      className="w-3 h-3 rounded-full flex-shrink-0"
+                      style={{ backgroundColor: habit.color }}
+                    />
+                    <span className="text-base-content text-sm flex-1 text-left">
+                      {habit.name}
+                    </span>
+                    <div className="w-4 h-4 border-2 border-base-content/20 rounded" />
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
+        {!hasItems && !isAddingActivity && (
+          <div className="text-center py-8">
+            <p className="text-base-content/50 text-sm">
+              no habits or activities for this day
+            </p>
+          </div>
+        )}
       </div>
-    </div>
+    </Modal>
   );
 }

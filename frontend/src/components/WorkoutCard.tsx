@@ -1,4 +1,4 @@
-import { forwardRef, useMemo } from "react";
+import { useMemo } from "react";
 import type { Workout } from "../types";
 
 interface WorkoutCardProps {
@@ -25,48 +25,40 @@ function formatTime(timeStr: string): string {
   return `${h12}:${m} ${ampm}`;
 }
 
-const WorkoutCard = forwardRef<HTMLDivElement, WorkoutCardProps>(
-  ({ workout, onClick }, ref) => {
-    const exercises = useMemo(
-      () => workout.groups.flatMap((g) => g.exercises.map((e) => e.name)),
-      [workout.groups],
-    );
-    const preview = useMemo(
-      () =>
-        exercises.slice(0, 3).join(", ") +
-        (exercises.length > 3 ? ", ..." : ""),
-      [exercises],
-    );
+export default function WorkoutCard({ workout, onClick }: WorkoutCardProps) {
+  const exercises = useMemo(
+    () => workout.groups.flatMap((g) => g.exercises.map((e) => e.name)),
+    [workout.groups],
+  );
+  const preview = useMemo(
+    () =>
+      exercises.slice(0, 3).join(", ") + (exercises.length > 3 ? ", ..." : ""),
+    [exercises],
+  );
 
-    return (
-      <div
-        ref={ref}
-        className="card bg-base-200 shadow-sm cursor-pointer hover:bg-base-300 transition-colors"
-        onClick={onClick}
-        data-workout-date={workout.date}
-      >
-        <div className="card-body p-4">
-          <div className="flex justify-between items-start">
-            <div>
-              <h3 className="font-semibold text-lg">
-                {formatDate(workout.date)}
-              </h3>
-              <p className="text-sm text-base-content/60">
-                {formatTime(workout.time)}
-              </p>
-            </div>
-            <span className="badge badge-neutral">
-              {workout.groups.length} group
-              {workout.groups.length !== 1 ? "s" : ""}
-            </span>
-          </div>
-          <p className="text-sm text-base-content/70 mt-2">{preview}</p>
+  return (
+    <div
+      className="card bg-base-200 shadow-sm cursor-pointer hover:bg-base-300 hover:-translate-y-0.5 transition-[colors,translate] motion-reduce:transition-none"
+      onClick={onClick}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          onClick();
+        }
+      }}
+      role="button"
+      tabIndex={0}
+      data-workout-date={workout.date}
+    >
+      <div className="card-body p-4">
+        <div>
+          <h3 className="font-semibold text-lg">{formatDate(workout.date)}</h3>
+          <p className="text-sm text-base-content/60">
+            {formatTime(workout.time)}
+          </p>
         </div>
+        <p className="text-sm text-base-content/70 mt-2">{preview}</p>
       </div>
-    );
-  },
-);
-
-WorkoutCard.displayName = "WorkoutCard";
-
-export default WorkoutCard;
+    </div>
+  );
+}

@@ -5,13 +5,24 @@ import {
   MoreVertical,
   CalendarClock,
   Ban,
-  X,
 } from "lucide-react";
-import { useState, useEffect, useRef } from "react";
+import { useState, useRef, useCallback } from "react";
 import type { Habit } from "../types";
 import { formatDateStr } from "../utils/date";
-import { getShiftForDay } from "../utils/habits";
-import confetti from "canvas-confetti";
+import { getDaysText, getShiftForDay } from "../utils/habits";
+import { useClickOutside } from "../hooks/useClickOutside";
+import { menuItemCls } from "../styles";
+type ConfettiFunc = (options?: Record<string, unknown>) => Promise<null> | null;
+
+let confettiPromise: Promise<ConfettiFunc> | null = null;
+function getConfetti(): Promise<ConfettiFunc> {
+  if (!confettiPromise) {
+    confettiPromise = import("canvas-confetti").then(
+      (m) => m.default as unknown as ConfettiFunc,
+    );
+  }
+  return confettiPromise;
+}
 
 interface HabitListProps {
   habits: Habit[];
@@ -33,20 +44,6 @@ const DAY_FULL_NAMES = [
   "friday",
   "saturday",
 ];
-
-function getDaysText(days: number[]): string {
-  const dayNames = ["sun", "mon", "tue", "wed", "thu", "fri", "sat"];
-  if (days.length === 7) return "every day";
-  if (days.length === 5 && !days.includes(0) && !days.includes(6))
-    return "weekdays";
-  if (days.length === 2 && days.includes(0) && days.includes(6))
-    return "weekends";
-  return days
-    .slice()
-    .sort((a, b) => a - b)
-    .map((d) => dayNames[d])
-    .join(", ");
-}
 
 export default function HabitList({
   habits,
@@ -76,17 +73,8 @@ export default function HabitList({
     null,
   );
   const menuRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (!openMenuId) return;
-    function handleClickOutside(e: MouseEvent) {
-      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
-        setOpenMenuId(null);
-      }
-    }
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, [openMenuId]);
+  const closeMenu = useCallback(() => setOpenMenuId(null), []);
+  useClickOutside(menuRef, !!openMenuId, closeMenu);
 
   function getDateForWeekday(weekday: number): string {
     const d = new Date(date);
@@ -122,21 +110,24 @@ export default function HabitList({
                   onClick={(e) => {
                     if (!completed) {
                       const rect = e.currentTarget.getBoundingClientRect();
-                      confetti({
-                        origin: {
-                          x: (rect.left + rect.width / 2) / window.innerWidth,
-                          y: (rect.top + rect.height / 2) / window.innerHeight,
-                        },
-                        spread: 70,
-                        startVelocity: 25,
-                        particleCount: 60,
-                        scalar: 0.8,
-                        colors: [habit.color, "#ffffff", habit.color + "99"],
-                      });
+                      getConfetti().then((confetti) =>
+                        confetti({
+                          origin: {
+                            x: (rect.left + rect.width / 2) / window.innerWidth,
+                            y:
+                              (rect.top + rect.height / 2) / window.innerHeight,
+                          },
+                          spread: 70,
+                          startVelocity: 25,
+                          particleCount: 60,
+                          scalar: 0.8,
+                          colors: [habit.color, "#ffffff", habit.color + "99"],
+                        }),
+                      );
                     }
                     onToggle(habit.id, dateStr);
                   }}
-                  className="flex-shrink-0 w-14 h-14 sm:w-16 sm:h-16 rounded-xl border-2 transition-colors motion-reduce:transition-none flex items-center justify-center"
+                  className={`flex-shrink-0 w-14 h-14 sm:w-16 sm:h-16 rounded-xl border-2 transition-colors motion-reduce:transition-none flex items-center justify-center${completed ? " animate-check-pulse" : ""}`}
                   style={{
                     borderColor: completed ? habit.color : `${habit.color}50`,
                     backgroundColor: completed ? habit.color : "transparent",
@@ -144,7 +135,7 @@ export default function HabitList({
                 >
                   {completed && (
                     <Check
-                      className="w-7 h-7 sm:w-8 sm:h-8 text-white"
+                      className="w-7 h-7 sm:w-8 sm:h-8 text-primary-content"
                       strokeWidth={3}
                     />
                   )}
@@ -174,7 +165,7 @@ export default function HabitList({
                 <div className="relative" ref={isMenuOpen ? menuRef : null}>
                   <button
                     onClick={() => setOpenMenuId(isMenuOpen ? null : habit.id)}
-                    className="p-2 rounded-lg text-base-content/40 hover:text-base-content hover:bg-base-300 transition-colors"
+                    className="p-2 rounded-lg text-base-content/40 hover:text-base-content hover:bg-base-300 transition-colors motion-reduce:transition-none"
                     aria-label="More options"
                   >
                     <MoreVertical className="w-4 h-4" />
@@ -187,25 +178,11 @@ export default function HabitList({
                           setOpenMenuId(null);
                           onEdit(habit);
                         }}
-                        className="flex items-center gap-2 w-full px-4 py-2.5 text-sm text-left hover:bg-base-200 transition-colors"
+                        className={menuItemCls}
                       >
                         <Edit2 className="w-4 h-4 text-base-content/50" />
                         Edit
                       </button>
-                      {onShift &&
-                        (() => {
-                          if (habit.days.length === 7) {
-                            return (
-                              <div className="flex items-center gap-2 w-full px-4 py-2.5 text-sm text-left text-base-content/25 cursor-not-allowed select-none">
-                                <span className="relative inline-block">
-                                  <CalendarClock className="w-4 h-4" />
-                                  <X className="w-2.5 h-2.5 absolute -bottom-0.5 -right-0.5 stroke-[3]" />
-                                </span>
-                                Move
-                              </div>
-                            );
-                          }
-                        })()}
                       {onShift &&
                         habit.days.length < 7 &&
                         (() => {
@@ -220,7 +197,7 @@ export default function HabitList({
                                   setOpenMenuId(null);
                                   onCancelShift?.(habit.id, habitFromDate);
                                 }}
-                                className="flex items-center gap-2 w-full px-4 py-2.5 text-sm text-left hover:bg-base-200 transition-colors"
+                                className={menuItemCls}
                               >
                                 <Ban className="w-4 h-4 text-base-content/50" />
                                 cancel shift
@@ -233,7 +210,7 @@ export default function HabitList({
                                 setOpenMenuId(null);
                                 setShiftPickerHabitId(habit.id);
                               }}
-                              className="flex items-center gap-2 w-full px-4 py-2.5 text-sm text-left hover:bg-base-200 transition-colors"
+                              className={menuItemCls}
                             >
                               <CalendarClock className="w-4 h-4 text-base-content/50" />
                               Move
@@ -247,7 +224,7 @@ export default function HabitList({
                             onDelete(habit.id);
                           }
                         }}
-                        className="flex items-center gap-2 w-full px-4 py-2.5 text-sm text-left text-error hover:bg-base-200 transition-colors"
+                        className={`${menuItemCls} text-error`}
                       >
                         <Trash2 className="w-4 h-4" />
                         Delete
@@ -284,7 +261,7 @@ export default function HabitList({
                           );
                           setShiftPickerHabitId(null);
                         }}
-                        className="px-3 py-1.5 text-xs rounded-lg bg-base-200 hover:bg-primary hover:text-primary-content transition-colors font-medium"
+                        className="px-3 py-1.5 text-xs rounded-lg bg-base-200 hover:bg-primary hover:text-primary-content transition-colors motion-reduce:transition-none font-medium"
                       >
                         {dayName}
                       </button>
@@ -292,7 +269,7 @@ export default function HabitList({
                   })}
                   <button
                     onClick={() => setShiftPickerHabitId(null)}
-                    className="px-3 py-1.5 text-xs rounded-lg bg-base-200 text-base-content/50 hover:text-base-content transition-colors"
+                    className="px-3 py-1.5 text-xs rounded-lg bg-base-200 text-base-content/50 hover:text-base-content transition-colors motion-reduce:transition-none"
                   >
                     cancel
                   </button>

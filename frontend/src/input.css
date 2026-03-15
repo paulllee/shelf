@@ -26,3 +26,61 @@ a,
   font-weight: 600;
   font-size: 0.875rem;
 }
+
+/* Section fade-in */
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.animate-fade-in {
+  animation: fade-in 0.2s ease-out both;
+}
+
+/* Habit checkbox completion pulse */
+@keyframes check-pulse {
+  0% {
+    scale: 1;
+  }
+  50% {
+    scale: 1.12;
+  }
+  100% {
+    scale: 1;
+  }
+}
+
+.animate-check-pulse {
+  animation: check-pulse 0.25s ease-out;
+}
+
+/* Smooth expand/collapse via grid */
+.expand-collapse {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 0.2s ease-out;
+}
+
+.expand-collapse[data-expanded="true"] {
+  grid-template-rows: 1fr;
+}
+
+.expand-collapse > * {
+  overflow: hidden;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-fade-in {
+    animation: none;
+  }
+  .animate-check-pulse {
+    animation: none;
+  }
+  .expand-collapse {
+    transition: none;
+  }
+}

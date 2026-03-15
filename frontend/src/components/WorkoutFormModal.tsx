@@ -11,10 +11,11 @@ import type {
   Workout,
   WorkoutTemplate,
   ExerciseGroup,
-  Exercise,
-  WorkoutSet,
   WorkoutFormData,
 } from "../types";
+import { updateAt, removeAt } from "../utils/arrays";
+import { emptySet, emptyExercise, emptyGroup } from "../utils/workout";
+import { btnPrimary, btnSecondary, btnInnerGlow } from "../styles";
 
 // --- reducer types ---
 
@@ -65,26 +66,6 @@ type FormAction =
     }
   | { type: "REORDER_GROUPS"; from: number; to: number }
   | { type: "REORDER_EXERCISES"; groupIdx: number; from: number; to: number };
-
-function emptySet(): WorkoutSet {
-  return { reps: null, weight: null };
-}
-
-function emptyExercise(): Exercise {
-  return { name: "", sets: [] };
-}
-
-function emptyGroup(): ExerciseGroup {
-  return { name: "", rest_seconds: 60, exercises: [emptyExercise()] };
-}
-
-function updateAt<T>(arr: T[], idx: number, updater: (item: T) => T): T[] {
-  return arr.map((item, i) => (i === idx ? updater(item) : item));
-}
-
-function removeAt<T>(arr: T[], idx: number): T[] {
-  return arr.filter((_, i) => i !== idx);
-}
 
 function formReducer(state: FormState, action: FormAction): FormState {
   switch (action.type) {
@@ -412,19 +393,11 @@ export default function WorkoutFormModal({
             save as template
           </button>
           <div className="flex-1" />
-          <button
-            type="button"
-            onClick={onClose}
-            className="px-4 py-2.5 bg-base-200 text-base-content rounded-full border border-primary/20 hover:border-primary transition-colors motion-reduce:transition-none font-semibold text-sm"
-          >
+          <button type="button" onClick={onClose} className={btnSecondary}>
             cancel
           </button>
-          <button
-            type="submit"
-            disabled={isPending}
-            className="px-4 py-2.5 bg-primary text-primary-content rounded-full border border-primary/80 font-semibold text-sm hover:brightness-110 transition-[filter,opacity] motion-reduce:transition-none disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:brightness-100 relative overflow-hidden"
-          >
-            <div className="absolute inset-0 rounded-full shadow-[inset_0px_0.5px_0px_1.5px_rgba(255,255,255,0.06)]" />
+          <button type="submit" disabled={isPending} className={btnPrimary}>
+            <div className={btnInnerGlow} />
             <span className="relative">
               {isPending ? (
                 <span className="loading loading-spinner loading-sm" />

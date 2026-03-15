@@ -16,15 +16,17 @@ export default function App() {
   return (
     <div className="container mx-auto px-3 pt-6 pb-4 sm:px-4 sm:py-6 md:py-8 max-w-4xl">
       <Header section={section} onSectionChange={setSection} />
-      {section === "media" ? (
-        <MediaSection />
-      ) : section === "workouts" ? (
-        <WorkoutSection />
-      ) : section === "habits" ? (
-        <HabitSection />
-      ) : (
-        <TaskSection />
-      )}
+      <div key={section} className="animate-fade-in">
+        {section === "media" ? (
+          <MediaSection />
+        ) : section === "workouts" ? (
+          <WorkoutSection />
+        ) : section === "habits" ? (
+          <HabitSection />
+        ) : (
+          <TaskSection />
+        )}
+      </div>
     </div>
   );
 }

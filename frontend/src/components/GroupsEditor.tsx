@@ -1,37 +1,12 @@
 import { useState } from "react";
 import { GripVertical, ChevronUp, ChevronDown } from "lucide-react";
-import type { ExerciseGroup, Exercise, WorkoutSet } from "../types";
+import type { ExerciseGroup } from "../types";
+import { updateAt, removeAt, moveItem } from "../utils/arrays";
+import { emptySet, emptyExercise, emptyGroup } from "../utils/workout";
 
 interface GroupsEditorProps {
   groups: ExerciseGroup[];
   onChange: (groups: ExerciseGroup[]) => void;
-}
-
-function emptySet(): WorkoutSet {
-  return { reps: null, weight: null };
-}
-
-function emptyExercise(): Exercise {
-  return { name: "", sets: [] };
-}
-
-function emptyGroup(): ExerciseGroup {
-  return { name: "", rest_seconds: 60, exercises: [emptyExercise()] };
-}
-
-function updateAt<T>(arr: T[], idx: number, updater: (item: T) => T): T[] {
-  return arr.map((item, i) => (i === idx ? updater(item) : item));
-}
-
-function removeAt<T>(arr: T[], idx: number): T[] {
-  return arr.filter((_, i) => i !== idx);
-}
-
-function moveItem<T>(arr: T[], from: number, to: number): T[] {
-  const next = [...arr];
-  const [item] = next.splice(from, 1);
-  next.splice(to, 0, item);
-  return next;
 }
 
 export default function GroupsEditor({ groups, onChange }: GroupsEditorProps) {
@@ -96,7 +71,7 @@ export default function GroupsEditor({ groups, onChange }: GroupsEditorProps) {
                   setDraggingGroup(null);
                   setDragOverGroup(null);
                 }}
-                className="hidden sm:flex items-center cursor-grab active:cursor-grabbing text-base-content/30 hover:text-base-content/60 transition-colors"
+                className="hidden sm:flex items-center cursor-grab active:cursor-grabbing text-base-content/30 hover:text-base-content/60 transition-colors motion-reduce:transition-none"
                 title="Drag to reorder"
               >
                 <GripVertical className="w-4 h-4" />
@@ -107,7 +82,7 @@ export default function GroupsEditor({ groups, onChange }: GroupsEditorProps) {
                     type="button"
                     onClick={() => gi > 0 && reorderGroups(gi, gi - 1)}
                     disabled={gi === 0}
-                    className="p-0.5 text-base-content/30 hover:text-base-content/70 disabled:opacity-20 disabled:cursor-not-allowed transition-colors"
+                    className="p-0.5 text-base-content/30 hover:text-base-content/70 disabled:opacity-20 disabled:cursor-not-allowed transition-colors motion-reduce:transition-none"
                     aria-label="Move group up"
                   >
                     <ChevronUp className="w-3.5 h-3.5" />
@@ -118,7 +93,7 @@ export default function GroupsEditor({ groups, onChange }: GroupsEditorProps) {
                       gi < groups.length - 1 && reorderGroups(gi, gi + 1)
                     }
                     disabled={gi === groups.length - 1}
-                    className="p-0.5 text-base-content/30 hover:text-base-content/70 disabled:opacity-20 disabled:cursor-not-allowed transition-colors"
+                    className="p-0.5 text-base-content/30 hover:text-base-content/70 disabled:opacity-20 disabled:cursor-not-allowed transition-colors motion-reduce:transition-none"
                     aria-label="Move group down"
                   >
                     <ChevronDown className="w-3.5 h-3.5" />
@@ -160,6 +135,7 @@ export default function GroupsEditor({ groups, onChange }: GroupsEditorProps) {
                 onClick={() =>
                   onChange(groups.length > 1 ? removeAt(groups, gi) : groups)
                 }
+                aria-label="Remove group"
               >
                 &times;
               </button>
@@ -215,7 +191,7 @@ export default function GroupsEditor({ groups, onChange }: GroupsEditorProps) {
                         setDraggingEx(null);
                         setDragOverEx(null);
                       }}
-                      className="hidden sm:flex items-center cursor-grab active:cursor-grabbing text-base-content/30 hover:text-base-content/60 transition-colors"
+                      className="hidden sm:flex items-center cursor-grab active:cursor-grabbing text-base-content/30 hover:text-base-content/60 transition-colors motion-reduce:transition-none"
                       title="Drag to reorder"
                     >
                       <GripVertical className="w-4 h-4" />
@@ -228,7 +204,7 @@ export default function GroupsEditor({ groups, onChange }: GroupsEditorProps) {
                             ei > 0 && reorderExercises(gi, ei, ei - 1)
                           }
                           disabled={ei === 0}
-                          className="p-0.5 text-base-content/30 hover:text-base-content/70 disabled:opacity-20 disabled:cursor-not-allowed transition-colors"
+                          className="p-0.5 text-base-content/30 hover:text-base-content/70 disabled:opacity-20 disabled:cursor-not-allowed transition-colors motion-reduce:transition-none"
                           aria-label="Move exercise up"
                         >
                           <ChevronUp className="w-3.5 h-3.5" />
@@ -240,7 +216,7 @@ export default function GroupsEditor({ groups, onChange }: GroupsEditorProps) {
                             reorderExercises(gi, ei, ei + 1)
                           }
                           disabled={ei === group.exercises.length - 1}
-                          className="p-0.5 text-base-content/30 hover:text-base-content/70 disabled:opacity-20 disabled:cursor-not-allowed transition-colors"
+                          className="p-0.5 text-base-content/30 hover:text-base-content/70 disabled:opacity-20 disabled:cursor-not-allowed transition-colors motion-reduce:transition-none"
                           aria-label="Move exercise down"
                         >
                           <ChevronDown className="w-3.5 h-3.5" />
@@ -280,6 +256,7 @@ export default function GroupsEditor({ groups, onChange }: GroupsEditorProps) {
                         })),
                       )
                     }
+                    aria-label="Remove exercise"
                   >
                     &times;
                   </button>
@@ -350,6 +327,7 @@ export default function GroupsEditor({ groups, onChange }: GroupsEditorProps) {
                             })),
                           )
                         }
+                        aria-label="Remove set"
                       >
                         &times;
                       </button>
