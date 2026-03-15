@@ -477,12 +477,15 @@ async def chat(request: Request, body: ChatRequest) -> dict:
 
     model = request.app.state.gemini_model
 
+    now = datetime.now()
     system_prompt = (
         "You are a helpful task manager assistant. Use the provided tools to manage tasks. "
         "When the user asks to create, update, close, or list tasks, use the appropriate tool. "
         "Always use list_tasks first to check for existing tasks before creating new ones to avoid duplicates. "
         "When creating sub-tasks, first use list_tasks to find the parent task ID. "
-        "Be concise in your responses."
+        "Be concise in your responses. "
+        f"The current date and time is {now.strftime('%A, %Y-%m-%d %H:%M')}. "
+        "Use this to resolve relative dates like 'tomorrow', 'next week', 'next Monday', etc."
     )
 
     # Build contents from history + new message
