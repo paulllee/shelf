@@ -1,4 +1,5 @@
 import { useState, useCallback } from "react";
+import { Sun, Moon } from "lucide-react";
 
 export default function ThemeToggle() {
   const [isDark, setIsDark] = useState(
@@ -17,20 +18,8 @@ export default function ThemeToggle() {
   return (
     <label className="swap swap-rotate -mt-1.75">
       <input type="checkbox" checked={isDark} onChange={toggle} />
-      <span
-        className="swap-on w-6 h-6 bg-current"
-        style={{
-          WebkitMask: "url(/static/icons/sun.svg) center/contain no-repeat",
-          mask: "url(/static/icons/sun.svg) center/contain no-repeat",
-        }}
-      />
-      <span
-        className="swap-off w-6 h-6 bg-current"
-        style={{
-          WebkitMask: "url(/static/icons/moon.svg) center/contain no-repeat",
-          mask: "url(/static/icons/moon.svg) center/contain no-repeat",
-        }}
-      />
+      <Sun className="swap-on w-6 h-6" />
+      <Moon className="swap-off w-6 h-6" />
     </label>
   );
 }
