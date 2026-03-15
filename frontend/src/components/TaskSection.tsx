@@ -16,7 +16,7 @@ import TaskModal from "./TaskModal";
 
 function getDueBadge(due: string | null): {
   label: string;
-  cls: string;
+  color: string;
 } | null {
   if (!due) return null;
   const today = new Date();
@@ -25,10 +25,10 @@ function getDueBadge(due: string | null): {
   const diffDays = Math.ceil(
     (dueDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24),
   );
-  if (diffDays < 0) return { label: due, cls: "text-error" };
-  if (diffDays === 0) return { label: "today", cls: "text-warning" };
-  if (diffDays === 1) return { label: "tomorrow", cls: "text-warning" };
-  return { label: due, cls: "text-base-content/50" };
+  if (diffDays < 0) return { label: due, color: "error" };
+  if (diffDays === 0) return { label: "today", color: "warning" };
+  if (diffDays === 1) return { label: "tomorrow", color: "info" };
+  return { label: due, color: "muted" };
 }
 
 interface TaskItemProps {
@@ -82,27 +82,40 @@ function TaskItem({
           )}
         </button>
 
-        <button
+        <span
           onClick={() => onEdit(task)}
-          className={`text-left text-sm truncate hover:text-primary transition-colors ${isClosed ? "line-through text-base-content/40" : "text-base-content"}`}
+          role="button"
+          className={`text-left text-sm leading-none translate-y-px truncate hover:text-primary transition-colors cursor-pointer ${isClosed ? "line-through text-base-content/40" : "text-base-content"}`}
         >
           {task.title}
-        </button>
+        </span>
 
         {dueBadge && (
-          <span className={`text-xs shrink-0 flex items-center gap-1 ${dueBadge.cls}`}>
-            <Calendar className="w-3 h-3" />
-            {dueBadge.label}
+          <span
+            className={`flex items-center text-xs shrink-0 whitespace-nowrap ${
+              dueBadge.color === "error"
+                ? "text-error"
+                : dueBadge.color === "warning"
+                  ? "text-warning"
+                  : dueBadge.color === "info"
+                    ? "text-info"
+                    : "text-base-content/50"
+            }`}
+          >
+            <Calendar size={12} className="mr-1" />
+            <span className="translate-y-px">{dueBadge.label}</span>
           </span>
         )}
 
-        <button
-          onClick={() => onAddSubtask(task.id)}
-          className="opacity-0 group-hover:opacity-100 text-base-content/30 hover:text-base-content/60 shrink-0 transition-opacity"
-          title="Add sub-task"
-        >
-          <Plus className="w-3.5 h-3.5" />
-        </button>
+        {depth === 0 && (
+          <button
+            onClick={() => onAddSubtask(task.id)}
+            className="text-base-content/30 hover:text-base-content/60 shrink-0 transition-colors"
+            title="Add sub-task"
+          >
+            <Plus className="w-3.5 h-3.5" />
+          </button>
+        )}
       </div>
 
       {hasSubtasks && expanded && (
@@ -161,21 +174,23 @@ export default function TaskSection() {
     },
   });
 
-  // Separate tasks by status (flatten tree for counting)
-  function flattenTasks(taskList: Task[]): Task[] {
-    const result: Task[] = [];
-    for (const t of taskList) {
-      result.push(t);
-      if (t.subtasks.length > 0) result.push(...flattenTasks(t.subtasks));
-    }
-    return result;
-  }
-
-  const allFlat = flattenTasks(tasks);
-  const openTasks = tasks.filter(
-    (t) => t.status === "open" || t.subtasks.some((s) => s.status === "open"),
+  const openTasks = tasks
+    .filter(
+      (t) => t.status === "open" || t.subtasks.some((s) => s.status === "open"),
+    )
+    .sort((a, b) => {
+      // Both have due dates: earlier dates first
+      if (a.due && b.due) return a.due.localeCompare(b.due);
+      // Due date beats no due date
+      if (a.due && !b.due) return -1;
+      if (!a.due && b.due) return 1;
+      // Neither has due date: alphabetical
+      return a.title.localeCompare(b.title);
+    });
+  const closedTasks = tasks.filter(
+    (t) => t.status === "closed" && !t.subtasks.some((s) => s.status === "open"),
   );
-  const closedCount = allFlat.filter((t) => t.status === "closed").length;
+  const closedCount = closedTasks.length;
 
   const handleSendChat = async () => {
     const msg = chatInput.trim();
@@ -246,13 +261,7 @@ export default function TaskSection() {
         </p>
       ) : (
         <div className="space-y-0.5">
-          {tasks
-            .filter(
-              (t) =>
-                t.status === "open" ||
-                t.subtasks.some((s) => s.status === "open"),
-            )
-            .map((task) => (
+          {openTasks.map((task) => (
               <TaskItem
                 key={task.id}
                 task={task}

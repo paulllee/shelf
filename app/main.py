@@ -421,7 +421,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
 
         app.state.genai_client = genai.Client(api_key=gemini_key)
         app.state.gemini_model = os.environ.get(
-            "GEMINI_MODEL", "gemini-3-flash-preview"
+            "GEMINI_MODEL", "gemini-3.1-flash-lite-preview"
         )
         logger.info(
             "Google GenAI client initialized (model: %s)", app.state.gemini_model
