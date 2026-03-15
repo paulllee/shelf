@@ -16,6 +16,8 @@ a self-hosted, markdown-backed personal tracker for media, workouts, habits, and
 - **habit tracking**: track daily habits with completion history and a monthly
   calendar view
 - **activity logging**: log one-off activities with preset quick-add
+- **task management**: hierarchical tasks with drag-and-drop reordering and an
+  optional ai chat assistant (powered by gemini)
 - **markdown storage**: all data stored as plain markdown files with yaml
   frontmatter
 
@@ -36,6 +38,13 @@ cd frontend && npm install
 
 configure paths in `config.toml` if needed — content directories are created
 automatically on first run.
+
+### environment variables
+
+| variable | required | purpose |
+|----------|----------|---------|
+| `GEMINI_API_KEY` | no | enables ai chat in the tasks section. if not set, the app starts normally but the chat endpoint returns 503 |
+| `GEMINI_MODEL` | no | override the gemini model used for chat (defaults to `gemini-3-flash-preview`) |
 
 ## running
 
