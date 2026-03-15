@@ -1,10 +1,10 @@
 # shelf
 
-a self-hosted, markdown-backed personal tracker for media, workouts, and habits
+a self-hosted, markdown-backed personal tracker for media, workouts, habits, and tasks
 
-| Media | Workouts | Habits |
-|-------|----------|--------|
-| ![media](docs/shelf-media.png) | ![workouts](docs/shelf-workout.png) | ![habits](docs/shelf-habits.png) |
+| media | workouts | habits | tasks |
+|-------|----------|--------|-------|
+| ![media](docs/shelf-media.png) | ![workouts](docs/shelf-workout.png) | ![habits](docs/shelf-habits.png) | ![tasks](docs/shelf-tasks.png) |
 
 ## features
 
