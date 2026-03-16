@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import Modal from "./Modal";
+import SlideOver from "./SlideOver";
 import { fetchEnums } from "../api/enums";
 import {
   createMedia,
@@ -126,11 +126,7 @@ export default function MediaModal({ item, onClose }: MediaModalProps) {
   const isPending = createMutation.isPending || updateMutation.isPending;
 
   return (
-    <Modal onClose={onClose}>
-      <h3 className="text-base-content text-xl font-bold mb-5 pr-8">
-        {isEdit ? "edit media" : "add media"}
-      </h3>
-
+    <SlideOver onClose={onClose} title={isEdit ? "edit media" : "add media"}>
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
           <label
@@ -295,6 +291,6 @@ export default function MediaModal({ item, onClose }: MediaModalProps) {
           </button>
         </div>
       </form>
-    </Modal>
+    </SlideOver>
   );
 }

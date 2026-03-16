@@ -73,6 +73,20 @@ a,
   overflow: hidden;
 }
 
+/* Section accent colors — used by buttons/highlights within each section */
+[data-section="media"] {
+  --section-accent: var(--color-primary);
+}
+[data-section="workouts"] {
+  --section-accent: var(--color-success);
+}
+[data-section="habits"] {
+  --section-accent: var(--color-info);
+}
+[data-section="tasks"] {
+  --section-accent: var(--color-warning);
+}
+
 @media (prefers-reduced-motion: reduce) {
   .animate-fade-in {
     animation: none;

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import Modal from "./Modal";
+import SlideOver from "./SlideOver";
 import { createHabit, updateHabit } from "../api/habits";
 import type { Habit, HabitFormData } from "../types";
 import { inputCls, btnPrimary, btnSecondary, btnInnerGlow } from "../styles";
@@ -76,11 +76,7 @@ export default function HabitModal({ habit, onClose }: HabitModalProps) {
   };
 
   return (
-    <Modal onClose={onClose} maxWidth="max-w-md">
-      <h2 className="text-base-content text-xl font-bold mb-6 pr-8">
-        {habit ? "edit habit" : "add new habit"}
-      </h2>
-
+    <SlideOver onClose={onClose} title={habit ? "edit habit" : "add new habit"}>
       <form onSubmit={handleSubmit} className="space-y-5">
         <div>
           <label
@@ -204,6 +200,6 @@ export default function HabitModal({ habit, onClose }: HabitModalProps) {
           </button>
         </div>
       </form>
-    </Modal>
+    </SlideOver>
   );
 }

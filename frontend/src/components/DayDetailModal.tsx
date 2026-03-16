@@ -9,7 +9,7 @@ import {
   X,
   CalendarClock,
 } from "lucide-react";
-import Modal from "./Modal";
+import SlideOver from "./SlideOver";
 import {
   toggleCompletion,
   createActivity,
@@ -158,15 +158,10 @@ export default function DayDetailModal({
   };
 
   return (
-    <Modal onClose={onClose} maxWidth="max-w-md">
-      <div className="mb-4 sm:mb-6 pr-8">
-        <h2 className="text-base-content text-lg sm:text-xl font-bold">
-          {formatDateLabel(date)}
-        </h2>
-        <p className="text-base-content/50 text-xs mt-1">
-          {totalCompleted} of {totalExpected} habits completed
-        </p>
-      </div>
+    <SlideOver onClose={onClose} title={formatDateLabel(date)}>
+      <p className="text-base-content/50 text-xs -mt-4 mb-4">
+        {totalCompleted} of {totalExpected} habits completed
+      </p>
 
       <div className="space-y-4">
         {completedHabits.length > 0 && (
@@ -486,6 +481,6 @@ export default function DayDetailModal({
           </div>
         )}
       </div>
-    </Modal>
+    </SlideOver>
   );
 }
