@@ -7,7 +7,7 @@ Self-hosted markdown-backed tracker for media (movies/shows), workouts, habits, 
 ## Tech Stack
 
 - **Backend:** Python 3.14, FastAPI, python-frontmatter, python-slugify
-- **Frontend:** React 19, TypeScript, Vite, TanStack Query, Tailwind CSS 4, DaisyUI 5
+- **Frontend:** React 19, TypeScript, Vite, TanStack Query, Tailwind CSS 4
 - **Tooling:** uv (Python), npm (frontend), ruff (linting/formatting), ESLint, Prettier
 
 ## Build Tools
@@ -48,9 +48,9 @@ Solo developer using Shelf as a personal self-hosted tracker for media, workouts
 
 ### Aesthetic Direction
 - **Visual reference**: Linear — clean, fast, developer-oriented. Minimal chrome, strong typography, precise spacing.
-- **Theme**: Dark-first (DaisyUI dark/light). Dark mode is the primary experience.
+- **Theme**: Dark-first. Dark mode is the primary experience; light mode also supported. Theme driven by `.dark` class on `<html>`.
 - **Font**: Josefin Sans — the single distinctive design choice. Note: Josefin Sans has unusually tall ascenders, which affects vertical alignment of icons next to text. Always test icon/text alignment visually.
-- **Colors**: DaisyUI semantic tokens only (`primary`, `error`, `warning`, `info`, `success`, `base-*`). No custom hex values.
+- **Colors**: Custom CSS variable semantic tokens defined in `frontend/src/input.css` `@theme` block (`primary`, `error`, `warning`, `info`, `success`, `base-*`). Use Tailwind utilities (`bg-primary`, `text-base-content`, etc.). No hardcoded hex values in components.
 - **Icons**: Lucide React, sized consistently (`w-4 h-4` for inline, `w-6 h-6` for buttons).
 - **Anti-references**: No corporate/enterprise feel (Jira), no generic bootstrap look, no gratuitous gradients or decorative elements, no gamification (badges, streaks, points).
 
