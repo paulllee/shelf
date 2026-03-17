@@ -187,8 +187,8 @@ export default function HabitCalendar({
           </span>
           {activityCount > 0 && (
             <div className="absolute top-[2px] right-[2px]">
-              <div className="min-w-[16px] h-[16px] bg-primary rounded-full flex items-center justify-center px-[3px]">
-                <span className="text-[9px] font-bold text-primary-content leading-none">
+              <div className="min-w-[16px] h-[16px] bg-primary rounded-full grid place-items-center px-[3px]">
+                <span className="text-[9px] font-bold text-primary-content leading-[1] tabular-nums">
                   {activityCount}
                 </span>
               </div>

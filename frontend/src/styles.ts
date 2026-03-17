@@ -8,7 +8,7 @@ export const btnSecondary =
 
 /** Standard text input */
 export const inputCls =
-  "w-full bg-base-200 text-base-content px-4 py-3 rounded-lg border border-primary/20 focus:border-primary focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 transition-colors motion-reduce:transition-none placeholder:text-base-content/30";
+  "w-full bg-base-200 text-base-content px-4 py-3 rounded-lg border border-primary/20 focus:border-primary focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 transition-colors motion-reduce:transition-none placeholder:text-base-content/30 [color-scheme:light] dark:[color-scheme:dark]";
 
 /** Dropdown menu item */
 export const menuItemCls =
@@ -30,8 +30,8 @@ export const selectCls =
 
 /** Small input (e.g. exercise fields) */
 export const inputSmCls =
-  "w-full bg-base-200 text-base-content px-3 py-1.5 rounded-lg border border-primary/20 focus:border-primary focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 transition-colors motion-reduce:transition-none text-sm placeholder:text-base-content/30";
+  "w-full bg-base-200 text-base-content px-3 py-1.5 rounded-lg border border-primary/20 focus:border-primary focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 transition-colors motion-reduce:transition-none text-sm placeholder:text-base-content/30 [color-scheme:light] dark:[color-scheme:dark]";
 
 /** Extra-small input (e.g. exercise set fields) */
 export const inputXsCls =
-  "w-full bg-base-200 text-base-content px-2 py-1 rounded-md border border-primary/20 focus:border-primary focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 transition-colors motion-reduce:transition-none text-xs placeholder:text-base-content/30";
+  "w-full bg-base-200 text-base-content px-2 py-1 rounded-md border border-primary/20 focus:border-primary focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 transition-colors motion-reduce:transition-none text-xs placeholder:text-base-content/30 [color-scheme:light] dark:[color-scheme:dark]";
