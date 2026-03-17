@@ -11,7 +11,7 @@ export default function MediaCard({ item, onClick }: MediaCardProps) {
 
   return (
     <div
-      className="media-card bg-base-200 rounded-lg p-3 active:bg-base-300 cursor-pointer hover:-translate-y-0.5 transition-[colors,translate] motion-reduce:transition-none"
+      className="media-card bg-base-200 rounded-lg p-3 active:bg-base-300 cursor-pointer transition-colors motion-reduce:transition-none"
       onClick={onClick}
       onKeyDown={(e) => {
         if (e.key === "Enter" || e.key === " ") {

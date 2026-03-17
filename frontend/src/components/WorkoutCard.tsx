@@ -74,11 +74,9 @@ export default function WorkoutCard({
               {formatTime(workout.time)}
             </span>
           </div>
-          {!expanded && (
-            <p className="text-sm text-base-content/60 mt-1 truncate">
-              {preview}
-            </p>
-          )}
+          <p className="text-sm text-base-content/60 mt-1 truncate">
+            {preview}
+          </p>
         </div>
         {expanded ? (
           <ChevronUp className="w-4 h-4 text-base-content/40 shrink-0" />

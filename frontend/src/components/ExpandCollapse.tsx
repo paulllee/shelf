@@ -4,12 +4,14 @@ interface ExpandCollapseProps {
   expanded: boolean;
   children: React.ReactNode;
   className?: string;
+  onExpanded?: () => void;
 }
 
 export default function ExpandCollapse({
   expanded,
   children,
   className,
+  onExpanded,
 }: ExpandCollapseProps) {
   const outerRef = useRef<HTMLDivElement>(null);
   const innerRef = useRef<HTMLDivElement>(null);
@@ -33,12 +35,16 @@ export default function ExpandCollapse({
 
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
       outer.style.height = expanded ? "auto" : "0px";
+      if (expanded) onExpanded?.();
       return;
     }
 
     if (expanded) {
-      // Measure inner (unconstrained) for accurate target height
-      const targetHeight = inner.offsetHeight;
+      // Measure exact fractional auto height before paint (useLayoutEffect = pre-paint)
+      outer.style.height = "auto";
+      const targetHeight = outer.getBoundingClientRect().height;
+      outer.style.height = "0px";
+      outer.getBoundingClientRect(); // force reflow so height: 0 commits before rAF
       raf1.current = requestAnimationFrame(() => {
         outer.style.height = targetHeight + "px";
       });
@@ -57,7 +63,10 @@ export default function ExpandCollapse({
     <div
       ref={outerRef}
       onTransitionEnd={() => {
-        if (expanded && outerRef.current) outerRef.current.style.height = "auto";
+        if (expanded && outerRef.current) {
+          outerRef.current.style.height = "auto";
+          requestAnimationFrame(() => onExpanded?.());
+        }
       }}
       style={{ overflow: "hidden" }}
       className={`transition-[height] duration-[250ms] [transition-timing-function:cubic-bezier(0.4,0,0.2,1)]${className ? ` ${className}` : ""}`}

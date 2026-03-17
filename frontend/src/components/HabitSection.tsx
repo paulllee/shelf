@@ -1,4 +1,4 @@
-import { useState, useMemo, useRef, useEffect } from "react";
+import { useState, useMemo, useRef } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   ChevronDown,
@@ -136,9 +136,6 @@ export default function HabitSection() {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["presets"] }),
   });
 
-  useEffect(() => {
-    if (showActivityInput) activityInputRef.current?.focus();
-  }, [showActivityInput]);
 
   const today = useMemo(() => {
     const d = new Date();
@@ -435,7 +432,7 @@ export default function HabitSection() {
         </ExpandCollapse>
 
         {/* Inline activity input */}
-        <ExpandCollapse expanded={showActivityInput}>
+        <ExpandCollapse expanded={showActivityInput} onExpanded={() => activityInputRef.current?.focus({ preventScroll: true })}>
             <form
               className="mb-4 flex flex-col gap-2"
               onSubmit={(e) => {
