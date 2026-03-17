@@ -49,6 +49,7 @@ export default function DayDetailModal({
   const [newActivityName, setNewActivityName] = useState("");
   const [showPresets, setShowPresets] = useState(false);
   const [isOtherHabitsExpanded, setIsOtherHabitsExpanded] = useState(false);
+  const [confirmingDeleteActivityId, setConfirmingDeleteActivityId] = useState<string | null>(null);
 
   const dateStr = formatDateStr(date);
   const queryClient = useQueryClient();
@@ -333,13 +334,13 @@ export default function DayDetailModal({
 
         <div>
           <div className="flex items-center justify-between mb-2">
-            <h3 className="text-warning text-sm font-semibold">activities</h3>
+            <h3 className="text-base-content/60 text-sm font-semibold">activities</h3>
             <button
               onClick={() => {
                 setIsAddingActivity(true);
                 setShowPresets(presets.length > 0);
               }}
-              className="text-warning hover:text-warning/70 transition-colors motion-reduce:transition-none"
+              className="text-primary hover:text-primary/70 transition-colors motion-reduce:transition-none"
               aria-label="Add activity"
             >
               <Plus className="w-4 h-4" />
@@ -361,15 +362,15 @@ export default function DayDetailModal({
                       setShowPresets(false);
                     }
                   }}
-                  placeholder="activity name..."
-                  className="flex-1 bg-base-200 text-base-content px-3 py-2 rounded-lg border border-warning focus:outline-none focus-visible:ring-2 focus-visible:ring-warning/50 text-sm placeholder:text-base-content/30"
+                  placeholder="activity name"
+                  className="flex-1 bg-base-200 text-base-content px-3 py-2 rounded-lg border border-primary/20 focus:border-primary focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 text-sm placeholder:text-base-content/30"
                   autoFocus
                 />
                 <button
                   onClick={() => handleAddActivity(newActivityName)}
                   disabled={addActivityMutation.isPending}
                   aria-label="Confirm add activity"
-                  className="px-3 py-2 bg-warning text-warning-content rounded-lg hover:brightness-110 transition-[filter] motion-reduce:transition-none"
+                  className="px-3 py-2 bg-primary text-primary-content rounded-lg hover:brightness-110 transition-[filter] motion-reduce:transition-none"
                 >
                   <Check className="w-4 h-4" />
                 </button>
@@ -393,7 +394,7 @@ export default function DayDetailModal({
                       key={preset}
                       onClick={() => handleAddActivity(preset)}
                       disabled={addActivityMutation.isPending}
-                      className="px-3 py-1 bg-base-200 text-base-content text-xs rounded-full border border-warning/30 hover:border-warning hover:bg-warning/10 transition-colors motion-reduce:transition-none"
+                      className="px-3 py-1 bg-base-200 text-base-content text-xs rounded-full border border-primary/20 hover:border-primary hover:bg-primary/10 transition-colors motion-reduce:transition-none"
                     >
                       {preset}
                     </button>
@@ -410,23 +411,38 @@ export default function DayDetailModal({
                   key={activity.id}
                   className="flex items-center gap-3 p-3 bg-base-200 rounded-lg group"
                 >
-                  <div className="w-2 h-2 bg-warning rounded-full flex-shrink-0" />
+                  <div className="w-2 h-2 bg-base-content/20 rounded-full flex-shrink-0" />
                   <span className="text-base-content text-sm flex-1">
                     {activity.name}
                   </span>
-                  <button
-                    onClick={() => {
-                      if (
-                        window.confirm(`Delete activity "${activity.name}"?`)
-                      ) {
-                        deleteActivityMutation.mutate(activity.id);
-                      }
-                    }}
-                    className="p-1 text-base-content/30 hover:text-error transition-colors motion-reduce:transition-none"
-                    aria-label={`Delete activity "${activity.name}"`}
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </button>
+                  {confirmingDeleteActivityId === activity.id ? (
+                    <div className="flex items-center gap-1.5 animate-fade-in">
+                      <button
+                        onClick={() => {
+                          deleteActivityMutation.mutate(activity.id);
+                          setConfirmingDeleteActivityId(null);
+                        }}
+                        className="text-error text-xs font-semibold"
+                      >
+                        delete
+                      </button>
+                      <button
+                        onClick={() => setConfirmingDeleteActivityId(null)}
+                        className="p-1 text-base-content/30 hover:text-base-content transition-colors motion-reduce:transition-none"
+                        aria-label="Cancel"
+                      >
+                        <X className="w-3 h-3" />
+                      </button>
+                    </div>
+                  ) : (
+                    <button
+                      onClick={() => setConfirmingDeleteActivityId(activity.id)}
+                      className="p-1 text-base-content/30 hover:text-error transition-colors motion-reduce:transition-none"
+                      aria-label={`Delete activity "${activity.name}"`}
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  )}
                 </div>
               ))}
             </div>

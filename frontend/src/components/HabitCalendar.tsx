@@ -187,8 +187,8 @@ export default function HabitCalendar({
           </span>
           {activityCount > 0 && (
             <div className="absolute top-[2px] right-[2px]">
-              <div className="min-w-[16px] h-[16px] bg-warning rounded-full flex items-center justify-center px-[3px]">
-                <span className="text-[9px] font-bold text-warning-content leading-none">
+              <div className="min-w-[16px] h-[16px] bg-primary rounded-full flex items-center justify-center px-[3px]">
+                <span className="text-[9px] font-bold text-primary-content leading-none">
                   {activityCount}
                 </span>
               </div>
@@ -200,7 +200,7 @@ export default function HabitCalendar({
   };
 
   return (
-    <div className="bg-base-200 rounded-lg p-2 sm:p-3 shadow-sm">
+    <div className="bg-base-200 rounded-lg p-2 sm:p-3">
       <div className="flex items-center justify-between mb-4 sm:mb-6">
         <button
           onClick={onPreviousMonth}

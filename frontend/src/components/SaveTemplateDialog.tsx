@@ -4,7 +4,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { X } from "lucide-react";
 import { createTemplate } from "../api/templates";
 import type { ExerciseGroup } from "../types";
-import { inputCls, btnPrimary, btnSecondary, btnInnerGlow } from "../styles";
+import { inputCls, btnPrimary, btnSecondary } from "../styles";
 
 interface SaveTemplateDialogProps {
   groups: ExerciseGroup[];
@@ -88,14 +88,11 @@ export default function SaveTemplateDialog({
               disabled={mutation.isPending}
               className={`flex-1 ${btnPrimary}`}
             >
-              <div className={btnInnerGlow} />
-              <span className="relative">
-                {mutation.isPending ? (
-                  <span className="loading loading-spinner loading-sm" />
-                ) : (
-                  "save"
-                )}
-              </span>
+              {mutation.isPending ? (
+                <span className="loading loading-spinner loading-sm" />
+              ) : (
+                "save"
+              )}
             </button>
           </div>
         </div>

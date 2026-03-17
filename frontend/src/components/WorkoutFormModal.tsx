@@ -14,8 +14,9 @@ import type {
   WorkoutFormData,
 } from "../types";
 import { updateAt, removeAt } from "../utils/arrays";
+import ExpandCollapse from "./ExpandCollapse";
 import { emptySet, emptyExercise, emptyGroup } from "../utils/workout";
-import { btnPrimary, btnSecondary, btnInnerGlow } from "../styles";
+import { btnPrimary, btnSecondary, inputCls } from "../styles";
 
 // --- reducer types ---
 
@@ -314,34 +315,31 @@ export default function WorkoutFormModal({
         {isEdit ? "edit workout" : "add workout"}
       </h3>
 
-      {!isEdit && (
+      {!isEdit && templates.length > 0 && (
         <>
-          <div className="collapse collapse-arrow bg-base-200 mb-4">
-            <input type="checkbox" defaultChecked={templates.length > 0} />
-            <div className="collapse-title font-medium text-sm">
-              quick start from template
-            </div>
-            <div className="collapse-content">
-              <WorkoutTemplates
-                templates={templates}
-                onUse={handleLoadTemplate}
-                onEdit={setEditingTemplate}
-              />
-            </div>
+          <ExpandCollapse expanded={templates.length > 0} className="mb-4">
+            <p className="text-xs text-base-content/50 mb-2 pt-1">quick start from template</p>
+            <WorkoutTemplates
+              templates={templates}
+              onUse={handleLoadTemplate}
+              onEdit={setEditingTemplate}
+            />
+          </ExpandCollapse>
+          <div className="flex items-center gap-2 text-sm text-base-content/40 my-3">
+            <div className="flex-1 h-px bg-current" />
+            or create custom
+            <div className="flex-1 h-px bg-current" />
           </div>
-          <div className="divider text-sm">or create custom</div>
         </>
       )}
 
       <form onSubmit={handleSubmit}>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 mb-4">
-          <div className="form-control">
-            <label className="label">
-              <span className="label-text">date</span>
-            </label>
+          <div className="flex flex-col gap-1.5">
+            <label className="text-sm font-semibold text-base-content">date</label>
             <input
               type="date"
-              className="input input-bordered"
+              className={inputCls}
               value={state.date}
               onChange={(e) =>
                 dispatch({ type: "SET_DATE", date: e.target.value })
@@ -349,13 +347,11 @@ export default function WorkoutFormModal({
               required
             />
           </div>
-          <div className="form-control">
-            <label className="label">
-              <span className="label-text">time</span>
-            </label>
+          <div className="flex flex-col gap-1.5">
+            <label className="text-sm font-semibold text-base-content">time</label>
             <input
               type="time"
-              className="input input-bordered"
+              className={inputCls}
               value={state.time}
               onChange={(e) =>
                 dispatch({ type: "SET_TIME", time: e.target.value })
@@ -365,18 +361,22 @@ export default function WorkoutFormModal({
           </div>
         </div>
 
-        <div className="divider text-sm">exercise groups</div>
+        <div className="flex items-center gap-2 text-sm text-base-content/40 my-3">
+          <div className="flex-1 h-px bg-current" />
+          exercise groups
+          <div className="flex-1 h-px bg-current" />
+        </div>
 
         <GroupsEditor
           groups={state.groups}
           onChange={(g) => dispatch({ type: "SET_GROUPS", groups: g })}
         />
 
-        <div className="mb-4">
-          <label className="label mb-2 block">notes</label>
+        <div className="flex flex-col gap-1.5 mb-4">
+          <label className="text-sm font-semibold text-base-content">notes</label>
           <textarea
-            className="textarea textarea-bordered h-20 w-full"
-            placeholder="workout notes..."
+            className={`${inputCls} h-20 resize-none`}
+            placeholder="notes"
             value={state.content}
             onChange={(e) =>
               dispatch({ type: "SET_CONTENT", content: e.target.value })
@@ -397,16 +397,13 @@ export default function WorkoutFormModal({
             cancel
           </button>
           <button type="submit" disabled={isPending} className={btnPrimary}>
-            <div className={btnInnerGlow} />
-            <span className="relative">
-              {isPending ? (
-                <span className="loading loading-spinner loading-sm" />
-              ) : isEdit ? (
-                "save"
-              ) : (
-                "add"
-              )}
-            </span>
+            {isPending ? (
+              <span className="loading loading-spinner loading-sm" />
+            ) : isEdit ? (
+              "save"
+            ) : (
+              "add"
+            )}
           </button>
         </div>
       </form>

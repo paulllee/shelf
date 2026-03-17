@@ -3,6 +3,7 @@ import { GripVertical, ChevronUp, ChevronDown } from "lucide-react";
 import type { ExerciseGroup } from "../types";
 import { updateAt, removeAt, moveItem } from "../utils/arrays";
 import { emptySet, emptyExercise, emptyGroup } from "../utils/workout";
+import { btnGhostSm, btnGhostXs, inputSmCls, inputXsCls } from "../styles";
 
 interface GroupsEditorProps {
   groups: ExerciseGroup[];
@@ -103,7 +104,7 @@ export default function GroupsEditor({ groups, onChange }: GroupsEditorProps) {
             </div>
             <input
               type="text"
-              className="input input-bordered input-sm w-full sm:flex-1"
+              className={`${inputSmCls} sm:flex-1`}
               placeholder="group name (e.g., chest & triceps)"
               value={group.name}
               onChange={(e) =>
@@ -116,8 +117,8 @@ export default function GroupsEditor({ groups, onChange }: GroupsEditorProps) {
             <div className="flex gap-2">
               <input
                 type="number"
-                className="input input-bordered input-sm flex-1 sm:w-24 sm:flex-none"
-                placeholder="rest (s)"
+                className={`${inputSmCls} flex-1 sm:w-24 sm:flex-none`}
+                placeholder="sec"
                 value={group.rest_seconds}
                 onChange={(e) =>
                   onChange(
@@ -131,7 +132,7 @@ export default function GroupsEditor({ groups, onChange }: GroupsEditorProps) {
               />
               <button
                 type="button"
-                className="btn btn-ghost btn-sm flex-shrink-0"
+                className={`${btnGhostSm} flex-shrink-0`}
                 onClick={() =>
                   onChange(groups.length > 1 ? removeAt(groups, gi) : groups)
                 }
@@ -226,7 +227,7 @@ export default function GroupsEditor({ groups, onChange }: GroupsEditorProps) {
                   </div>
                   <input
                     type="text"
-                    className="input input-bordered input-sm flex-1"
+                    className={`${inputSmCls} flex-1`}
                     placeholder="exercise name"
                     value={exercise.name}
                     onChange={(e) =>
@@ -244,7 +245,7 @@ export default function GroupsEditor({ groups, onChange }: GroupsEditorProps) {
                   />
                   <button
                     type="button"
-                    className="btn btn-ghost btn-sm"
+                    className={btnGhostSm}
                     onClick={() =>
                       onChange(
                         updateAt(groups, gi, (g) => ({
@@ -270,7 +271,7 @@ export default function GroupsEditor({ groups, onChange }: GroupsEditorProps) {
                       </span>
                       <input
                         type="number"
-                        className="input input-bordered input-xs flex-1 min-w-0"
+                        className={`${inputXsCls} flex-1 min-w-0`}
                         placeholder="reps"
                         min="1"
                         value={set.reps ?? ""}
@@ -293,7 +294,7 @@ export default function GroupsEditor({ groups, onChange }: GroupsEditorProps) {
                       <input
                         type="number"
                         step="0.5"
-                        className="input input-bordered input-xs flex-1 min-w-0"
+                        className={`${inputXsCls} flex-1 min-w-0`}
                         placeholder="weight"
                         value={set.weight ?? ""}
                         onChange={(e) =>
@@ -315,7 +316,7 @@ export default function GroupsEditor({ groups, onChange }: GroupsEditorProps) {
                       />
                       <button
                         type="button"
-                        className="btn btn-ghost btn-xs flex-shrink-0"
+                        className={`${btnGhostXs} flex-shrink-0`}
                         onClick={() =>
                           onChange(
                             updateAt(groups, gi, (g) => ({
@@ -337,7 +338,7 @@ export default function GroupsEditor({ groups, onChange }: GroupsEditorProps) {
 
                 <button
                   type="button"
-                  className="btn btn-ghost btn-xs mt-1"
+                  className={`${btnGhostXs} mt-1`}
                   onClick={() =>
                     onChange(
                       updateAt(groups, gi, (g) => ({
@@ -358,7 +359,7 @@ export default function GroupsEditor({ groups, onChange }: GroupsEditorProps) {
 
           <button
             type="button"
-            className="btn btn-ghost btn-xs mt-2"
+            className={`${btnGhostXs} mt-2`}
             onClick={() =>
               onChange(
                 updateAt(groups, gi, (g) => ({
@@ -375,7 +376,7 @@ export default function GroupsEditor({ groups, onChange }: GroupsEditorProps) {
 
       <button
         type="button"
-        className="btn btn-ghost btn-sm w-full"
+        className={`${btnGhostSm} w-full`}
         onClick={() => onChange([...groups, emptyGroup()])}
       >
         + add group

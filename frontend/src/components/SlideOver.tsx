@@ -79,7 +79,7 @@ export default function SlideOver({
       aria-label={title}
     >
       {/* Overlay */}
-      <div className="absolute inset-0 bg-black/30" onClick={onClose} />
+      <div className="absolute inset-0 bg-black/30 animate-modal-backdrop" onClick={onClose} />
 
       {/* Panel */}
       <div

@@ -3,6 +3,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { ChevronDown, ChevronUp } from "lucide-react";
 import { deleteWorkout } from "../api/workouts";
 import type { Workout } from "../types";
+import ExpandCollapse from "./ExpandCollapse";
 
 interface WorkoutCardProps {
   workout: Workout;
@@ -35,6 +36,7 @@ export default function WorkoutCard({
   onRepeat,
 }: WorkoutCardProps) {
   const [expanded, setExpanded] = useState(false);
+  const [confirmingDelete, setConfirmingDelete] = useState(false);
   const queryClient = useQueryClient();
 
   const exercises = useMemo(
@@ -56,7 +58,7 @@ export default function WorkoutCard({
   });
 
   return (
-    <div className="bg-base-200 rounded-lg shadow-sm">
+    <div className="bg-base-200 rounded-lg">
       {/* Collapsed header — always visible */}
       <button
         className="w-full flex items-center gap-3 p-4 text-left hover:bg-base-300 transition-colors motion-reduce:transition-none rounded-lg"
@@ -86,8 +88,7 @@ export default function WorkoutCard({
       </button>
 
       {/* Expanded details */}
-      <div className="expand-collapse" data-expanded={expanded}>
-        <div>
+      <ExpandCollapse expanded={expanded}>
           <div className="px-4 pb-4 space-y-3">
             {workout.groups.map((group, gi) => (
               <div key={gi}>
@@ -131,16 +132,41 @@ export default function WorkoutCard({
 
             {/* Actions */}
             <div className="flex items-center gap-2 border-t border-base-content/5 pt-3">
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  if (confirm("delete this workout?")) deleteMutation.mutate();
-                }}
-                disabled={deleteMutation.isPending}
-                className="text-error/60 hover:text-error text-xs font-semibold transition-colors motion-reduce:transition-none"
-              >
-                delete
-              </button>
+              {confirmingDelete ? (
+                <div className="flex items-center gap-2 animate-fade-in">
+                  <span className="text-xs text-base-content/50">delete?</span>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      deleteMutation.mutate();
+                    }}
+                    disabled={deleteMutation.isPending}
+                    className="text-error text-xs font-semibold transition-colors motion-reduce:transition-none"
+                  >
+                    yes
+                  </button>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setConfirmingDelete(false);
+                    }}
+                    className="text-base-content/50 hover:text-base-content text-xs font-semibold transition-colors motion-reduce:transition-none"
+                  >
+                    cancel
+                  </button>
+                </div>
+              ) : (
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setConfirmingDelete(true);
+                  }}
+                  disabled={deleteMutation.isPending}
+                  className="text-error/60 hover:text-error text-xs font-semibold transition-colors motion-reduce:transition-none"
+                >
+                  delete
+                </button>
+              )}
               <div className="flex-1" />
               <button
                 onClick={(e) => {
@@ -162,8 +188,7 @@ export default function WorkoutCard({
               </button>
             </div>
           </div>
-        </div>
-      </div>
+      </ExpandCollapse>
     </div>
   );
 }

@@ -72,6 +72,7 @@ export default function HabitList({
   const [shiftPickerHabitId, setShiftPickerHabitId] = useState<string | null>(
     null,
   );
+  const [confirmingDeleteId, setConfirmingDeleteId] = useState<string | null>(null);
   const menuRef = useRef<HTMLDivElement>(null);
   const closeMenu = useCallback(() => setOpenMenuId(null), []);
   useClickOutside(menuRef, !!openMenuId, closeMenu);
@@ -86,16 +87,14 @@ export default function HabitList({
 
   if (habits.length === 0) {
     return (
-      <div className="bg-base-200 rounded-lg p-6 text-center">
-        <p className="text-base-content/50 text-sm">
-          no habits scheduled for today
-        </p>
-      </div>
+      <p className="text-base-content/40 text-sm py-4">
+        no habits scheduled for today
+      </p>
     );
   }
 
   return (
-    <div className="space-y-3">
+    <div className="divide-y divide-base-content/5">
       {habits.map((habit) => {
         const completed = habit.completions.includes(dateStr);
         const isMenuOpen = openMenuId === habit.id;
@@ -104,8 +103,7 @@ export default function HabitList({
         const isShiftedHere = habit.shifts.some((s) => s.to === dateStr);
         return (
           <div key={habit.id}>
-            <div className="bg-base-200 rounded-lg p-3 sm:p-4 shadow-sm">
-              <div className="flex items-center gap-3">
+            <div className="flex items-center gap-3 py-2.5">
                 <button
                   onClick={(e) => {
                     if (!completed) {
@@ -127,7 +125,7 @@ export default function HabitList({
                     }
                     onToggle(habit.id, dateStr);
                   }}
-                  className={`flex-shrink-0 w-14 h-14 sm:w-16 sm:h-16 rounded-xl border-2 transition-colors motion-reduce:transition-none flex items-center justify-center${completed ? " animate-check-pulse" : ""}`}
+                  className={`flex-shrink-0 w-8 h-8 rounded-full border-2 transition-colors motion-reduce:transition-none flex items-center justify-center${completed ? " animate-check-pulse" : ""}`}
                   style={{
                     borderColor: completed ? habit.color : `${habit.color}50`,
                     backgroundColor: completed ? habit.color : "transparent",
@@ -135,37 +133,31 @@ export default function HabitList({
                 >
                   {completed && (
                     <Check
-                      className="w-7 h-7 sm:w-8 sm:h-8 text-primary-content"
+                      className="w-4 h-4 text-white"
                       strokeWidth={3}
                     />
                   )}
                 </button>
 
-                <div className="flex-1 min-w-0">
+                <div className="flex-1 min-w-0 flex items-baseline gap-2">
                   <h3
-                    className={`text-sm sm:text-base font-semibold transition-colors motion-reduce:transition-none ${
+                    className={`text-sm font-semibold transition-colors motion-reduce:transition-none truncate ${
                       completed
-                        ? "text-base-content/50 line-through"
+                        ? "text-base-content/40 line-through"
                         : "text-base-content"
                     }`}
                   >
                     {habit.name}
                   </h3>
-                  <div className="flex items-center gap-2 mt-1">
-                    <div
-                      className="w-3 h-3 rounded-full"
-                      style={{ backgroundColor: habit.color }}
-                    />
-                    <span className="text-base-content/50 text-xs">
-                      {getDaysText(habit.days)}
-                    </span>
-                  </div>
+                  <span className="text-base-content/30 text-xs shrink-0">
+                    {getDaysText(habit.days)}
+                  </span>
                 </div>
 
                 <div className="relative" ref={isMenuOpen ? menuRef : null}>
                   <button
                     onClick={() => setOpenMenuId(isMenuOpen ? null : habit.id)}
-                    className="p-2 rounded-lg text-base-content/40 hover:text-base-content hover:bg-base-300 transition-colors motion-reduce:transition-none"
+                    className="p-2 text-base-content/30 hover:text-base-content transition-colors motion-reduce:transition-none"
                     aria-label="More options"
                   >
                     <MoreVertical className="w-4 h-4" />
@@ -181,7 +173,7 @@ export default function HabitList({
                         className={menuItemCls}
                       >
                         <Edit2 className="w-4 h-4 text-base-content/50" />
-                        Edit
+                        edit
                       </button>
                       {onShift &&
                         habit.days.length < 7 &&
@@ -200,7 +192,7 @@ export default function HabitList({
                                 className={menuItemCls}
                               >
                                 <Ban className="w-4 h-4 text-base-content/50" />
-                                cancel shift
+                                undo move
                               </button>
                             );
                           }
@@ -213,29 +205,45 @@ export default function HabitList({
                               className={menuItemCls}
                             >
                               <CalendarClock className="w-4 h-4 text-base-content/50" />
-                              Move
+                              move
                             </button>
                           );
                         })()}
-                      <button
-                        onClick={() => {
-                          setOpenMenuId(null);
-                          if (window.confirm(`Delete habit "${habit.name}"?`)) {
-                            onDelete(habit.id);
-                          }
-                        }}
-                        className={`${menuItemCls} text-error`}
-                      >
-                        <Trash2 className="w-4 h-4" />
-                        Delete
-                      </button>
+                      {confirmingDeleteId === habit.id ? (
+                        <div className="flex items-center gap-2 px-3 py-2 animate-fade-in">
+                          <span className="text-xs text-base-content/50">delete?</span>
+                          <button
+                            onClick={() => {
+                              setOpenMenuId(null);
+                              setConfirmingDeleteId(null);
+                              onDelete(habit.id);
+                            }}
+                            className="text-error text-xs font-semibold"
+                          >
+                            yes
+                          </button>
+                          <button
+                            onClick={() => setConfirmingDeleteId(null)}
+                            className="text-base-content/50 hover:text-base-content text-xs font-semibold"
+                          >
+                            cancel
+                          </button>
+                        </div>
+                      ) : (
+                        <button
+                          onClick={() => setConfirmingDeleteId(habit.id)}
+                          className={`${menuItemCls} text-error`}
+                        >
+                          <Trash2 className="w-4 h-4" />
+                          delete
+                        </button>
+                      )}
                     </div>
                   )}
                 </div>
-              </div>
             </div>
             {shiftPickerHabitId === habit.id && (
-              <div className="mt-2 p-3 bg-base-100 border border-base-300 rounded-lg">
+              <div className="mt-2 p-3 bg-base-100 border border-base-300 rounded-lg animate-fade-in">
                 <p className="text-xs text-base-content/50 mb-2">
                   move {DAY_FULL_NAMES[fromWeekday]}&apos;s occurrence to:
                 </p>

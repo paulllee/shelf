@@ -1,7 +1,9 @@
+import { useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Pencil } from "lucide-react";
 import { deleteTemplate } from "../api/templates";
 import type { WorkoutTemplate } from "../types";
+import { btnPrimary, btnGhostXs } from "../styles";
 
 interface WorkoutTemplatesProps {
   templates: WorkoutTemplate[];
@@ -15,6 +17,7 @@ export default function WorkoutTemplates({
   onEdit,
 }: WorkoutTemplatesProps) {
   const queryClient = useQueryClient();
+  const [confirmingDeleteId, setConfirmingDeleteId] = useState<string | null>(null);
 
   const deleteMutation = useMutation({
     mutationFn: (id: string) => deleteTemplate(id),
@@ -44,7 +47,7 @@ export default function WorkoutTemplates({
           <div className="flex gap-1 self-end sm:self-auto flex-shrink-0">
             <button
               type="button"
-              className="btn btn-primary btn-xs"
+              className={btnPrimary.replace("px-4 py-2.5", "px-3 py-1 text-xs")}
               onClick={() => onUse(template)}
             >
               use
@@ -52,24 +55,43 @@ export default function WorkoutTemplates({
             {onEdit && (
               <button
                 type="button"
-                className="btn btn-ghost btn-xs"
+                className={btnGhostXs}
                 onClick={() => onEdit(template)}
               >
                 <Pencil className="w-3 h-3" />
               </button>
             )}
-            <button
-              type="button"
-              className="btn btn-ghost btn-xs"
-              onClick={() => {
-                if (confirm(`delete template '${template.name}'?`)) {
-                  deleteMutation.mutate(template.id);
-                }
-              }}
-              disabled={deleteMutation.isPending}
-            >
-              &times;
-            </button>
+            {confirmingDeleteId === template.id ? (
+              <div className="flex items-center gap-1.5 animate-fade-in">
+                <button
+                  type="button"
+                  onClick={() => {
+                    deleteMutation.mutate(template.id);
+                    setConfirmingDeleteId(null);
+                  }}
+                  disabled={deleteMutation.isPending}
+                  className="text-error text-xs font-semibold px-1 transition-colors motion-reduce:transition-none"
+                >
+                  delete
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setConfirmingDeleteId(null)}
+                  className={btnGhostXs}
+                >
+                  &times;
+                </button>
+              </div>
+            ) : (
+              <button
+                type="button"
+                className={btnGhostXs}
+                onClick={() => setConfirmingDeleteId(template.id)}
+                disabled={deleteMutation.isPending}
+              >
+                &times;
+              </button>
+            )}
           </div>
         </div>
       ))}

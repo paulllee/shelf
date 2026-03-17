@@ -1,12 +1,31 @@
 @import "tailwindcss";
-@plugin "daisyui" {
-  themes:
-    light,
-    dark --default;
-}
 
 @theme {
   --font-josefin: "Josefin Sans", sans-serif;
+
+  /* Light theme defaults */
+  --color-base-100: oklch(100% 0 0);
+  --color-base-200: oklch(95.25% 0 0);
+  --color-base-300: oklch(90.7% 0 0);
+  --color-base-content: oklch(21.18% 0 0);
+  --color-primary: oklch(52% 0.10 228);
+  --color-primary-content: oklch(96% 0.008 228);
+  --color-success: oklch(56% 0.14 150);
+  --color-success-content: oklch(96% 0.01 150);
+  --color-warning: oklch(72% 0.13 75);
+  --color-warning-content: oklch(20% 0.04 75);
+  --color-info: oklch(58% 0.10 220);
+  --color-info-content: oklch(96% 0.01 220);
+  --color-error: oklch(55% 0.17 22);
+  --color-error-content: oklch(96% 0.01 22);
+}
+
+/* Dark theme — active when .dark is on <html> */
+.dark {
+  --color-base-100: oklch(20% 0.005 240);
+  --color-base-200: oklch(17% 0.004 240);
+  --color-base-300: oklch(14.5% 0.003 240);
+  --color-base-content: oklch(68% 0.006 240);
 }
 
 html {
@@ -20,14 +39,357 @@ a,
   touch-action: manipulation;
 }
 
+/* ---- Component classes (replaces DaisyUI) ---- */
+
+/* Buttons */
 .btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  user-select: none;
+  border: 1px solid transparent;
   border-radius: 9999px;
   padding: 0.5rem 1.25rem;
   font-weight: 600;
   font-size: 0.875rem;
+  font-family: inherit;
+  line-height: 1.25;
+  background-color: var(--color-base-200);
+  color: var(--color-base-content);
+  transition: filter 0.15s, opacity 0.15s;
+}
+.btn:hover:not(:disabled) {
+  filter: brightness(1.05);
+}
+.btn:active:not(:disabled) {
+  scale: 0.97;
+}
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.btn-ghost {
+  background-color: transparent;
+  border-color: transparent;
+  opacity: 0.6;
+}
+.btn-ghost:hover:not(:disabled) {
+  background-color: var(--color-base-200);
+  opacity: 1;
+  filter: none;
+}
+.btn-primary {
+  background-color: var(--color-primary);
+  color: var(--color-primary-content);
+  border-color: var(--color-primary);
+}
+.btn-sm {
+  padding: 0.3rem 0.75rem;
+  font-size: 0.8125rem;
+}
+.btn-xs {
+  padding: 0.2rem 0.5rem;
+  font-size: 0.75rem;
+}
+.btn-square {
+  padding: 0.5rem;
+  aspect-ratio: 1;
+}
+.btn-circle {
+  padding: 0.5rem;
+  aspect-ratio: 1;
+  border-radius: 9999px;
+}
+.btn-sm.btn-square,
+.btn-sm.btn-circle {
+  padding: 0.3rem;
 }
 
-/* Section fade-in */
+/* Form inputs */
+.input,
+.select,
+.textarea {
+  display: block;
+  width: 100%;
+  background-color: var(--color-base-200);
+  color: var(--color-base-content);
+  border: 1px solid transparent;
+  border-radius: 0.5rem;
+  padding: 0.75rem 1rem;
+  font-family: inherit;
+  font-size: 1rem;
+  line-height: 1.5;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+.input:focus,
+.select:focus,
+.textarea:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 2px color-mix(in oklch, var(--color-primary) 30%, transparent);
+}
+.input::placeholder,
+.textarea::placeholder {
+  color: color-mix(in oklch, var(--color-base-content) 30%, transparent);
+}
+.input-bordered,
+.select-bordered,
+.textarea-bordered {
+  border-color: color-mix(in oklch, var(--color-primary) 20%, transparent);
+}
+.input-sm,
+.select-sm {
+  padding: 0.375rem 0.75rem;
+  font-size: 0.875rem;
+}
+.input-xs {
+  padding: 0.25rem 0.5rem;
+  font-size: 0.75rem;
+}
+
+/* Select chevron */
+.select {
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%239ca3af' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.5rem center;
+  padding-right: 1.875rem;
+  cursor: pointer;
+}
+
+/* Form layout */
+.form-control {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+}
+.label {
+  display: flex;
+  align-items: center;
+}
+.label-text {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--color-base-content);
+}
+
+/* Loading spinner — single element */
+.loading-spinner {
+  display: inline-block;
+  border-radius: 9999px;
+  border: 2px solid color-mix(in oklch, currentColor 20%, transparent);
+  border-top-color: currentColor;
+  animation: spin 0.6s linear infinite;
+}
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+.loading-xs {
+  width: 0.875rem;
+  height: 0.875rem;
+}
+.loading-sm {
+  width: 1.25rem;
+  height: 1.25rem;
+}
+.loading-lg {
+  width: 2rem;
+  height: 2rem;
+}
+
+/* Loading dots — single element using pseudo-elements */
+.loading-dots {
+  position: relative;
+  display: inline-block;
+  width: 4px;
+  height: 4px;
+  border-radius: 9999px;
+  background: currentColor;
+  animation: dots-bounce 1.2s 0.4s infinite both;
+  margin: 0 8px;
+}
+.loading-dots::before,
+.loading-dots::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  width: 4px;
+  height: 4px;
+  border-radius: 9999px;
+  background: currentColor;
+}
+.loading-dots::before {
+  left: -8px;
+  animation: dots-bounce 1.2s 0s infinite both;
+}
+.loading-dots::after {
+  right: -8px;
+  animation: dots-bounce 1.2s 0.2s infinite both;
+}
+.loading-xs.loading-dots {
+  width: 3px;
+  height: 3px;
+  margin: 0 6px;
+}
+.loading-xs.loading-dots::before,
+.loading-xs.loading-dots::after {
+  width: 3px;
+  height: 3px;
+}
+.loading-xs.loading-dots::before {
+  left: -6px;
+}
+.loading-xs.loading-dots::after {
+  right: -6px;
+}
+@keyframes dots-bounce {
+  0%,
+  80%,
+  100% {
+    transform: translateY(0);
+    opacity: 0.4;
+  }
+  40% {
+    transform: translateY(-4px);
+    opacity: 1;
+  }
+}
+
+/* Badge */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.125rem 0.5rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  line-height: 1.25;
+}
+.badge-primary {
+  background: var(--color-primary);
+  color: var(--color-primary-content);
+}
+.badge-sm {
+  font-size: 0.7rem;
+  padding: 0.1rem 0.4rem;
+}
+
+/* Divider */
+.divider {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--color-base-content);
+  opacity: 0.4;
+  font-size: 0.875rem;
+  margin: 0.5rem 0;
+}
+.divider::before,
+.divider::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: currentColor;
+}
+
+/* Table */
+.table {
+  border-collapse: collapse;
+  width: 100%;
+}
+.table th,
+.table td {
+  padding: 0.5rem 0.75rem;
+  text-align: left;
+  font-size: 0.875rem;
+}
+.table-zebra tbody tr:nth-child(even) {
+  background: var(--color-base-200);
+}
+
+/* Tabs */
+.tabs-boxed {
+  display: flex;
+  gap: 0.25rem;
+  background: var(--color-base-200);
+  border-radius: 9999px;
+  padding: 0.25rem;
+}
+.tab {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.375rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  color: color-mix(in oklch, var(--color-base-content) 50%, transparent);
+  transition: color 0.15s, background-color 0.15s;
+  border: none;
+  background: transparent;
+}
+.tab:hover {
+  color: var(--color-base-content);
+}
+.tab-active {
+  background: color-mix(in oklch, var(--color-primary) 20%, transparent);
+  color: var(--color-primary);
+}
+
+/* Collapse — CSS-only toggle via hidden checkbox */
+.collapse {
+  position: relative;
+  overflow: hidden;
+  border-radius: 0.5rem;
+}
+.collapse > input[type="checkbox"] {
+  position: absolute;
+  opacity: 0;
+  width: 100%;
+  height: 3rem;
+  cursor: pointer;
+  z-index: 1;
+  top: 0;
+}
+.collapse-title {
+  display: flex;
+  align-items: center;
+  padding: 0.75rem 1rem;
+  font-weight: 600;
+  min-height: 3rem;
+  user-select: none;
+}
+.collapse-content {
+  display: none;
+  padding: 0 1rem 0.75rem;
+}
+.collapse > input[type="checkbox"]:checked ~ .collapse-content {
+  display: block;
+}
+/* Arrow indicator */
+.collapse-arrow .collapse-title::after {
+  content: "";
+  display: inline-block;
+  margin-left: auto;
+  width: 0.5rem;
+  height: 0.5rem;
+  border-right: 2px solid currentColor;
+  border-bottom: 2px solid currentColor;
+  transform: rotate(-45deg);
+  transition: transform 0.2s;
+  opacity: 0.5;
+}
+.collapse > input[type="checkbox"]:checked ~ .collapse-title::after {
+  transform: rotate(45deg);
+}
+
+/* ---- Original custom animations ---- */
+
 @keyframes fade-in {
   from {
     opacity: 0;
@@ -39,6 +401,32 @@ a,
 
 .animate-fade-in {
   animation: fade-in 0.2s ease-out both;
+}
+
+/* Modal backdrop fade */
+@keyframes modal-backdrop-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+/* Modal panel: subtle scale + fade */
+@keyframes modal-panel-in {
+  from {
+    opacity: 0;
+    transform: scale(0.97) translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.animate-modal-backdrop {
+  animation: modal-backdrop-in 0.15s ease-out both;
+}
+
+.animate-modal-panel {
+  animation: modal-panel-in 0.2s cubic-bezier(0.25, 1, 0.5, 1) both;
 }
 
 /* Habit checkbox completion pulse */
@@ -58,43 +446,37 @@ a,
   animation: check-pulse 0.25s ease-out;
 }
 
-/* Smooth expand/collapse via grid */
-.expand-collapse {
-  display: grid;
-  grid-template-rows: 0fr;
-  transition: grid-template-rows 0.2s ease-out;
+/* Custom select arrow — Tailwind v4 can't compile complex SVG data URIs as arbitrary values */
+.select-arrow {
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%239ca3af' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.5rem center;
+  padding-right: 1.5rem;
 }
 
-.expand-collapse[data-expanded="true"] {
-  grid-template-rows: 1fr;
-}
 
-.expand-collapse > * {
-  overflow: hidden;
-}
 
-/* Section accent colors — used by buttons/highlights within each section */
-[data-section="media"] {
-  --section-accent: var(--color-primary);
-}
-[data-section="workouts"] {
-  --section-accent: var(--color-success);
-}
-[data-section="habits"] {
-  --section-accent: var(--color-info);
-}
-[data-section="tasks"] {
-  --section-accent: var(--color-warning);
-}
 
 @media (prefers-reduced-motion: reduce) {
   .animate-fade-in {
     animation: none;
   }
+  .animate-modal-backdrop {
+    animation: none;
+  }
+  .animate-modal-panel {
+    animation: none;
+  }
   .animate-check-pulse {
     animation: none;
   }
-  .expand-collapse {
-    transition: none;
+.loading-spinner {
+    animation: none;
+  }
+  .loading-dots,
+  .loading-dots::before,
+  .loading-dots::after {
+    animation: none;
   }
 }

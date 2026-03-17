@@ -4,6 +4,7 @@ import { Plus } from "lucide-react";
 import { useLocalStorage } from "../hooks/useLocalStorage";
 import { fetchMedia } from "../api/media";
 import type { MediaItem } from "../types";
+import { selectCls } from "../styles";
 import MediaTable from "./MediaTable";
 import MediaCard from "./MediaCard";
 import MediaModal from "./MediaModal";
@@ -51,13 +52,13 @@ export default function MediaSection() {
   return (
     <>
       <div className="flex items-center gap-3 mb-6">
-        <div role="tablist" className="tabs tabs-boxed flex-1">
+        <div role="tablist" className="flex gap-1 flex-1 bg-base-200 rounded-full p-1">
           {STATUSES.map((s) => (
             <button
               key={s}
               role="tab"
               aria-selected={tab === s}
-              className={`tab ${tab === s ? "tab-active" : ""}`}
+              className={`flex-1 px-3 py-1.5 rounded-full text-sm font-semibold transition-colors motion-reduce:transition-none cursor-pointer ${tab === s ? "bg-primary/20 text-primary" : "text-base-content/50 hover:text-base-content"}`}
               onClick={() => {
                 setTab(s);
                 setTypeFilter("");
@@ -86,14 +87,14 @@ export default function MediaSection() {
           aria-label="Loading"
         />
       ) : items.length === 0 ? (
-        <div className="text-center py-12 text-base-content/60 bg-base-100 rounded-lg">
-          <p>no media items in this list</p>
-        </div>
+        <p className="text-center py-12 text-base-content/40 text-sm">
+          no media yet
+        </p>
       ) : (
         <>
           <div className="flex flex-col gap-2 sm:flex-row sm:gap-4 mb-4">
             <select
-              className="select select-bordered select-sm w-full sm:w-auto"
+              className={`${selectCls} sm:w-auto`}
               value={typeFilter}
               onChange={(e) => setTypeFilter(e.target.value)}
               aria-label="Filter by type"
@@ -106,7 +107,7 @@ export default function MediaSection() {
               ))}
             </select>
             <select
-              className="select select-bordered select-sm w-full sm:w-auto"
+              className={`${selectCls} sm:w-auto`}
               value={countryFilter}
               onChange={(e) => setCountryFilter(e.target.value)}
               aria-label="Filter by country"

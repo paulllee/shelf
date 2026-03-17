@@ -10,7 +10,7 @@ import {
 } from "../api/media";
 import { ApiError } from "../api/client";
 import type { MediaItem, MediaFormData } from "../types";
-import { inputCls, btnPrimary, btnSecondary, btnInnerGlow } from "../styles";
+import { inputCls, selectCls, btnPrimary, btnSecondary } from "../styles";
 
 interface MediaModalProps {
   item?: MediaItem | null;
@@ -36,6 +36,7 @@ export default function MediaModal({ item, onClose }: MediaModalProps) {
   );
   const [review, setReview] = useState(item?.review ?? "");
   const [nameError, setNameError] = useState("");
+  const [confirmingDelete, setConfirmingDelete] = useState(false);
 
   useEffect(() => {
     if (!enums) return;
@@ -160,7 +161,7 @@ export default function MediaModal({ item, onClose }: MediaModalProps) {
             <select
               id="media-country"
               name="country"
-              className={inputCls}
+              className={selectCls}
               value={country}
               onChange={(e) => setCountry(e.target.value)}
             >
@@ -181,7 +182,7 @@ export default function MediaModal({ item, onClose }: MediaModalProps) {
             <select
               id="media-type"
               name="type"
-              className={inputCls}
+              className={selectCls}
               value={type}
               onChange={(e) => setType(e.target.value)}
             >
@@ -205,7 +206,7 @@ export default function MediaModal({ item, onClose }: MediaModalProps) {
             <select
               id="media-status"
               name="status"
-              className={inputCls}
+              className={selectCls}
               value={status}
               onChange={(e) => setStatus(e.target.value)}
             >
@@ -252,22 +253,41 @@ export default function MediaModal({ item, onClose }: MediaModalProps) {
             className={`${inputCls} h-24 resize-none`}
             value={review}
             onChange={(e) => setReview(e.target.value)}
-            placeholder="your thoughts..."
+            placeholder="your thoughts"
           />
         </div>
 
         <div className="flex flex-wrap gap-2 pt-2">
           {isEdit && (
-            <button
-              type="button"
-              onClick={() => {
-                if (confirm("delete this media item?")) deleteMutation.mutate();
-              }}
-              disabled={deleteMutation.isPending}
-              className="text-error/60 hover:text-error text-sm font-semibold transition-colors motion-reduce:transition-none"
-            >
-              delete
-            </button>
+            confirmingDelete ? (
+              <div className="flex items-center gap-2 animate-fade-in">
+                <span className="text-sm text-base-content/50">delete?</span>
+                <button
+                  type="button"
+                  onClick={() => deleteMutation.mutate()}
+                  disabled={deleteMutation.isPending}
+                  className="text-error text-sm font-semibold transition-colors motion-reduce:transition-none"
+                >
+                  yes
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setConfirmingDelete(false)}
+                  className="text-base-content/50 hover:text-base-content text-sm font-semibold transition-colors motion-reduce:transition-none"
+                >
+                  cancel
+                </button>
+              </div>
+            ) : (
+              <button
+                type="button"
+                onClick={() => setConfirmingDelete(true)}
+                disabled={deleteMutation.isPending}
+                className="text-error/60 hover:text-error text-sm font-semibold transition-colors motion-reduce:transition-none"
+              >
+                delete
+              </button>
+            )
           )}
           <div className="flex-1" />
           <button type="button" onClick={onClose} className={btnSecondary}>
@@ -278,16 +298,13 @@ export default function MediaModal({ item, onClose }: MediaModalProps) {
             disabled={isPending || !!nameError}
             className={btnPrimary}
           >
-            <div className={btnInnerGlow} />
-            <span className="relative">
-              {isPending ? (
-                <span className="loading loading-spinner loading-sm" />
-              ) : isEdit ? (
-                "save"
-              ) : (
-                "add"
-              )}
-            </span>
+            {isPending ? (
+              <span className="loading loading-spinner loading-sm" />
+            ) : isEdit ? (
+              "save"
+            ) : (
+              "add"
+            )}
           </button>
         </div>
       </form>

@@ -47,7 +47,7 @@ export default function MediaTable({ items, onEdit }: MediaTableProps) {
   };
 
   return (
-    <table className="table table-zebra w-full bg-base-100">
+    <table className="table w-full bg-base-100">
       <thead className="sticky top-0 bg-base-100 z-10">
         <tr className="border-b-2 border-base-300">
           <th className="text-left">
@@ -101,7 +101,7 @@ export default function MediaTable({ items, onEdit }: MediaTableProps) {
         {sorted.map((item) => (
           <tr
             key={item.id}
-            className="hover:bg-base-200 cursor-pointer"
+            className="odd:bg-base-200/40 hover:bg-base-200/70 cursor-pointer"
             onClick={() => onEdit(item)}
             onKeyDown={(e) => {
               if (e.key === "Enter" || e.key === " ") {

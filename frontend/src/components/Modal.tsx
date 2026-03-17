@@ -64,14 +64,14 @@ export default function Modal({
 
   return (
     <div
-      className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50"
+      className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50 animate-modal-backdrop"
       onClick={onClose}
       role="dialog"
       aria-modal="true"
       ref={dialogRef}
     >
       <div
-        className={`bg-base-300 rounded-xl w-full ${maxWidth} max-h-[85vh] sm:max-h-[90vh] overflow-y-auto overscroll-contain shadow-[0px_4px_12px_0px_rgba(0,0,0,0.3)] relative p-6`}
+        className={`bg-base-300 rounded-xl w-full ${maxWidth} max-h-[85vh] sm:max-h-[90vh] overflow-y-auto overscroll-contain shadow-[0px_4px_12px_0px_rgba(0,0,0,0.3)] relative p-6 animate-modal-panel`}
         onClick={(e) => e.stopPropagation()}
       >
         <button

@@ -18,7 +18,8 @@ import {
   sendChatMessage,
 } from "../api/tasks";
 import type { Task, TaskFormData, ChatMessage } from "../types";
-import { inputCls } from "../styles";
+import ExpandCollapse from "./ExpandCollapse";
+import { inputCls, selectCls } from "../styles";
 
 function formatDueDate(due: string): string {
   const d = new Date(due + "T00:00:00");
@@ -75,10 +76,11 @@ function TaskInlineForm({
   const [status, setStatus] = useState(task?.status ?? "open");
   const [due, setDue] = useState(task?.due ?? "");
   const [notes, setNotes] = useState(task?.notes ?? "");
+  const [confirmingDelete, setConfirmingDelete] = useState(false);
   const titleRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    titleRef.current?.focus();
+    titleRef.current?.focus({ preventScroll: true });
   }, []);
 
   const saveMutation = useMutation({
@@ -137,7 +139,7 @@ function TaskInlineForm({
         <select
           value={status}
           onChange={(e) => setStatus(e.target.value)}
-          className={inputCls}
+          className={selectCls}
         >
           <option value="open">open</option>
           <option value="closed">closed</option>
@@ -157,16 +159,35 @@ function TaskInlineForm({
       />
       <div className="flex items-center gap-2">
         {isEdit && (
-          <button
-            type="button"
-            onClick={() => {
-              if (confirm("delete this task?")) deleteMutation.mutate();
-            }}
-            disabled={isPending}
-            className="text-error/60 hover:text-error text-xs font-semibold transition-colors motion-reduce:transition-none"
-          >
-            delete
-          </button>
+          confirmingDelete ? (
+            <div className="flex items-center gap-2 animate-fade-in">
+              <span className="text-xs text-base-content/50">delete?</span>
+              <button
+                type="button"
+                onClick={() => deleteMutation.mutate()}
+                disabled={isPending}
+                className="text-error text-xs font-semibold transition-colors motion-reduce:transition-none"
+              >
+                yes
+              </button>
+              <button
+                type="button"
+                onClick={() => setConfirmingDelete(false)}
+                className="text-base-content/50 hover:text-base-content text-xs font-semibold transition-colors motion-reduce:transition-none"
+              >
+                cancel
+              </button>
+            </div>
+          ) : (
+            <button
+              type="button"
+              onClick={() => setConfirmingDelete(true)}
+              disabled={isPending}
+              className="text-error/60 hover:text-error text-xs font-semibold transition-colors motion-reduce:transition-none"
+            >
+              delete
+            </button>
+          )
         )}
         <div className="flex-1" />
         <button
@@ -179,7 +200,7 @@ function TaskInlineForm({
         <button
           type="submit"
           disabled={!title.trim() || isPending}
-          className="px-3 py-1.5 bg-warning text-warning-content rounded-lg text-xs font-semibold hover:brightness-110 transition-[filter,opacity] motion-reduce:transition-none disabled:opacity-50 disabled:cursor-not-allowed"
+          className="px-3 py-1.5 bg-primary text-primary-content rounded-lg text-xs font-semibold hover:brightness-110 transition-[filter,opacity] motion-reduce:transition-none disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {isPending ? (
             <span className="loading loading-spinner loading-xs" />
@@ -262,7 +283,7 @@ function TaskItem({
           }}
           role="button"
           tabIndex={0}
-          className={`text-left text-sm leading-none translate-y-px flex-1 min-w-0 truncate transition-colors motion-reduce:transition-none cursor-pointer ${isEditing ? "text-warning" : isClosed ? "line-through text-base-content/40 hover:text-warning" : "text-base-content hover:text-warning"}`}
+          className={`text-left text-sm leading-none translate-y-px flex-1 min-w-0 truncate transition-colors motion-reduce:transition-none cursor-pointer ${isEditing ? "text-primary" : isClosed ? "line-through text-base-content/40 hover:text-primary" : "text-base-content hover:text-primary"}`}
         >
           {task.title}
         </span>
@@ -302,11 +323,9 @@ function TaskItem({
         )}
       </div>
 
-      {isEditing && (
-        <div className={depth > 0 ? "ml-6" : ""}>
-          <TaskInlineForm task={task} onClose={onCloseEdit} />
-        </div>
-      )}
+      <ExpandCollapse expanded={isEditing} className={depth > 0 ? "ml-6" : ""}>
+        <TaskInlineForm task={task} onClose={onCloseEdit} />
+      </ExpandCollapse>
 
       {hasSubtasks && expanded && (
         <div>
@@ -326,11 +345,9 @@ function TaskItem({
         </div>
       )}
 
-      {addingSubtaskFor === task.id && (
-        <div className="ml-6">
-          <TaskInlineForm parentId={task.id} onClose={onCloseEdit} />
-        </div>
-      )}
+      <ExpandCollapse expanded={addingSubtaskFor === task.id} className="ml-6">
+        <TaskInlineForm parentId={task.id} onClose={onCloseEdit} />
+      </ExpandCollapse>
     </div>
   );
 }
@@ -439,33 +456,39 @@ export default function TaskSection() {
     <div className="space-y-4">
       {/* Header */}
       <div className="flex items-center justify-between">
-        <h2 className="text-lg font-bold text-base-content">tasks</h2>
+        <h2 className="text-lg font-semibold">tasks</h2>
         <div className="flex items-center gap-2">
           <button
             onClick={() => {
               setShowChat(!showChat);
               setTimeout(() => chatInputRef.current?.focus(), 100);
             }}
-            className={`p-2 rounded-lg transition-colors motion-reduce:transition-none ${showChat ? "bg-warning/20 text-warning" : "text-base-content/50 hover:text-base-content"}`}
+            className={`p-2 rounded-lg transition-colors motion-reduce:transition-none ${showChat ? "bg-primary/15 text-primary" : "text-base-content/50 hover:text-base-content"}`}
             title="AI chat"
           >
             <MessageCircle className="w-4 h-4" />
           </button>
           <button
             onClick={() => {
-              closeEdit();
-              setShowAddForm(true);
+              if (showAddForm) {
+                closeEdit();
+              } else {
+                closeEdit();
+                setShowAddForm(true);
+              }
             }}
-            className="flex items-center gap-1.5 text-sm font-semibold text-warning hover:text-warning/80 transition-colors motion-reduce:transition-none"
+            className="h-9 sm:h-10 px-3 sm:px-4 rounded-full bg-primary border border-primary/80 text-primary-content hover:brightness-110 transition-[filter] motion-reduce:transition-none flex items-center gap-1.5 text-sm font-semibold"
           >
             <Plus className="w-4 h-4" />
-            add task
+            <span className="hidden sm:inline">add task</span>
           </button>
         </div>
       </div>
 
       {/* Inline add form */}
-      {showAddForm && <TaskInlineForm onClose={closeEdit} />}
+      <ExpandCollapse expanded={showAddForm}>
+        <div className="pb-2"><TaskInlineForm onClose={closeEdit} /></div>
+      </ExpandCollapse>
 
       {/* Open tasks */}
       {openTasks.length === 0 && closedCount === 0 && !showAddForm ? (
@@ -536,7 +559,7 @@ export default function TaskSection() {
 
       {/* Chat panel */}
       {showChat && (
-        <div className="border border-warning/20 rounded-xl overflow-hidden">
+        <div className="border border-base-content/10 rounded-xl overflow-hidden">
           {chatMessages.length > 0 && (
             <div className="max-h-64 overflow-y-auto p-3 space-y-2">
               {chatMessages.map((msg, i) => (
@@ -550,7 +573,7 @@ export default function TaskSection() {
                 >
                   <span
                     className={`inline-block px-3 py-1.5 rounded-lg ${
-                      msg.role === "user" ? "bg-warning/10" : "bg-base-200"
+                      msg.role === "user" ? "bg-primary/10" : "bg-base-200"
                     }`}
                   >
                     {msg.content}
@@ -568,7 +591,7 @@ export default function TaskSection() {
             </div>
           )}
 
-          <div className="flex items-end gap-2 p-2 border-t border-warning/10">
+          <div className="flex items-end gap-2 p-2 border-t border-base-content/5">
             <textarea
               ref={chatInputRef}
               rows={1}
@@ -594,7 +617,7 @@ export default function TaskSection() {
             <button
               onClick={handleSendChat}
               disabled={!chatInput.trim() || chatLoading}
-              className="p-2 text-warning hover:text-warning/80 disabled:text-base-content/20 transition-colors motion-reduce:transition-none"
+              className="p-2 text-primary hover:text-primary/80 disabled:text-base-content/20 transition-colors motion-reduce:transition-none"
               aria-label="Send message"
             >
               <Send className="w-4 h-4" />

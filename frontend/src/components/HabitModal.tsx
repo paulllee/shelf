@@ -3,7 +3,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import SlideOver from "./SlideOver";
 import { createHabit, updateHabit } from "../api/habits";
 import type { Habit, HabitFormData } from "../types";
-import { inputCls, btnPrimary, btnSecondary, btnInnerGlow } from "../styles";
+import { inputCls, btnPrimary, btnSecondary } from "../styles";
 
 const PRESET_COLORS = [
   "#605dff",
@@ -187,16 +187,13 @@ export default function HabitModal({ habit, onClose }: HabitModalProps) {
             disabled={!name.trim() || selectedDays.length === 0 || isPending}
             className={`flex-1 ${btnPrimary}`}
           >
-            <div className={btnInnerGlow} />
-            <span className="relative">
-              {isPending ? (
-                <span className="loading loading-spinner loading-sm" />
-              ) : habit ? (
-                "save changes"
-              ) : (
-                "add habit"
-              )}
-            </span>
+            {isPending ? (
+              <span className="loading loading-spinner loading-sm" />
+            ) : habit ? (
+              "save changes"
+            ) : (
+              "add habit"
+            )}
           </button>
         </div>
       </form>

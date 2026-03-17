@@ -17,20 +17,19 @@ export default function AllHabitsList({
   onDelete,
 }: AllHabitsListProps) {
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
+  const [confirmingDeleteId, setConfirmingDeleteId] = useState<string | null>(null);
   const menuRef = useRef<HTMLDivElement>(null);
   const closeMenu = useCallback(() => setOpenMenuId(null), []);
   useClickOutside(menuRef, !!openMenuId, closeMenu);
 
   if (habits.length === 0) {
     return (
-      <div className="bg-base-200 rounded-lg p-6 text-center shadow-sm">
-        <p className="text-base-content/50 text-sm">no habits yet</p>
-      </div>
+      <p className="text-base-content/40 text-sm py-4">no habits yet</p>
     );
   }
 
   return (
-    <div className="bg-base-200 rounded-lg shadow-sm overflow-hidden">
+    <div className="bg-base-200 rounded-lg overflow-hidden">
       <div className="divide-y divide-base-300">
         {habits.map((habit) => {
           const isMenuOpen = openMenuId === habit.id;
@@ -68,20 +67,37 @@ export default function AllHabitsList({
                       className={menuItemCls}
                     >
                       <Edit2 className="w-4 h-4 text-base-content/50" />
-                      Edit
+                      edit
                     </button>
-                    <button
-                      onClick={() => {
-                        setOpenMenuId(null);
-                        if (window.confirm(`Delete habit "${habit.name}"?`)) {
-                          onDelete(habit.id);
-                        }
-                      }}
-                      className={`${menuItemCls} text-error`}
-                    >
-                      <Trash2 className="w-4 h-4" />
-                      Delete
-                    </button>
+                    {confirmingDeleteId === habit.id ? (
+                      <div className="flex items-center gap-2 px-3 py-2 animate-fade-in">
+                        <span className="text-xs text-base-content/50">delete?</span>
+                        <button
+                          onClick={() => {
+                            setOpenMenuId(null);
+                            setConfirmingDeleteId(null);
+                            onDelete(habit.id);
+                          }}
+                          className="text-error text-xs font-semibold"
+                        >
+                          yes
+                        </button>
+                        <button
+                          onClick={() => setConfirmingDeleteId(null)}
+                          className="text-base-content/50 hover:text-base-content text-xs font-semibold"
+                        >
+                          cancel
+                        </button>
+                      </div>
+                    ) : (
+                      <button
+                        onClick={() => setConfirmingDeleteId(habit.id)}
+                        className={`${menuItemCls} text-error`}
+                      >
+                        <Trash2 className="w-4 h-4" />
+                        delete
+                      </button>
+                    )}
                   </div>
                 )}
               </div>

@@ -11,6 +11,7 @@ import {
   X,
 } from "lucide-react";
 import HabitList from "./HabitList";
+import ExpandCollapse from "./ExpandCollapse";
 import HabitCalendar from "./HabitCalendar";
 import HabitModal from "./HabitModal";
 import DayDetailModal from "./DayDetailModal";
@@ -62,6 +63,7 @@ export default function HabitSection() {
   const [newPresetName, setNewPresetName] = useState("");
   const [editingPresetId, setEditingPresetId] = useState<string | null>(null);
   const [editingPresetName, setEditingPresetName] = useState("");
+  const [confirmingDeletePresetId, setConfirmingDeletePresetId] = useState<string | null>(null);
   const activityInputRef = useRef<HTMLInputElement>(null);
 
   const queryClient = useQueryClient();
@@ -189,11 +191,11 @@ export default function HabitSection() {
         {/* Header row matching figma layout */}
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">
-            <h2 className="text-[18px] font-semibold">today's habits</h2>
+            <h2 className="text-lg font-semibold">today's habits</h2>
             {habits.length > 0 && (
               <button
                 onClick={() => setShowSettings((v) => !v)}
-                className={`transition-colors motion-reduce:transition-none ${showSettings ? "text-info" : "text-base-content/40 hover:text-base-content"}`}
+                className={`transition-colors motion-reduce:transition-none ${showSettings ? "text-primary" : "text-base-content/40 hover:text-base-content"}`}
                 aria-label="Manage habits and presets"
               >
                 <Settings className="w-4 h-4" />
@@ -205,7 +207,7 @@ export default function HabitSection() {
             <button
               onClick={() => setShowActivityInput((v) => !v)}
               aria-label="Add activity"
-              className="h-9 sm:h-10 px-3 sm:px-4 rounded-full border border-warning bg-base-200 text-warning hover:bg-warning/10 transition-colors motion-reduce:transition-none flex items-center gap-1.5 text-sm font-semibold"
+              className="h-9 sm:h-10 px-3 sm:px-4 rounded-full bg-base-200 border border-primary/20 text-primary hover:bg-primary/10 transition-colors motion-reduce:transition-none flex items-center gap-1.5 text-sm font-semibold"
             >
               <Plus className="w-4 h-4" />
               <span className="hidden sm:inline">add activity</span>
@@ -214,7 +216,7 @@ export default function HabitSection() {
             <button
               onClick={() => setShowAddHabitModal(true)}
               aria-label="Add habit"
-              className="h-9 sm:h-10 px-4 sm:px-5 rounded-full bg-info border border-info/80 text-info-content hover:brightness-110 transition-[filter] motion-reduce:transition-none flex items-center gap-1.5 text-sm font-semibold"
+              className="h-9 sm:h-10 px-4 sm:px-5 rounded-full bg-primary border border-primary/80 text-primary-content hover:brightness-110 transition-[filter] motion-reduce:transition-none flex items-center gap-1.5 text-sm font-semibold"
             >
               <Plus className="w-4 h-4" />
               <span className="hidden sm:inline">add habit</span>
@@ -222,9 +224,218 @@ export default function HabitSection() {
           </div>
         </div>
 
+        {/* Inline settings */}
+        <ExpandCollapse expanded={showSettings}>
+            <div className="border border-base-content/10 rounded-lg overflow-hidden mb-4">
+              {/* Tab bar */}
+              <div className="flex gap-1 bg-base-200 p-1 m-3 rounded-lg">
+                <button
+                  onClick={() => setSettingsTab("habits")}
+                  className={`flex-1 px-3 py-1 rounded-md text-sm font-semibold transition-colors motion-reduce:transition-none ${
+                    settingsTab === "habits"
+                      ? "bg-base-100 text-base-content shadow-sm"
+                      : "text-base-content/50 hover:text-base-content"
+                  }`}
+                >
+                  habits
+                </button>
+                <button
+                  onClick={() => setSettingsTab("presets")}
+                  className={`flex-1 px-3 py-1 rounded-md text-sm font-semibold transition-colors motion-reduce:transition-none ${
+                    settingsTab === "presets"
+                      ? "bg-base-100 text-base-content shadow-sm"
+                      : "text-base-content/50 hover:text-base-content"
+                  }`}
+                >
+                  presets
+                </button>
+              </div>
+
+              <div className="px-3 pb-3">
+                {settingsTab === "habits" && (
+                  <AllHabitsList
+                    habits={habits}
+                    onEdit={(habit) => {
+                      setShowSettings(false);
+                      setEditingHabit(habit);
+                    }}
+                    onDelete={handleDelete}
+                  />
+                )}
+
+                {settingsTab === "presets" && (
+                  <div className="space-y-3">
+                    {isAddingPreset ? (
+                      <div className="flex gap-2">
+                        <input
+                          type="text"
+                          value={newPresetName}
+                          onChange={(e) => setNewPresetName(e.target.value)}
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter" && newPresetName.trim())
+                              createPresetMutation.mutate({
+                                name: newPresetName.trim(),
+                              });
+                            else if (e.key === "Escape") {
+                              setIsAddingPreset(false);
+                              setNewPresetName("");
+                            }
+                          }}
+                          placeholder="activity name"
+                          className="flex-1 bg-base-200 text-base-content px-3 py-2 rounded-lg border border-primary/20 focus:border-primary focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 transition-colors motion-reduce:transition-none text-sm placeholder:text-base-content/30"
+                          autoFocus
+                        />
+                        <button
+                          onClick={() => {
+                            if (newPresetName.trim())
+                              createPresetMutation.mutate({
+                                name: newPresetName.trim(),
+                              });
+                          }}
+                          disabled={createPresetMutation.isPending}
+                          className="px-3 py-2 bg-primary text-primary-content rounded-lg hover:brightness-110 transition-[filter] motion-reduce:transition-none"
+                        >
+                          <Check className="w-4 h-4" />
+                        </button>
+                        <button
+                          onClick={() => {
+                            setIsAddingPreset(false);
+                            setNewPresetName("");
+                          }}
+                          className="px-3 py-2 bg-base-200 text-base-content/50 rounded-lg hover:text-base-content transition-colors motion-reduce:transition-none"
+                        >
+                          <X className="w-4 h-4" />
+                        </button>
+                      </div>
+                    ) : (
+                      <button
+                        onClick={() => setIsAddingPreset(true)}
+                        className="w-full flex items-center justify-center gap-2 p-3 bg-base-200 text-primary rounded-lg border border-primary/20 hover:border-primary hover:bg-primary/10 transition-colors motion-reduce:transition-none font-semibold text-sm"
+                      >
+                        <Plus className="w-4 h-4" />
+                        add new preset
+                      </button>
+                    )}
+
+                    {presetsData.length > 0 ? (
+                      <div className="space-y-2">
+                        {presetsData.map((preset) => (
+                          <div
+                            key={preset.id}
+                            className="flex items-center gap-2 p-3 bg-base-200 rounded-lg"
+                          >
+                            {editingPresetId === preset.id ? (
+                              <>
+                                <input
+                                  type="text"
+                                  value={editingPresetName}
+                                  onChange={(e) =>
+                                    setEditingPresetName(e.target.value)
+                                  }
+                                  onKeyDown={(e) => {
+                                    if (
+                                      e.key === "Enter" &&
+                                      editingPresetName.trim()
+                                    )
+                                      updatePresetMutation.mutate({
+                                        id: preset.id,
+                                        name: editingPresetName.trim(),
+                                      });
+                                    else if (e.key === "Escape") {
+                                      setEditingPresetId(null);
+                                      setEditingPresetName("");
+                                    }
+                                  }}
+                                  className="flex-1 bg-base-300 text-base-content px-2 py-1 rounded border border-primary focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 transition-colors motion-reduce:transition-none text-sm"
+                                  autoFocus
+                                />
+                                <button
+                                  onClick={() =>
+                                    editingPresetName.trim() &&
+                                    updatePresetMutation.mutate({
+                                      id: preset.id,
+                                      name: editingPresetName.trim(),
+                                    })
+                                  }
+                                  disabled={updatePresetMutation.isPending}
+                                  className="p-1 text-base-content/50 hover:text-base-content transition-colors motion-reduce:transition-none"
+                                >
+                                  <Check className="w-4 h-4" />
+                                </button>
+                                <button
+                                  onClick={() => {
+                                    setEditingPresetId(null);
+                                    setEditingPresetName("");
+                                  }}
+                                  className="p-1 text-base-content/30 hover:text-base-content transition-colors motion-reduce:transition-none"
+                                >
+                                  <X className="w-4 h-4" />
+                                </button>
+                              </>
+                            ) : (
+                              <>
+                                <div className="w-2 h-2 bg-base-content/20 rounded-full flex-shrink-0" />
+                                <span className="flex-1 text-base-content text-sm">
+                                  {preset.name}
+                                </span>
+                                <div className="flex gap-1">
+                                  <button
+                                    onClick={() => {
+                                      setEditingPresetId(preset.id);
+                                      setEditingPresetName(preset.name);
+                                    }}
+                                    className="p-1 text-base-content/30 hover:text-primary transition-colors motion-reduce:transition-none"
+                                    aria-label="Edit preset"
+                                  >
+                                    <Edit2 className="w-4 h-4" />
+                                  </button>
+                                  {confirmingDeletePresetId === preset.id ? (
+                                    <div className="flex items-center gap-1.5 animate-fade-in">
+                                      <button
+                                        onClick={() => {
+                                          deletePresetMutation.mutate(preset.id);
+                                          setConfirmingDeletePresetId(null);
+                                        }}
+                                        className="text-error text-xs font-semibold px-1"
+                                      >
+                                        delete
+                                      </button>
+                                      <button
+                                        onClick={() => setConfirmingDeletePresetId(null)}
+                                        className="p-1 text-base-content/30 hover:text-base-content transition-colors motion-reduce:transition-none"
+                                        aria-label="Cancel"
+                                      >
+                                        <X className="w-3 h-3" />
+                                      </button>
+                                    </div>
+                                  ) : (
+                                    <button
+                                      onClick={() => setConfirmingDeletePresetId(preset.id)}
+                                      className="p-1 text-base-content/30 hover:text-error transition-colors motion-reduce:transition-none"
+                                      aria-label="Delete preset"
+                                    >
+                                      <Trash2 className="w-4 h-4" />
+                                    </button>
+                                  )}
+                                </div>
+                              </>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="text-center text-base-content/50 text-sm py-8">
+                        no presets yet
+                      </p>
+                    )}
+                  </div>
+                )}
+              </div>
+            </div>
+        </ExpandCollapse>
+
         {/* Inline activity input */}
-        <div className="expand-collapse" data-expanded={showActivityInput}>
-          <div>
+        <ExpandCollapse expanded={showActivityInput}>
             <form
               className="mb-4 flex flex-col gap-2"
               onSubmit={(e) => {
@@ -244,12 +455,12 @@ export default function HabitSection() {
                   value={activityName}
                   onChange={(e) => setActivityName(e.target.value)}
                   placeholder="activity name"
-                  className="flex-1 bg-base-200 text-base-content px-3 py-2 rounded-lg border border-warning/20 focus:border-warning focus:outline-none focus-visible:ring-2 focus-visible:ring-warning/50 transition-colors motion-reduce:transition-none placeholder:text-base-content/30 text-sm"
+                  className="flex-1 bg-base-200 text-base-content px-3 py-2 rounded-lg border border-primary/20 focus:border-primary focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 transition-colors motion-reduce:transition-none placeholder:text-base-content/30 text-sm"
                 />
                 <button
                   type="submit"
                   disabled={!activityName.trim() || activityMutation.isPending}
-                  className="px-3 py-2 bg-warning text-warning-content rounded-lg text-sm font-semibold hover:brightness-110 transition-[filter,opacity] motion-reduce:transition-none disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="px-3 py-2 bg-primary text-primary-content rounded-lg text-sm font-semibold hover:brightness-110 transition-[filter,opacity] motion-reduce:transition-none disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {activityMutation.isPending ? (
                     <span className="loading loading-spinner loading-xs" />
@@ -271,7 +482,7 @@ export default function HabitSection() {
                         })
                       }
                       disabled={activityMutation.isPending}
-                      className="px-2.5 py-1 bg-base-200 text-base-content text-xs rounded-full border border-warning/30 hover:border-warning hover:bg-warning/10 transition-colors motion-reduce:transition-none"
+                      className="px-2.5 py-1 bg-base-200 text-base-content text-xs rounded-full border border-primary/20 hover:border-primary hover:bg-primary/10 transition-colors motion-reduce:transition-none"
                     >
                       {preset}
                     </button>
@@ -284,8 +495,7 @@ export default function HabitSection() {
                 </p>
               )}
             </form>
-          </div>
-        </div>
+        </ExpandCollapse>
 
         <HabitList
           habits={todaysHabits}
@@ -320,7 +530,7 @@ export default function HabitSection() {
         <div>
           <button
             onClick={() => setIsOtherHabitsExpanded((prev) => !prev)}
-            className="flex items-center gap-2 text-base-content font-semibold mb-4 hover:text-info transition-colors motion-reduce:transition-none"
+            className="flex items-center gap-2 text-base-content font-semibold mb-4 hover:text-primary transition-colors motion-reduce:transition-none"
           >
             {isOtherHabitsExpanded ? (
               <ChevronUp className="w-4 h-4" />
@@ -329,220 +539,17 @@ export default function HabitSection() {
             )}
             other habits ({otherHabits.length})
           </button>
-          <div
-            className="expand-collapse"
-            data-expanded={isOtherHabitsExpanded}
-          >
-            <div>
-              <HabitList
-                habits={otherHabits}
-                date={today}
-                onToggle={handleToggle}
-                onEdit={setEditingHabit}
-                onDelete={handleDelete}
-              />
-            </div>
-          </div>
+          <ExpandCollapse expanded={isOtherHabitsExpanded}>
+            <HabitList
+              habits={otherHabits}
+              date={today}
+              onToggle={handleToggle}
+              onEdit={setEditingHabit}
+              onDelete={handleDelete}
+            />
+          </ExpandCollapse>
         </div>
       )}
-
-      {/* Inline settings */}
-      <div className="expand-collapse" data-expanded={showSettings}>
-        <div>
-          <div className="border border-base-content/10 rounded-lg overflow-hidden">
-            {/* Tab bar */}
-            <div className="flex gap-1 bg-base-200 p-1 m-3 rounded-lg">
-              <button
-                onClick={() => setSettingsTab("habits")}
-                className={`flex-1 px-3 py-1 rounded-md text-sm font-semibold transition-colors motion-reduce:transition-none ${
-                  settingsTab === "habits"
-                    ? "bg-base-100 text-base-content shadow-sm"
-                    : "text-base-content/50 hover:text-base-content"
-                }`}
-              >
-                habits
-              </button>
-              <button
-                onClick={() => setSettingsTab("presets")}
-                className={`flex-1 px-3 py-1 rounded-md text-sm font-semibold transition-colors motion-reduce:transition-none ${
-                  settingsTab === "presets"
-                    ? "bg-base-100 text-base-content shadow-sm"
-                    : "text-base-content/50 hover:text-base-content"
-                }`}
-              >
-                presets
-              </button>
-            </div>
-
-            <div className="px-3 pb-3">
-              {settingsTab === "habits" && (
-                <AllHabitsList
-                  habits={habits}
-                  onEdit={(habit) => {
-                    setShowSettings(false);
-                    setEditingHabit(habit);
-                  }}
-                  onDelete={handleDelete}
-                />
-              )}
-
-              {settingsTab === "presets" && (
-                <div className="space-y-3">
-                  {isAddingPreset ? (
-                    <div className="flex gap-2">
-                      <input
-                        type="text"
-                        value={newPresetName}
-                        onChange={(e) => setNewPresetName(e.target.value)}
-                        onKeyDown={(e) => {
-                          if (e.key === "Enter" && newPresetName.trim())
-                            createPresetMutation.mutate({
-                              name: newPresetName.trim(),
-                            });
-                          else if (e.key === "Escape") {
-                            setIsAddingPreset(false);
-                            setNewPresetName("");
-                          }
-                        }}
-                        placeholder="activity name..."
-                        className="flex-1 bg-base-200 text-base-content px-3 py-2 rounded-lg border border-warning focus:outline-none focus-visible:ring-2 focus-visible:ring-warning/50 transition-colors motion-reduce:transition-none text-sm placeholder:text-base-content/30"
-                        autoFocus
-                      />
-                      <button
-                        onClick={() => {
-                          if (newPresetName.trim())
-                            createPresetMutation.mutate({
-                              name: newPresetName.trim(),
-                            });
-                        }}
-                        disabled={createPresetMutation.isPending}
-                        className="px-3 py-2 bg-warning text-warning-content rounded-lg hover:brightness-110 transition-[filter] motion-reduce:transition-none"
-                      >
-                        <Check className="w-4 h-4" />
-                      </button>
-                      <button
-                        onClick={() => {
-                          setIsAddingPreset(false);
-                          setNewPresetName("");
-                        }}
-                        className="px-3 py-2 bg-base-200 text-base-content/50 rounded-lg hover:text-base-content transition-colors motion-reduce:transition-none"
-                      >
-                        <X className="w-4 h-4" />
-                      </button>
-                    </div>
-                  ) : (
-                    <button
-                      onClick={() => setIsAddingPreset(true)}
-                      className="w-full flex items-center justify-center gap-2 p-3 bg-base-200 text-warning rounded-lg border border-warning/30 hover:border-warning hover:bg-warning/10 transition-colors motion-reduce:transition-none font-semibold text-sm"
-                    >
-                      <Plus className="w-4 h-4" />
-                      add new preset
-                    </button>
-                  )}
-
-                  {presetsData.length > 0 ? (
-                    <div className="space-y-2">
-                      {presetsData.map((preset) => (
-                        <div
-                          key={preset.id}
-                          className="flex items-center gap-2 p-3 bg-base-200 rounded-lg"
-                        >
-                          {editingPresetId === preset.id ? (
-                            <>
-                              <input
-                                type="text"
-                                value={editingPresetName}
-                                onChange={(e) =>
-                                  setEditingPresetName(e.target.value)
-                                }
-                                onKeyDown={(e) => {
-                                  if (
-                                    e.key === "Enter" &&
-                                    editingPresetName.trim()
-                                  )
-                                    updatePresetMutation.mutate({
-                                      id: preset.id,
-                                      name: editingPresetName.trim(),
-                                    });
-                                  else if (e.key === "Escape") {
-                                    setEditingPresetId(null);
-                                    setEditingPresetName("");
-                                  }
-                                }}
-                                className="flex-1 bg-base-300 text-base-content px-2 py-1 rounded border border-primary focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 transition-colors motion-reduce:transition-none text-sm"
-                                autoFocus
-                              />
-                              <button
-                                onClick={() =>
-                                  editingPresetName.trim() &&
-                                  updatePresetMutation.mutate({
-                                    id: preset.id,
-                                    name: editingPresetName.trim(),
-                                  })
-                                }
-                                disabled={updatePresetMutation.isPending}
-                                className="p-1 text-success hover:text-success/70 transition-colors motion-reduce:transition-none"
-                              >
-                                <Check className="w-4 h-4" />
-                              </button>
-                              <button
-                                onClick={() => {
-                                  setEditingPresetId(null);
-                                  setEditingPresetName("");
-                                }}
-                                className="p-1 text-base-content/30 hover:text-base-content transition-colors motion-reduce:transition-none"
-                              >
-                                <X className="w-4 h-4" />
-                              </button>
-                            </>
-                          ) : (
-                            <>
-                              <div className="w-2 h-2 bg-warning rounded-full flex-shrink-0" />
-                              <span className="flex-1 text-base-content text-sm">
-                                {preset.name}
-                              </span>
-                              <div className="flex gap-1">
-                                <button
-                                  onClick={() => {
-                                    setEditingPresetId(preset.id);
-                                    setEditingPresetName(preset.name);
-                                  }}
-                                  className="p-1 text-base-content/30 hover:text-primary transition-colors motion-reduce:transition-none"
-                                  aria-label="Edit preset"
-                                >
-                                  <Edit2 className="w-4 h-4" />
-                                </button>
-                                <button
-                                  onClick={() => {
-                                    if (
-                                      window.confirm(
-                                        `Delete preset "${preset.name}"?`,
-                                      )
-                                    )
-                                      deletePresetMutation.mutate(preset.id);
-                                  }}
-                                  className="p-1 text-base-content/30 hover:text-error transition-colors motion-reduce:transition-none"
-                                  aria-label="Delete preset"
-                                >
-                                  <Trash2 className="w-4 h-4" />
-                                </button>
-                              </div>
-                            </>
-                          )}
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <p className="text-center text-base-content/50 text-sm py-8">
-                      no presets yet — add your first one!
-                    </p>
-                  )}
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-      </div>
 
       {(editingHabit || showAddHabitModal) && (
         <HabitModal

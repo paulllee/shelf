@@ -25,7 +25,7 @@ export default function MediaCard({ item, onClick }: MediaCardProps) {
       <div className="flex justify-between items-start">
         <span className="font-medium min-w-0 truncate">{item.name}</span>
         {item.rating && item.rating !== "n/a" && (
-          <span className="badge badge-primary badge-sm">{item.rating}</span>
+          <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-[0.7rem] font-semibold bg-primary text-primary-content">{item.rating}</span>
         )}
       </div>
       <div className="text-sm text-base-content/60 mt-1">

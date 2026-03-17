@@ -4,7 +4,7 @@ import Modal from "./Modal";
 import GroupsEditor from "./GroupsEditor";
 import { updateTemplate } from "../api/templates";
 import type { WorkoutTemplate, ExerciseGroup } from "../types";
-import { btnPrimary, btnSecondary, btnInnerGlow } from "../styles";
+import { btnPrimary, btnSecondary, inputCls } from "../styles";
 
 interface TemplateFormModalProps {
   editTemplate: WorkoutTemplate;
@@ -39,13 +39,11 @@ export default function TemplateFormModal({
       </h3>
 
       <form onSubmit={handleSubmit}>
-        <div className="form-control mb-4">
-          <label className="label">
-            <span className="label-text">name</span>
-          </label>
+        <div className="flex flex-col gap-1.5 mb-4">
+          <label className="text-sm font-semibold text-base-content">name</label>
           <input
             type="text"
-            className="input input-bordered"
+            className={inputCls}
             placeholder="template name"
             value={name}
             onChange={(e) => setName(e.target.value)}
@@ -53,7 +51,11 @@ export default function TemplateFormModal({
           />
         </div>
 
-        <div className="divider text-sm">exercise groups</div>
+        <div className="flex items-center gap-2 text-sm text-base-content/40 my-3">
+          <div className="flex-1 h-px bg-current" />
+          exercise groups
+          <div className="flex-1 h-px bg-current" />
+        </div>
 
         <GroupsEditor groups={groups} onChange={setGroups} />
 
@@ -66,14 +68,11 @@ export default function TemplateFormModal({
             disabled={mutation.isPending}
             className={btnPrimary}
           >
-            <div className={btnInnerGlow} />
-            <span className="relative">
-              {mutation.isPending ? (
-                <span className="loading loading-spinner loading-sm" />
-              ) : (
-                "save"
-              )}
-            </span>
+            {mutation.isPending ? (
+              <span className="loading loading-spinner loading-sm" />
+            ) : (
+              "save"
+            )}
           </button>
         </div>
       </form>

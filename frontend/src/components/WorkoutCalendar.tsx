@@ -50,7 +50,7 @@ export default function WorkoutCalendar({ onDateClick }: WorkoutCalendarProps) {
     <div className="bg-base-200 rounded-lg p-3 sm:p-4">
       <div className="flex justify-between items-center mb-4">
         <button
-          className="btn btn-ghost btn-sm btn-square min-w-[44px] min-h-[44px]"
+          className="min-w-[44px] min-h-[44px] flex items-center justify-center text-base-content/60 hover:text-base-content transition-colors motion-reduce:transition-none cursor-pointer bg-transparent border-none rounded-lg"
           onClick={goPrev}
         >
           &larr;
@@ -60,7 +60,7 @@ export default function WorkoutCalendar({ onDateClick }: WorkoutCalendarProps) {
             {cal.month_name} {cal.year}
           </span>
           <button
-            className="btn btn-ghost btn-sm btn-circle min-w-[44px] min-h-[44px]"
+            className="min-w-[44px] min-h-[44px] flex items-center justify-center text-base-content/60 hover:text-base-content transition-colors motion-reduce:transition-none cursor-pointer bg-transparent border-none rounded-full"
             onClick={goToday}
             title="go to today"
           >
@@ -68,7 +68,7 @@ export default function WorkoutCalendar({ onDateClick }: WorkoutCalendarProps) {
           </button>
         </div>
         <button
-          className="btn btn-ghost btn-sm btn-square min-w-[44px] min-h-[44px]"
+          className="min-w-[44px] min-h-[44px] flex items-center justify-center text-base-content/60 hover:text-base-content transition-colors motion-reduce:transition-none cursor-pointer bg-transparent border-none rounded-lg"
           onClick={goNext}
         >
           &rarr;
