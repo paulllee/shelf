@@ -273,6 +273,10 @@ def _build_chat_tools() -> list[types.Tool]:
                                 "description": "New due date in YYYY-MM-DD or null to clear",
                             },
                             "notes": {"type": "string", "description": "New notes"},
+                            "parent_id": {
+                                "type": "string",
+                                "description": "New parent task ID, or null to promote the task to top-level",
+                            },
                         },
                         "required": ["task_id"],
                     },
@@ -409,12 +413,32 @@ def _execute_tool(
         if "due" in tool_input:
             due = date.fromisoformat(tool_input["due"]) if tool_input["due"] else None
         notes = tool_input.get("notes", existing.notes)
+        parent = existing.parent
+        if "parent_id" in tool_input:
+            new_parent_id = tool_input["parent_id"] or None
+            if new_parent_id:
+                parent_task = next(
+                    (t for t in all_tasks if t.id == new_parent_id), None
+                )
+                if not parent_task:
+                    return (
+                        f"Parent task with ID '{new_parent_id}' not found. "
+                        "Use list_tasks to get the correct task ID.",
+                        False,
+                    )
+                if parent_task.parent:
+                    return (
+                        f"Cannot set '{parent_task.title}' as parent because it is "
+                        "already a sub-task. Only top-level tasks can have sub-tasks.",
+                        False,
+                    )
+            parent = new_parent_id
 
         task_model = TaskModel(
             title=title,
             status=status,
             due=due,
-            parent=existing.parent,
+            parent=parent,
             notes=notes,
         )
         new_id = task_model.make_id(existing.created_at)
