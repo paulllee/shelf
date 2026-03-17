@@ -2,7 +2,7 @@ from dataclasses import dataclass, field
 from datetime import date, datetime, time
 from enum import IntEnum
 
-from pydantic import BaseModel
+from pydantic import BaseModel, field_validator
 from slugify import slugify
 
 
@@ -348,6 +348,14 @@ class TaskModel(BaseModel):
     due: date | None = None
     parent: str | None = None
     notes: str | None = None
+
+    @field_validator("parent", mode="before")
+    @classmethod
+    def normalize_parent(cls, v: str | None) -> str | None:
+        """Strip trailing periods and whitespace so parent matches the parent's filename."""
+        if v is None:
+            return None
+        return v.strip().rstrip(".")
 
     def make_id(self, created_at: datetime) -> str:
         """Generate a timestamp + slug ID from a given datetime and title."""
