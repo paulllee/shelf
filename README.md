@@ -2,10 +2,6 @@
 
 a self-hosted, markdown-backed personal tracker for media, workouts, habits, and tasks
 
-| media | workouts | habits | tasks |
-|-------|----------|--------|-------|
-| ![media](docs/shelf-media.png) | ![workouts](docs/shelf-workout.png) | ![habits](docs/shelf-habits.png) | ![tasks](docs/shelf-tasks.png) |
-
 ## features
 
 - **media tracking**: track movies, shows, and other media with status, ratings,
@@ -70,6 +66,6 @@ make build-frontend # production build
 ## tech stack
 
 - **backend**: fastapi + python-frontmatter
-- **frontend**: react + vite + tailwindcss + daisyui + tanstack query
+- **frontend**: react 19 + vite + tailwindcss 4 + tanstack query
 - **data**: markdown with yaml frontmatter
 - **tooling**: uv, ruff, prettier, typescript
