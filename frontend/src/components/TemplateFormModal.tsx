@@ -40,7 +40,9 @@ export default function TemplateFormModal({
 
       <form onSubmit={handleSubmit}>
         <div className="flex flex-col gap-1.5 mb-4">
-          <label className="text-sm font-semibold text-base-content">name</label>
+          <label className="text-sm font-semibold text-base-content">
+            name
+          </label>
           <input
             type="text"
             className={inputCls}

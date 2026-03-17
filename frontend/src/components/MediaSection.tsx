@@ -52,7 +52,10 @@ export default function MediaSection() {
   return (
     <>
       <div className="flex items-center gap-3 mb-6">
-        <div role="tablist" className="flex gap-1 flex-1 bg-base-200 rounded-full p-1">
+        <div
+          role="tablist"
+          className="flex gap-1 flex-1 bg-base-200 rounded-full p-1"
+        >
           {STATUSES.map((s) => (
             <button
               key={s}

@@ -318,7 +318,9 @@ export default function WorkoutFormModal({
       {!isEdit && templates.length > 0 && (
         <>
           <ExpandCollapse expanded={templates.length > 0} className="mb-4">
-            <p className="text-xs text-base-content/50 mb-2 pt-1">quick start from template</p>
+            <p className="text-xs text-base-content/50 mb-2 pt-1">
+              quick start from template
+            </p>
             <WorkoutTemplates
               templates={templates}
               onUse={handleLoadTemplate}
@@ -336,7 +338,9 @@ export default function WorkoutFormModal({
       <form onSubmit={handleSubmit}>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 mb-4">
           <div className="flex flex-col gap-1.5">
-            <label className="text-sm font-semibold text-base-content">date</label>
+            <label className="text-sm font-semibold text-base-content">
+              date
+            </label>
             <input
               type="date"
               className={inputCls}
@@ -348,7 +352,9 @@ export default function WorkoutFormModal({
             />
           </div>
           <div className="flex flex-col gap-1.5">
-            <label className="text-sm font-semibold text-base-content">time</label>
+            <label className="text-sm font-semibold text-base-content">
+              time
+            </label>
             <input
               type="time"
               className={inputCls}
@@ -373,7 +379,9 @@ export default function WorkoutFormModal({
         />
 
         <div className="flex flex-col gap-1.5 mb-4">
-          <label className="text-sm font-semibold text-base-content">notes</label>
+          <label className="text-sm font-semibold text-base-content">
+            notes
+          </label>
           <textarea
             className={`${inputCls} h-20 resize-none`}
             placeholder="notes"

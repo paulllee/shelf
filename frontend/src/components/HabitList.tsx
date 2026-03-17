@@ -72,7 +72,9 @@ export default function HabitList({
   const [shiftPickerHabitId, setShiftPickerHabitId] = useState<string | null>(
     null,
   );
-  const [confirmingDeleteId, setConfirmingDeleteId] = useState<string | null>(null);
+  const [confirmingDeleteId, setConfirmingDeleteId] = useState<string | null>(
+    null,
+  );
   const menuRef = useRef<HTMLDivElement>(null);
   const closeMenu = useCallback(() => setOpenMenuId(null), []);
   useClickOutside(menuRef, !!openMenuId, closeMenu);
@@ -104,143 +106,141 @@ export default function HabitList({
         return (
           <div key={habit.id}>
             <div className="flex items-center gap-3 py-2.5">
-                <button
-                  onClick={(e) => {
-                    if (!completed) {
-                      const rect = e.currentTarget.getBoundingClientRect();
-                      getConfetti().then((confetti) =>
-                        confetti({
-                          origin: {
-                            x: (rect.left + rect.width / 2) / window.innerWidth,
-                            y:
-                              (rect.top + rect.height / 2) / window.innerHeight,
-                          },
-                          spread: 70,
-                          startVelocity: 25,
-                          particleCount: 60,
-                          scalar: 0.8,
-                          colors: [habit.color, "#ffffff", habit.color + "99"],
-                        }),
-                      );
-                    }
-                    onToggle(habit.id, dateStr);
-                  }}
-                  className={`flex-shrink-0 w-8 h-8 rounded-full border-2 transition-colors motion-reduce:transition-none flex items-center justify-center${completed ? " animate-check-pulse" : ""}`}
-                  style={{
-                    borderColor: completed ? habit.color : `${habit.color}50`,
-                    backgroundColor: completed ? habit.color : "transparent",
-                  }}
+              <button
+                onClick={(e) => {
+                  if (!completed) {
+                    const rect = e.currentTarget.getBoundingClientRect();
+                    getConfetti().then((confetti) =>
+                      confetti({
+                        origin: {
+                          x: (rect.left + rect.width / 2) / window.innerWidth,
+                          y: (rect.top + rect.height / 2) / window.innerHeight,
+                        },
+                        spread: 70,
+                        startVelocity: 25,
+                        particleCount: 60,
+                        scalar: 0.8,
+                        colors: [habit.color, "#ffffff", habit.color + "99"],
+                      }),
+                    );
+                  }
+                  onToggle(habit.id, dateStr);
+                }}
+                className={`flex-shrink-0 w-8 h-8 rounded-full border-2 transition-colors motion-reduce:transition-none flex items-center justify-center${completed ? " animate-check-pulse" : ""}`}
+                style={{
+                  borderColor: completed ? habit.color : `${habit.color}50`,
+                  backgroundColor: completed ? habit.color : "transparent",
+                }}
+              >
+                {completed && (
+                  <Check className="w-4 h-4 text-white" strokeWidth={3} />
+                )}
+              </button>
+
+              <div className="flex-1 min-w-0 flex items-baseline gap-2">
+                <h3
+                  className={`text-sm font-semibold transition-colors motion-reduce:transition-none truncate ${
+                    completed
+                      ? "text-base-content/40 line-through"
+                      : "text-base-content"
+                  }`}
                 >
-                  {completed && (
-                    <Check
-                      className="w-4 h-4 text-white"
-                      strokeWidth={3}
-                    />
-                  )}
+                  {habit.name}
+                </h3>
+                <span className="text-base-content/30 text-xs shrink-0">
+                  {getDaysText(habit.days)}
+                </span>
+              </div>
+
+              <div className="relative" ref={isMenuOpen ? menuRef : null}>
+                <button
+                  onClick={() => setOpenMenuId(isMenuOpen ? null : habit.id)}
+                  className="p-2 text-base-content/30 hover:text-base-content transition-colors motion-reduce:transition-none"
+                  aria-label="More options"
+                >
+                  <MoreVertical className="w-4 h-4" />
                 </button>
 
-                <div className="flex-1 min-w-0 flex items-baseline gap-2">
-                  <h3
-                    className={`text-sm font-semibold transition-colors motion-reduce:transition-none truncate ${
-                      completed
-                        ? "text-base-content/40 line-through"
-                        : "text-base-content"
-                    }`}
-                  >
-                    {habit.name}
-                  </h3>
-                  <span className="text-base-content/30 text-xs shrink-0">
-                    {getDaysText(habit.days)}
-                  </span>
-                </div>
-
-                <div className="relative" ref={isMenuOpen ? menuRef : null}>
-                  <button
-                    onClick={() => setOpenMenuId(isMenuOpen ? null : habit.id)}
-                    className="p-2 text-base-content/30 hover:text-base-content transition-colors motion-reduce:transition-none"
-                    aria-label="More options"
-                  >
-                    <MoreVertical className="w-4 h-4" />
-                  </button>
-
-                  {isMenuOpen && (
-                    <div className="absolute right-0 top-full mt-1 z-10 bg-base-100 border border-base-300 rounded-lg shadow-lg overflow-hidden min-w-[120px]">
-                      <button
-                        onClick={() => {
-                          setOpenMenuId(null);
-                          onEdit(habit);
-                        }}
-                        className={menuItemCls}
-                      >
-                        <Edit2 className="w-4 h-4 text-base-content/50" />
-                        edit
-                      </button>
-                      {onShift &&
-                        habit.days.length < 7 &&
-                        (() => {
-                          const existingShift = getShiftForDay(
-                            habit,
-                            habitFromDate,
-                          );
-                          if (existingShift && !isShiftedHere) {
-                            return (
-                              <button
-                                onClick={() => {
-                                  setOpenMenuId(null);
-                                  onCancelShift?.(habit.id, habitFromDate);
-                                }}
-                                className={menuItemCls}
-                              >
-                                <Ban className="w-4 h-4 text-base-content/50" />
-                                undo move
-                              </button>
-                            );
-                          }
+                {isMenuOpen && (
+                  <div className="absolute right-0 top-full mt-1 z-10 bg-base-100 border border-base-300 rounded-lg shadow-lg overflow-hidden min-w-[120px]">
+                    <button
+                      onClick={() => {
+                        setOpenMenuId(null);
+                        onEdit(habit);
+                      }}
+                      className={menuItemCls}
+                    >
+                      <Edit2 className="w-4 h-4 text-base-content/50" />
+                      edit
+                    </button>
+                    {onShift &&
+                      habit.days.length < 7 &&
+                      (() => {
+                        const existingShift = getShiftForDay(
+                          habit,
+                          habitFromDate,
+                        );
+                        if (existingShift && !isShiftedHere) {
                           return (
                             <button
                               onClick={() => {
                                 setOpenMenuId(null);
-                                setShiftPickerHabitId(habit.id);
+                                onCancelShift?.(habit.id, habitFromDate);
                               }}
                               className={menuItemCls}
                             >
-                              <CalendarClock className="w-4 h-4 text-base-content/50" />
-                              move
+                              <Ban className="w-4 h-4 text-base-content/50" />
+                              undo move
                             </button>
                           );
-                        })()}
-                      {confirmingDeleteId === habit.id ? (
-                        <div className="flex items-center gap-2 px-3 py-2 animate-fade-in">
-                          <span className="text-xs text-base-content/50">delete?</span>
+                        }
+                        return (
                           <button
                             onClick={() => {
                               setOpenMenuId(null);
-                              setConfirmingDeleteId(null);
-                              onDelete(habit.id);
+                              setShiftPickerHabitId(habit.id);
                             }}
-                            className="text-error text-xs font-semibold"
+                            className={menuItemCls}
                           >
-                            yes
+                            <CalendarClock className="w-4 h-4 text-base-content/50" />
+                            move
                           </button>
-                          <button
-                            onClick={() => setConfirmingDeleteId(null)}
-                            className="text-base-content/50 hover:text-base-content text-xs font-semibold"
-                          >
-                            cancel
-                          </button>
-                        </div>
-                      ) : (
+                        );
+                      })()}
+                    {confirmingDeleteId === habit.id ? (
+                      <div className="flex items-center gap-2 px-3 py-2 animate-fade-in">
+                        <span className="text-xs text-base-content/50">
+                          delete?
+                        </span>
                         <button
-                          onClick={() => setConfirmingDeleteId(habit.id)}
-                          className={`${menuItemCls} text-error`}
+                          onClick={() => {
+                            setOpenMenuId(null);
+                            setConfirmingDeleteId(null);
+                            onDelete(habit.id);
+                          }}
+                          className="text-error text-xs font-semibold"
                         >
-                          <Trash2 className="w-4 h-4" />
-                          delete
+                          yes
                         </button>
-                      )}
-                    </div>
-                  )}
-                </div>
+                        <button
+                          onClick={() => setConfirmingDeleteId(null)}
+                          className="text-base-content/50 hover:text-base-content text-xs font-semibold"
+                        >
+                          cancel
+                        </button>
+                      </div>
+                    ) : (
+                      <button
+                        onClick={() => setConfirmingDeleteId(habit.id)}
+                        className={`${menuItemCls} text-error`}
+                      >
+                        <Trash2 className="w-4 h-4" />
+                        delete
+                      </button>
+                    )}
+                  </div>
+                )}
+              </div>
             </div>
             {shiftPickerHabitId === habit.id && (
               <div className="mt-2 p-3 bg-base-100 border border-base-300 rounded-lg animate-fade-in">

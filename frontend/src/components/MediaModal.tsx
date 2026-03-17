@@ -258,8 +258,8 @@ export default function MediaModal({ item, onClose }: MediaModalProps) {
         </div>
 
         <div className="flex flex-wrap gap-2 pt-2">
-          {isEdit && (
-            confirmingDelete ? (
+          {isEdit &&
+            (confirmingDelete ? (
               <div className="flex items-center gap-2 animate-fade-in">
                 <span className="text-sm text-base-content/50">delete?</span>
                 <button
@@ -287,8 +287,7 @@ export default function MediaModal({ item, onClose }: MediaModalProps) {
               >
                 delete
               </button>
-            )
-          )}
+            ))}
           <div className="flex-1" />
           <button type="button" onClick={onClose} className={btnSecondary}>
             cancel

@@ -158,8 +158,8 @@ function TaskInlineForm({
         className={`${inputCls} h-16 resize-none`}
       />
       <div className="flex items-center gap-2">
-        {isEdit && (
-          confirmingDelete ? (
+        {isEdit &&
+          (confirmingDelete ? (
             <div className="flex items-center gap-2 animate-fade-in">
               <span className="text-xs text-base-content/50">delete?</span>
               <button
@@ -187,8 +187,7 @@ function TaskInlineForm({
             >
               delete
             </button>
-          )
-        )}
+          ))}
         <div className="flex-1" />
         <button
           type="button"
@@ -487,7 +486,9 @@ export default function TaskSection() {
 
       {/* Inline add form */}
       <ExpandCollapse expanded={showAddForm}>
-        <div className="pb-2"><TaskInlineForm onClose={closeEdit} /></div>
+        <div className="pb-2">
+          <TaskInlineForm onClose={closeEdit} />
+        </div>
       </ExpandCollapse>
 
       {/* Open tasks */}

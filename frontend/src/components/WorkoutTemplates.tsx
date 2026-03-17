@@ -17,7 +17,9 @@ export default function WorkoutTemplates({
   onEdit,
 }: WorkoutTemplatesProps) {
   const queryClient = useQueryClient();
-  const [confirmingDeleteId, setConfirmingDeleteId] = useState<string | null>(null);
+  const [confirmingDeleteId, setConfirmingDeleteId] = useState<string | null>(
+    null,
+  );
 
   const deleteMutation = useMutation({
     mutationFn: (id: string) => deleteTemplate(id),

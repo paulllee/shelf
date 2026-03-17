@@ -49,7 +49,9 @@ export default function DayDetailModal({
   const [newActivityName, setNewActivityName] = useState("");
   const [showPresets, setShowPresets] = useState(false);
   const [isOtherHabitsExpanded, setIsOtherHabitsExpanded] = useState(false);
-  const [confirmingDeleteActivityId, setConfirmingDeleteActivityId] = useState<string | null>(null);
+  const [confirmingDeleteActivityId, setConfirmingDeleteActivityId] = useState<
+    string | null
+  >(null);
 
   const dateStr = formatDateStr(date);
   const queryClient = useQueryClient();
@@ -334,7 +336,9 @@ export default function DayDetailModal({
 
         <div>
           <div className="flex items-center justify-between mb-2">
-            <h3 className="text-base-content/60 text-sm font-semibold">activities</h3>
+            <h3 className="text-base-content/60 text-sm font-semibold">
+              activities
+            </h3>
             <button
               onClick={() => {
                 setIsAddingActivity(true);

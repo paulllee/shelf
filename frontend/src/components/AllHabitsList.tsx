@@ -17,15 +17,15 @@ export default function AllHabitsList({
   onDelete,
 }: AllHabitsListProps) {
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
-  const [confirmingDeleteId, setConfirmingDeleteId] = useState<string | null>(null);
+  const [confirmingDeleteId, setConfirmingDeleteId] = useState<string | null>(
+    null,
+  );
   const menuRef = useRef<HTMLDivElement>(null);
   const closeMenu = useCallback(() => setOpenMenuId(null), []);
   useClickOutside(menuRef, !!openMenuId, closeMenu);
 
   if (habits.length === 0) {
-    return (
-      <p className="text-base-content/40 text-sm py-4">no habits yet</p>
-    );
+    return <p className="text-base-content/40 text-sm py-4">no habits yet</p>;
   }
 
   return (
@@ -71,7 +71,9 @@ export default function AllHabitsList({
                     </button>
                     {confirmingDeleteId === habit.id ? (
                       <div className="flex items-center gap-2 px-3 py-2 animate-fade-in">
-                        <span className="text-xs text-base-content/50">delete?</span>
+                        <span className="text-xs text-base-content/50">
+                          delete?
+                        </span>
                         <button
                           onClick={() => {
                             setOpenMenuId(null);
