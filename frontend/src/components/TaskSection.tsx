@@ -353,7 +353,7 @@ export default function TaskSection() {
   const [chatLoading, setChatLoading] = useState(false);
   const [showChat, setShowChat] = useState(false);
   const chatEndRef = useRef<HTMLDivElement>(null);
-  const chatInputRef = useRef<HTMLInputElement>(null);
+  const chatInputRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -570,18 +570,25 @@ export default function TaskSection() {
             </div>
           )}
 
-          <div className="flex items-center gap-2 p-2 border-t border-warning/10">
-            <input
+          <div className="flex items-end gap-2 p-2 border-t border-warning/10">
+            <textarea
               ref={chatInputRef}
-              type="text"
-              className="flex-1 bg-transparent text-sm text-base-content px-3 py-2 focus:outline-none placeholder:text-base-content/30"
+              rows={1}
+              className="flex-1 bg-transparent text-sm text-base-content px-3 py-2 focus:outline-none placeholder:text-base-content/30 resize-none overflow-hidden"
               placeholder="ask AI to manage tasks..."
               value={chatInput}
-              onChange={(e) => setChatInput(e.target.value)}
+              onChange={(e) => {
+                setChatInput(e.target.value);
+                e.target.style.height = "auto";
+                e.target.style.height = `${e.target.scrollHeight}px`;
+              }}
               onKeyDown={(e) => {
                 if (e.key === "Enter" && !e.shiftKey) {
                   e.preventDefault();
                   handleSendChat();
+                  if (chatInputRef.current) {
+                    chatInputRef.current.style.height = "auto";
+                  }
                 }
               }}
               disabled={chatLoading}
