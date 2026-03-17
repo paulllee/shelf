@@ -339,9 +339,14 @@ def _execute_tool(
         title = tool_input["title"]
         slug = slugify(title).lower()
 
-        # Check for duplicates among open tasks
+        # Check for duplicates among open tasks with the same parent
+        parent_id = tool_input.get("parent_id")
         for t in all_tasks:
-            if slugify(t.title).lower() == slug and t.status == "open":
+            if (
+                slugify(t.title).lower() == slug
+                and t.status == "open"
+                and t.parent == parent_id
+            ):
                 return (
                     f"A task with a similar title already exists: '{t.title}' (ID: {t.id}). "
                     "Not creating a duplicate.",
@@ -353,11 +358,16 @@ def _execute_tool(
         if tool_input.get("due"):
             due = date.fromisoformat(tool_input["due"])
 
-        parent_id = tool_input.get("parent_id")
-        # Prevent sub-sub-tasks
+        # Validate parent exists and is not itself a sub-task
         if parent_id:
             parent_task = next((t for t in all_tasks if t.id == parent_id), None)
-            if parent_task and parent_task.parent:
+            if not parent_task:
+                return (
+                    f"Parent task with ID '{parent_id}' not found. "
+                    "Use list_tasks to get the correct task ID.",
+                    False,
+                )
+            if parent_task.parent:
                 return (
                     f"Cannot create a sub-task under '{parent_task.title}' because it is "
                     "already a sub-task. Only top-level tasks can have sub-tasks.",
@@ -533,7 +543,8 @@ async def chat(request: Request, body: ChatRequest) -> dict:
         "When the user asks to create, update, close, or list tasks, use the appropriate tool. "
         "When creating or updating tasks, always lowercase everything. "
         "Always use list_tasks first to check for existing tasks before creating new ones to avoid duplicates. "
-        "When creating sub-tasks, first use list_tasks to find the parent task ID. "
+        "When creating sub-tasks, always call list_tasks first to get the exact parent task ID, "
+        "then pass that ID as parent_id in create_task. Never guess or omit parent_id when creating sub-tasks. "
         "Be concise in your responses. "
         f"The current date and time is {now.strftime('%A, %Y-%m-%d %H:%M')}. "
         "Use this to resolve relative dates like 'tomorrow', 'next week', 'next Monday', etc."
