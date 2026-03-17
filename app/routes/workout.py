@@ -11,6 +11,7 @@ from app.models import (
     WorkoutTemplateModel,
 )
 from app.writer import write_template, write_workout
+from app.sse import manager
 
 router = APIRouter()
 
@@ -117,6 +118,7 @@ async def create_workout(request: Request, workout: WorkoutModel) -> dict:
 
     write_workout(workout, md_path)
     request.app.state.workout_items = request.app.state.parse_all_workouts()
+    await manager.broadcast({"type": "invalidate", "keys": ["workouts", "calendar"]})
 
     parsed: Workout = request.app.state.parse_md_to_workout(md_path)
     return parse_workout_to_dict(parsed)
@@ -135,6 +137,7 @@ async def update_workout(
 
     write_workout(workout, new_md_path)
     request.app.state.workout_items = request.app.state.parse_all_workouts()
+    await manager.broadcast({"type": "invalidate", "keys": ["workouts", "calendar"]})
 
     parsed: Workout = request.app.state.parse_md_to_workout(new_md_path)
     return parse_workout_to_dict(parsed)
@@ -145,6 +148,7 @@ async def delete_workout(request: Request, workout_id: str) -> dict[str, bool]:
     """Delete a workout by ID."""
     try_get_workout_md(request, workout_id).unlink()
     request.app.state.workout_items = request.app.state.parse_all_workouts()
+    await manager.broadcast({"type": "invalidate", "keys": ["workouts", "calendar"]})
     return {"ok": True}
 
 
@@ -205,6 +209,7 @@ async def create_template(request: Request, template: WorkoutTemplateModel) -> d
     md_path: Path = get_template_dir(request) / f"{template.id}.md"
     write_template(template, md_path)
     request.app.state.template_items = request.app.state.parse_all_templates()
+    await manager.broadcast({"type": "invalidate", "keys": ["templates"]})
 
     parsed: WorkoutTemplate = request.app.state.parse_md_to_template(md_path)
     return parse_template_to_dict(parsed)
@@ -221,6 +226,7 @@ async def update_template(
         old_md_path.unlink()
     write_template(template, new_md_path)
     request.app.state.template_items = request.app.state.parse_all_templates()
+    await manager.broadcast({"type": "invalidate", "keys": ["templates"]})
     parsed: WorkoutTemplate = request.app.state.parse_md_to_template(new_md_path)
     return parse_template_to_dict(parsed)
 
@@ -230,4 +236,5 @@ async def delete_template(request: Request, template_id: str) -> dict[str, bool]
     """Delete a workout template by ID."""
     try_get_template_md(request, template_id).unlink()
     request.app.state.template_items = request.app.state.parse_all_templates()
+    await manager.broadcast({"type": "invalidate", "keys": ["templates"]})
     return {"ok": True}

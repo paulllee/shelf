@@ -9,9 +9,9 @@ from pathlib import Path
 from typing import Any
 
 import frontmatter
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 
 from app.models import (
@@ -34,6 +34,7 @@ from app.routes import habits as habits_routes
 from app.routes import media as media_routes
 from app.routes import tasks as tasks_routes
 from app.routes import workout as workout_routes
+from app.sse import manager
 
 logger: logging.Logger = logging.getLogger("uvicorn.error")
 
@@ -477,6 +478,32 @@ async def get_enums() -> dict[str, list[str]]:
         "types": [m.name.lower() for m in MediaType if m.name != "UNDEFINED"],
         "statuses": [m.name.lower() for m in MediaStatus],
     }
+
+
+@app.get("/events")
+async def sse_endpoint(request: Request) -> StreamingResponse:
+    """Stream server-sent events to the client for real-time cache invalidation."""
+    import json
+
+    async def stream() -> AsyncGenerator[str, None]:
+        q = await manager.subscribe()
+        try:
+            while True:
+                if await request.is_disconnected():
+                    break
+                try:
+                    msg = await asyncio.wait_for(q.get(), timeout=15.0)
+                    yield f"data: {json.dumps(msg)}\n\n"
+                except asyncio.TimeoutError:
+                    yield ": keepalive\n\n"
+        finally:
+            manager.unsubscribe(q)
+
+    return StreamingResponse(
+        stream(),
+        media_type="text/event-stream",
+        headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"},
+    )
 
 
 # SPA catch-all: serve index.html for non-API, non-static routes

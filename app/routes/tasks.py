@@ -10,6 +10,7 @@ from slugify import slugify
 
 from app.models import Task, TaskModel
 from app.writer import write_task
+from app.sse import manager
 
 logger: logging.Logger = logging.getLogger("uvicorn.error")
 
@@ -127,6 +128,7 @@ async def create_task(request: Request, task: TaskModel) -> dict:
     created_at_iso = now.isoformat()
     write_task(task, md_path, created_at_iso)
     request.app.state.task_items = request.app.state.parse_all_tasks()
+    await manager.broadcast({"type": "invalidate", "keys": ["tasks"]})
 
     parsed: Task = request.app.state.parse_md_to_task(md_path)
     all_tasks: list[Task] = request.app.state.task_items
@@ -183,6 +185,7 @@ async def update_task(request: Request, task_id: str, task: TaskModel) -> dict:
         )
 
     request.app.state.task_items = request.app.state.parse_all_tasks()
+    await manager.broadcast({"type": "invalidate", "keys": ["tasks"]})
 
     parsed: Task = request.app.state.parse_md_to_task(new_md_path)
     all_tasks_updated: list[Task] = request.app.state.task_items
@@ -199,6 +202,7 @@ async def delete_task(request: Request, task_id: str) -> dict[str, bool]:
     _cascade_delete(task_id, all_tasks, get_tasks_dir(request))
 
     request.app.state.task_items = request.app.state.parse_all_tasks()
+    await manager.broadcast({"type": "invalidate", "keys": ["tasks"]})
     return {"ok": True}
 
 
@@ -593,6 +597,9 @@ async def chat(request: Request, body: ChatRequest) -> dict:
 
         # Extract final text response
         response_text = response.text if response.text else "Done."
+
+        if tasks_changed:
+            await manager.broadcast({"type": "invalidate", "keys": ["tasks"]})
 
         return {"response": response_text, "tasks_changed": tasks_changed}
 

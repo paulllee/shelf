@@ -5,6 +5,7 @@ from slugify import slugify
 
 from app.models import Media, MediaModel, MediaStatus
 from app.writer import write_media_item
+from app.sse import manager
 
 router = APIRouter()
 
@@ -87,6 +88,7 @@ async def create_media_item(request: Request, media_item: MediaModel) -> dict:
     write_media_item(media_item, md_path)
 
     request.app.state.media_items = request.app.state.parse_all_media()
+    await manager.broadcast({"type": "invalidate", "keys": ["media"]})
 
     media: Media = request.app.state.parse_md_to_media(md_path)
     return parse_media_to_dict(media)
@@ -114,6 +116,7 @@ async def update_media_item(
         write_media_item(media_item, old_md_path)
 
     request.app.state.media_items = request.app.state.parse_all_media()
+    await manager.broadcast({"type": "invalidate", "keys": ["media"]})
 
     result_path: Path = media_dir / f"{new_id}.md"
     media: Media = request.app.state.parse_md_to_media(result_path)
@@ -125,4 +128,5 @@ async def delete_media_item(request: Request, media_id: str) -> dict[str, bool]:
     """Delete a media item by ID."""
     try_get_media_md(request, media_id).unlink()
     request.app.state.media_items = request.app.state.parse_all_media()
+    await manager.broadcast({"type": "invalidate", "keys": ["media"]})
     return {"ok": True}

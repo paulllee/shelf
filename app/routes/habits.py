@@ -15,6 +15,7 @@ from app.models import (
     PresetModel,
 )
 from app.writer import write_activity, write_habit, write_preset
+from app.sse import manager
 
 
 class ShiftRequestModel(BaseModel):
@@ -116,6 +117,7 @@ async def create_habit(request: Request, habit: HabitModel) -> dict:
 
     write_habit(habit, md_path)
     request.app.state.habit_items = request.app.state.parse_all_habits()
+    await manager.broadcast({"type": "invalidate", "keys": ["habits"]})
 
     parsed: Habit = request.app.state.parse_md_to_habit(md_path)
     return parse_habit_to_dict(parsed)
@@ -132,6 +134,7 @@ async def update_habit(request: Request, habit_id: str, habit: HabitModel) -> di
 
     write_habit(habit, new_md_path)
     request.app.state.habit_items = request.app.state.parse_all_habits()
+    await manager.broadcast({"type": "invalidate", "keys": ["habits"]})
 
     parsed: Habit = request.app.state.parse_md_to_habit(new_md_path)
     return parse_habit_to_dict(parsed)
@@ -142,6 +145,7 @@ async def delete_habit(request: Request, habit_id: str) -> dict[str, bool]:
     """Delete a habit by ID."""
     try_get_habit_md(request, habit_id).unlink()
     request.app.state.habit_items = request.app.state.parse_all_habits()
+    await manager.broadcast({"type": "invalidate", "keys": ["habits"]})
     return {"ok": True}
 
 
@@ -176,6 +180,7 @@ async def toggle_habit_completion(request: Request, habit_id: str, date: str) ->
     )
     write_habit(habit_model, md_path)
     request.app.state.habit_items = request.app.state.parse_all_habits()
+    await manager.broadcast({"type": "invalidate", "keys": ["habits"]})
 
     parsed: Habit = request.app.state.parse_md_to_habit(md_path)
     return parse_habit_to_dict(parsed)
@@ -217,6 +222,7 @@ async def shift_habit(
     )
     write_habit(habit_model, md_path)
     request.app.state.habit_items = request.app.state.parse_all_habits()
+    await manager.broadcast({"type": "invalidate", "keys": ["habits"]})
 
     parsed: Habit = request.app.state.parse_md_to_habit(md_path)
     return parse_habit_to_dict(parsed)
@@ -250,6 +256,7 @@ async def cancel_habit_shift(request: Request, habit_id: str, from_date: str) ->
     )
     write_habit(habit_model, md_path)
     request.app.state.habit_items = request.app.state.parse_all_habits()
+    await manager.broadcast({"type": "invalidate", "keys": ["habits"]})
 
     parsed: Habit = request.app.state.parse_md_to_habit(md_path)
     return parse_habit_to_dict(parsed)
@@ -288,6 +295,7 @@ async def create_activity(request: Request, activity: ActivityModel) -> dict:
     md_path: Path = get_activities_dir(request) / f"{activity.id}.md"
     write_activity(activity, md_path)
     request.app.state.activity_items = request.app.state.parse_all_activities()
+    await manager.broadcast({"type": "invalidate", "keys": ["activities", "habits"]})
 
     parsed: Activity = request.app.state.parse_md_to_activity(md_path)
     return parse_activity_to_dict(parsed)
@@ -298,6 +306,7 @@ async def delete_activity(request: Request, activity_id: str) -> dict[str, bool]
     """Delete an activity by ID."""
     try_get_activity_md(request, activity_id).unlink()
     request.app.state.activity_items = request.app.state.parse_all_activities()
+    await manager.broadcast({"type": "invalidate", "keys": ["activities", "habits"]})
     return {"ok": True}
 
 
@@ -328,6 +337,7 @@ async def create_preset(request: Request, preset: PresetModel) -> dict:
 
     write_preset(preset, md_path)
     request.app.state.preset_items = request.app.state.parse_all_presets()
+    await manager.broadcast({"type": "invalidate", "keys": ["presets"]})
 
     parsed: Preset = request.app.state.parse_md_to_preset(md_path)
     return {"id": parsed.id, "name": parsed.name}
@@ -344,6 +354,7 @@ async def update_preset(request: Request, preset_id: str, preset: PresetModel) -
 
     write_preset(preset, new_md_path)
     request.app.state.preset_items = request.app.state.parse_all_presets()
+    await manager.broadcast({"type": "invalidate", "keys": ["presets"]})
 
     parsed: Preset = request.app.state.parse_md_to_preset(new_md_path)
     return {"id": parsed.id, "name": parsed.name}
@@ -354,4 +365,5 @@ async def delete_preset(request: Request, preset_id: str) -> dict[str, bool]:
     """Delete a preset by ID."""
     try_get_preset_md(request, preset_id).unlink()
     request.app.state.preset_items = request.app.state.parse_all_presets()
+    await manager.broadcast({"type": "invalidate", "keys": ["presets"]})
     return {"ok": True}

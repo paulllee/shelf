@@ -1,4 +1,5 @@
 import { useLocalStorage } from "./hooks/useLocalStorage";
+import { useSSE } from "./hooks/useSSE";
 import Header from "./components/Header";
 import MediaSection from "./components/MediaSection";
 import WorkoutSection from "./components/WorkoutSection";
@@ -15,6 +16,7 @@ const sectionWidth: Record<Section, string> = {
 };
 
 export default function App() {
+  useSSE();
   const [section, setSection] = useLocalStorage<Section>(
     "shelf-section",
     "media",
