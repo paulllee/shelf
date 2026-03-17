@@ -103,7 +103,12 @@ def write_preset(preset: PresetModel, file_path: Path) -> None:
         f.write(b"\n")
 
 
-def write_task(task: TaskModel, file_path: Path, created_at_iso: str) -> None:
+def write_task(
+    task: TaskModel,
+    file_path: Path,
+    created_at_iso: str,
+    completed_at_iso: str | None = None,
+) -> None:
     """Serialize a Task to a markdown file with frontmatter."""
     post = frontmatter.Post(content=task.notes or "")
     post["title"] = task.title
@@ -111,6 +116,7 @@ def write_task(task: TaskModel, file_path: Path, created_at_iso: str) -> None:
     post["due"] = task.due.isoformat() if task.due else None
     post["parent"] = task.parent
     post["created_at"] = created_at_iso
+    post["completed_at"] = completed_at_iso
 
     with open(file_path, "wb") as f:
         frontmatter.dump(post, f)

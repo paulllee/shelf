@@ -39,11 +39,13 @@ def _cascade_delete(task_id: str, all_tasks: list[Task], tasks_dir: Path) -> Non
             child_path.unlink()
 
 
-def _cascade_close(task_id: str, all_tasks: list[Task], tasks_dir: Path) -> None:
+def _cascade_close(
+    task_id: str, all_tasks: list[Task], tasks_dir: Path, completed_at_iso: str | None
+) -> None:
     """Recursively close all descendant sub-tasks of a given task."""
     children = [t for t in all_tasks if t.parent == task_id]
     for child in children:
-        _cascade_close(child.id, all_tasks, tasks_dir)
+        _cascade_close(child.id, all_tasks, tasks_dir, completed_at_iso)
         if child.status != "closed":
             child_path = tasks_dir / f"{child.id}.md"
             child_model = TaskModel(
@@ -53,7 +55,12 @@ def _cascade_close(task_id: str, all_tasks: list[Task], tasks_dir: Path) -> None
                 parent=child.parent,
                 notes=child.notes,
             )
-            write_task(child_model, child_path, child.created_at.isoformat())
+            write_task(
+                child_model,
+                child_path,
+                child.created_at.isoformat(),
+                completed_at_iso,
+            )
 
 
 def parse_task_to_dict(task: Task, all_tasks: list[Task]) -> dict:
@@ -73,6 +80,7 @@ def parse_task_to_dict(task: Task, all_tasks: list[Task]) -> dict:
         "parent": task.parent,
         "notes": task.notes,
         "created_at": task.created_at.isoformat(),
+        "completed_at": task.completed_at.isoformat() if task.completed_at else None,
         "subtasks": subtasks,
     }
 
@@ -147,15 +155,32 @@ async def update_task(request: Request, task_id: str, task: TaskModel) -> dict:
                 parent=new_id,
                 notes=child.notes,
             )
-            write_task(child_model, child_path, child.created_at.isoformat())
+            write_task(
+                child_model,
+                child_path,
+                child.created_at.isoformat(),
+                child.completed_at.isoformat() if child.completed_at else None,
+            )
         old_md_path.unlink()
 
-    write_task(task, new_md_path, existing.created_at.isoformat())
+    # Determine completed_at
+    if task.status == "closed" and existing.status != "closed":
+        completed_at_iso: str | None = datetime.now().isoformat()
+    elif task.status != "closed":
+        completed_at_iso = None
+    else:
+        completed_at_iso = (
+            existing.completed_at.isoformat() if existing.completed_at else None
+        )
+
+    write_task(task, new_md_path, existing.created_at.isoformat(), completed_at_iso)
 
     # Cascade close sub-tasks when parent is closed
     if task.status == "closed" and existing.status != "closed":
         all_tasks_for_cascade: list[Task] = request.app.state.parse_all_tasks()
-        _cascade_close(new_id, all_tasks_for_cascade, get_tasks_dir(request))
+        _cascade_close(
+            new_id, all_tasks_for_cascade, get_tasks_dir(request), completed_at_iso
+        )
 
     request.app.state.task_items = request.app.state.parse_all_tasks()
 
@@ -392,14 +417,29 @@ def _execute_tool(
                     parent=new_id,
                     notes=child.notes,
                 )
-                write_task(child_model, child_path, child.created_at.isoformat())
+                write_task(
+                    child_model,
+                    child_path,
+                    child.created_at.isoformat(),
+                    child.completed_at.isoformat() if child.completed_at else None,
+                )
             md_path.unlink()
 
-        write_task(task_model, new_md_path, existing.created_at.isoformat())
+        if status == "closed" and existing.status != "closed":
+            tool_completed_at_iso: str | None = datetime.now().isoformat()
+        elif status != "closed":
+            tool_completed_at_iso = None
+        else:
+            tool_completed_at_iso = (
+                existing.completed_at.isoformat() if existing.completed_at else None
+            )
+        write_task(
+            task_model, new_md_path, existing.created_at.isoformat(), tool_completed_at_iso
+        )
         # Cascade close sub-tasks if status changed to closed
         if status == "closed" and existing.status != "closed":
             updated_tasks = request.app.state.parse_all_tasks()
-            _cascade_close(new_id, updated_tasks, tasks_dir)
+            _cascade_close(new_id, updated_tasks, tasks_dir, tool_completed_at_iso)
         request.app.state.task_items = request.app.state.parse_all_tasks()
         return f"Updated task '{title}' (ID: {new_id})", True
 
@@ -417,10 +457,11 @@ def _execute_tool(
             parent=existing.parent,
             notes=existing.notes,
         )
-        write_task(task_model, md_path, existing.created_at.isoformat())
+        close_completed_at_iso = datetime.now().isoformat()
+        write_task(task_model, md_path, existing.created_at.isoformat(), close_completed_at_iso)
         # Cascade close sub-tasks
         all_tasks = request.app.state.parse_all_tasks()
-        _cascade_close(task_id, all_tasks, tasks_dir)
+        _cascade_close(task_id, all_tasks, tasks_dir, close_completed_at_iso)
         request.app.state.task_items = request.app.state.parse_all_tasks()
         return f"Closed task '{existing.title}' (ID: {task_id})", True
 

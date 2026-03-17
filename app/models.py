@@ -331,6 +331,7 @@ class Task:
     parent: str | None
     notes: str
     created_at: datetime
+    completed_at: datetime | None
 
     @property
     def id(self) -> str:

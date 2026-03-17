@@ -330,6 +330,12 @@ def parse_md_to_task(md_path: Path) -> Task:
         if isinstance(created_at_val, str):
             created_at_val = datetime.fromisoformat(created_at_val)
 
+        completed_at_val: Any = post.get("completed_at")
+        if isinstance(completed_at_val, str):
+            completed_at_val = datetime.fromisoformat(completed_at_val)
+        elif not isinstance(completed_at_val, datetime):
+            completed_at_val = None
+
         parent_val: Any = post.get("parent")
         if parent_val is None or parent_val == "null":
             parent_val = None
@@ -343,6 +349,7 @@ def parse_md_to_task(md_path: Path) -> Task:
             parent=parent_val,
             notes=post.content,
             created_at=created_at_val,
+            completed_at=completed_at_val,
         )
     except Exception:
         logger.exception("Failed to parse %s", md_path)

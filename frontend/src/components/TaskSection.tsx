@@ -20,6 +20,17 @@ import {
 import type { Task, TaskFormData, ChatMessage } from "../types";
 import { inputCls } from "../styles";
 
+function formatDueDate(due: string): string {
+  const d = new Date(due + "T00:00:00");
+  const now = new Date();
+  const isThisYear = d.getFullYear() === now.getFullYear();
+  return d.toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    ...(isThisYear ? {} : { year: "numeric" }),
+  });
+}
+
 function getDueBadge(due: string | null): {
   label: string;
   color: string;
@@ -31,10 +42,21 @@ function getDueBadge(due: string | null): {
   const diffDays = Math.ceil(
     (dueDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24),
   );
-  if (diffDays < 0) return { label: due, color: "error" };
+  if (diffDays < 0) return { label: formatDueDate(due), color: "error" };
   if (diffDays === 0) return { label: "today", color: "warning" };
   if (diffDays === 1) return { label: "tomorrow", color: "info" };
-  return { label: due, color: "muted" };
+  return { label: formatDueDate(due), color: "muted" };
+}
+
+function formatCompletedAt(completedAt: string): string {
+  const d = new Date(completedAt);
+  const now = new Date();
+  const isThisYear = d.getFullYear() === now.getFullYear();
+  return d.toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    ...(isThisYear ? {} : { year: "numeric" }),
+  });
 }
 
 /** Inline edit form shown below a task row when editing */
@@ -240,12 +262,18 @@ function TaskItem({
           }}
           role="button"
           tabIndex={0}
-          className={`text-left text-sm leading-none translate-y-px truncate transition-colors motion-reduce:transition-none cursor-pointer ${isEditing ? "text-warning" : isClosed ? "line-through text-base-content/40 hover:text-warning" : "text-base-content hover:text-warning"}`}
+          className={`text-left text-sm leading-none translate-y-px flex-1 min-w-0 truncate transition-colors motion-reduce:transition-none cursor-pointer ${isEditing ? "text-warning" : isClosed ? "line-through text-base-content/40 hover:text-warning" : "text-base-content hover:text-warning"}`}
         >
           {task.title}
         </span>
 
-        {dueBadge && !isEditing && (
+        {!isEditing && isClosed && task.completed_at && (
+          <span className="text-xs text-base-content/30 shrink-0 whitespace-nowrap translate-y-px">
+            {formatCompletedAt(task.completed_at)}
+          </span>
+        )}
+
+        {!isEditing && !isClosed && dueBadge && (
           <span
             className={`flex items-center text-xs shrink-0 whitespace-nowrap ${
               dueBadge.color === "error"
@@ -355,10 +383,18 @@ export default function TaskSection() {
       if (!a.due && b.due) return 1;
       return a.title.localeCompare(b.title);
     });
-  const closedTasks = tasks.filter(
-    (t) =>
-      t.status === "closed" && !t.subtasks.some((s) => s.status === "open"),
-  );
+  const closedTasks = tasks
+    .filter(
+      (t) =>
+        t.status === "closed" && !t.subtasks.some((s) => s.status === "open"),
+    )
+    .sort((a, b) => {
+      if (a.completed_at && b.completed_at)
+        return b.completed_at.localeCompare(a.completed_at);
+      if (a.completed_at) return -1;
+      if (b.completed_at) return 1;
+      return 0;
+    });
   const closedCount = closedTasks.length;
 
   const closeEdit = () => {

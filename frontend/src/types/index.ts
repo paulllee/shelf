@@ -128,6 +128,7 @@ export interface Task {
   parent: string | null;
   notes: string;
   created_at: string;
+  completed_at: string | null;
   subtasks: Task[];
 }
 
