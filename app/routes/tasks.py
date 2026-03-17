@@ -438,7 +438,10 @@ def _execute_tool(
                 existing.completed_at.isoformat() if existing.completed_at else None
             )
         write_task(
-            task_model, new_md_path, existing.created_at.isoformat(), tool_completed_at_iso
+            task_model,
+            new_md_path,
+            existing.created_at.isoformat(),
+            tool_completed_at_iso,
         )
         # Cascade close sub-tasks if status changed to closed
         if status == "closed" and existing.status != "closed":
@@ -462,7 +465,9 @@ def _execute_tool(
             notes=existing.notes,
         )
         close_completed_at_iso = datetime.now().isoformat()
-        write_task(task_model, md_path, existing.created_at.isoformat(), close_completed_at_iso)
+        write_task(
+            task_model, md_path, existing.created_at.isoformat(), close_completed_at_iso
+        )
         # Cascade close sub-tasks
         all_tasks = request.app.state.parse_all_tasks()
         _cascade_close(task_id, all_tasks, tasks_dir, close_completed_at_iso)
@@ -526,6 +531,7 @@ async def chat(request: Request, body: ChatRequest) -> dict:
     system_prompt = (
         "You are a helpful task manager assistant. Use the provided tools to manage tasks. "
         "When the user asks to create, update, close, or list tasks, use the appropriate tool. "
+        "When creating or updating tasks, always lowercase everything. "
         "Always use list_tasks first to check for existing tasks before creating new ones to avoid duplicates. "
         "When creating sub-tasks, first use list_tasks to find the parent task ID. "
         "Be concise in your responses. "

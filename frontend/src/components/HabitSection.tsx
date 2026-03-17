@@ -223,17 +223,17 @@ export default function HabitSection() {
         </div>
 
         {/* Inline activity input */}
-        <div
-          className="expand-collapse"
-          data-expanded={showActivityInput}
-        >
+        <div className="expand-collapse" data-expanded={showActivityInput}>
           <div>
             <form
               className="mb-4 flex flex-col gap-2"
               onSubmit={(e) => {
                 e.preventDefault();
                 if (!activityName.trim()) return;
-                activityMutation.mutate({ name: activityName.trim(), date: todayStr });
+                activityMutation.mutate({
+                  name: activityName.trim(),
+                  date: todayStr,
+                });
               }}
             >
               <div className="flex gap-2">
@@ -264,7 +264,12 @@ export default function HabitSection() {
                     <button
                       key={preset}
                       type="button"
-                      onClick={() => activityMutation.mutate({ name: preset, date: todayStr })}
+                      onClick={() =>
+                        activityMutation.mutate({
+                          name: preset,
+                          date: todayStr,
+                        })
+                      }
                       disabled={activityMutation.isPending}
                       className="px-2.5 py-1 bg-base-200 text-base-content text-xs rounded-full border border-warning/30 hover:border-warning hover:bg-warning/10 transition-colors motion-reduce:transition-none"
                     >
@@ -274,7 +279,9 @@ export default function HabitSection() {
                 </div>
               )}
               {activityMutation.isError && (
-                <p className="text-error text-xs">{activityMutation.error.message}</p>
+                <p className="text-error text-xs">
+                  {activityMutation.error.message}
+                </p>
               )}
             </form>
           </div>

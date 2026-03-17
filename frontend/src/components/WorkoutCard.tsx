@@ -65,7 +65,9 @@ export default function WorkoutCard({
       >
         <div className="flex-1 min-w-0">
           <div className="flex items-baseline gap-2">
-            <h3 className="font-semibold text-lg">{formatDate(workout.date)}</h3>
+            <h3 className="font-semibold text-lg">
+              {formatDate(workout.date)}
+            </h3>
             <span className="text-sm text-base-content/50">
               {formatTime(workout.time)}
             </span>
@@ -84,10 +86,7 @@ export default function WorkoutCard({
       </button>
 
       {/* Expanded details */}
-      <div
-        className="expand-collapse"
-        data-expanded={expanded}
-      >
+      <div className="expand-collapse" data-expanded={expanded}>
         <div>
           <div className="px-4 pb-4 space-y-3">
             {workout.groups.map((group, gi) => (
@@ -124,7 +123,9 @@ export default function WorkoutCard({
                 <p className="text-xs text-base-content/50 font-medium mb-1">
                   notes
                 </p>
-                <p className="text-sm text-base-content/70">{workout.content}</p>
+                <p className="text-sm text-base-content/70">
+                  {workout.content}
+                </p>
               </div>
             )}
 

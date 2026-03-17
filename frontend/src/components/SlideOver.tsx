@@ -7,7 +7,11 @@ interface SlideOverProps {
   title?: string;
 }
 
-export default function SlideOver({ children, onClose, title }: SlideOverProps) {
+export default function SlideOver({
+  children,
+  onClose,
+  title,
+}: SlideOverProps) {
   const panelRef = useRef<HTMLDivElement>(null);
   const previousFocusRef = useRef<HTMLElement | null>(null);
   const openRef = useRef(false);
@@ -75,10 +79,7 @@ export default function SlideOver({ children, onClose, title }: SlideOverProps) 
       aria-label={title}
     >
       {/* Overlay */}
-      <div
-        className="absolute inset-0 bg-black/30"
-        onClick={onClose}
-      />
+      <div className="absolute inset-0 bg-black/30" onClick={onClose} />
 
       {/* Panel */}
       <div
@@ -87,9 +88,7 @@ export default function SlideOver({ children, onClose, title }: SlideOverProps) 
       >
         {/* Header */}
         <div className="sticky top-0 z-10 bg-base-300 flex items-center justify-between px-6 py-4 border-b border-base-content/10">
-          {title && (
-            <h2 className="text-lg font-bold">{title}</h2>
-          )}
+          {title && <h2 className="text-lg font-bold">{title}</h2>}
           {!title && <div />}
           <button
             className="text-base-content/50 hover:text-base-content transition-colors motion-reduce:transition-none"
@@ -101,9 +100,7 @@ export default function SlideOver({ children, onClose, title }: SlideOverProps) 
         </div>
 
         {/* Content */}
-        <div className="p-6">
-          {children}
-        </div>
+        <div className="p-6">{children}</div>
       </div>
     </div>
   );

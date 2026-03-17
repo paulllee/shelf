@@ -465,9 +465,7 @@ export default function TaskSection() {
       </div>
 
       {/* Inline add form */}
-      {showAddForm && (
-        <TaskInlineForm onClose={closeEdit} />
-      )}
+      {showAddForm && <TaskInlineForm onClose={closeEdit} />}
 
       {/* Open tasks */}
       {openTasks.length === 0 && closedCount === 0 && !showAddForm ? (
