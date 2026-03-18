@@ -88,6 +88,13 @@ function TaskInlineForm({
       isEdit ? updateTask(task!.id, data) : createTask(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["tasks"] });
+      if (!isEdit) {
+        setTitle("");
+        setStatus("open");
+        setDue("");
+        setNotes("");
+        titleRef.current?.focus({ preventScroll: true });
+      }
       onClose();
     },
   });
@@ -135,7 +142,7 @@ function TaskInlineForm({
         }}
         required
       />
-      <div className="grid grid-cols-2 gap-2">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
         <select
           value={status}
           onChange={(e) => setStatus(e.target.value)}
@@ -144,12 +151,19 @@ function TaskInlineForm({
           <option value="open">open</option>
           <option value="closed">closed</option>
         </select>
-        <input
-          type="date"
-          value={due}
-          onChange={(e) => setDue(e.target.value)}
-          className={inputCls}
-        />
+        <div className="relative">
+          <input
+            type="date"
+            value={due}
+            onChange={(e) => setDue(e.target.value)}
+            className={inputCls}
+          />
+          {!due && (
+            <span className="absolute inset-0 hidden [@media(pointer:coarse)]:flex items-center px-4 text-base-content/30 pointer-events-none text-sm">
+              due date
+            </span>
+          )}
+        </div>
       </div>
       <textarea
         value={notes}
@@ -458,10 +472,7 @@ export default function TaskSection() {
         <h2 className="text-lg font-semibold">tasks</h2>
         <div className="flex items-center gap-2">
           <button
-            onClick={() => {
-              setShowChat(!showChat);
-              setTimeout(() => chatInputRef.current?.focus(), 100);
-            }}
+            onClick={() => setShowChat(!showChat)}
             className={`p-2 rounded-lg transition-colors motion-reduce:transition-none ${showChat ? "bg-primary/15 text-primary" : "text-base-content/50 hover:text-base-content"}`}
             title="AI chat"
           >
@@ -483,6 +494,78 @@ export default function TaskSection() {
           </button>
         </div>
       </div>
+
+      {/* Chat panel */}
+      <ExpandCollapse
+        expanded={showChat}
+        onExpanded={() => chatInputRef.current?.focus()}
+      >
+        <div className="border border-base-content/10 rounded-xl overflow-hidden">
+          {chatMessages.length > 0 && (
+            <div className="max-h-64 overflow-y-auto p-3 space-y-2">
+              {chatMessages.map((msg, i) => (
+                <div
+                  key={i}
+                  className={`text-sm flex ${
+                    msg.role === "user"
+                      ? "text-base-content ml-4 sm:ml-8 justify-end"
+                      : "text-base-content/70 mr-4 sm:mr-8"
+                  }`}
+                >
+                  <span
+                    className={`inline-block px-3 py-1.5 rounded-lg ${
+                      msg.role === "user" ? "bg-primary/10" : "bg-base-200"
+                    }`}
+                  >
+                    {msg.content}
+                  </span>
+                </div>
+              ))}
+              {chatLoading && (
+                <div className="text-sm text-base-content/50 mr-4 sm:mr-8">
+                  <span className="inline-block px-3 py-1.5 bg-base-200 rounded-lg">
+                    <span className="loading loading-dots loading-xs" />
+                  </span>
+                </div>
+              )}
+              <div ref={chatEndRef} />
+            </div>
+          )}
+
+          <div className="flex items-end gap-2 p-2 border-t border-base-content/5">
+            <textarea
+              ref={chatInputRef}
+              rows={1}
+              className="flex-1 bg-transparent text-sm text-base-content px-3 py-2 focus:outline-none placeholder:text-base-content/30 resize-none overflow-hidden"
+              placeholder="ask AI to manage tasks..."
+              value={chatInput}
+              onChange={(e) => {
+                setChatInput(e.target.value);
+                e.target.style.height = "auto";
+                e.target.style.height = `${e.target.scrollHeight}px`;
+              }}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && !e.shiftKey) {
+                  e.preventDefault();
+                  handleSendChat();
+                  if (chatInputRef.current) {
+                    chatInputRef.current.style.height = "auto";
+                  }
+                }
+              }}
+              disabled={chatLoading}
+            />
+            <button
+              onClick={handleSendChat}
+              disabled={!chatInput.trim() || chatLoading}
+              className="p-2 text-primary hover:text-primary/80 disabled:text-base-content/20 transition-colors motion-reduce:transition-none"
+              aria-label="Send message"
+            >
+              <Send className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+      </ExpandCollapse>
 
       {/* Inline add form */}
       <ExpandCollapse expanded={showAddForm}>
@@ -555,75 +638,6 @@ export default function TaskSection() {
               ))}
             </div>
           )}
-        </div>
-      )}
-
-      {/* Chat panel */}
-      {showChat && (
-        <div className="border border-base-content/10 rounded-xl overflow-hidden">
-          {chatMessages.length > 0 && (
-            <div className="max-h-64 overflow-y-auto p-3 space-y-2">
-              {chatMessages.map((msg, i) => (
-                <div
-                  key={i}
-                  className={`text-sm flex ${
-                    msg.role === "user"
-                      ? "text-base-content ml-4 sm:ml-8 justify-end"
-                      : "text-base-content/70 mr-4 sm:mr-8"
-                  }`}
-                >
-                  <span
-                    className={`inline-block px-3 py-1.5 rounded-lg ${
-                      msg.role === "user" ? "bg-primary/10" : "bg-base-200"
-                    }`}
-                  >
-                    {msg.content}
-                  </span>
-                </div>
-              ))}
-              {chatLoading && (
-                <div className="text-sm text-base-content/50 mr-4 sm:mr-8">
-                  <span className="inline-block px-3 py-1.5 bg-base-200 rounded-lg">
-                    <span className="loading loading-dots loading-xs" />
-                  </span>
-                </div>
-              )}
-              <div ref={chatEndRef} />
-            </div>
-          )}
-
-          <div className="flex items-end gap-2 p-2 border-t border-base-content/5">
-            <textarea
-              ref={chatInputRef}
-              rows={1}
-              className="flex-1 bg-transparent text-sm text-base-content px-3 py-2 focus:outline-none placeholder:text-base-content/30 resize-none overflow-hidden"
-              placeholder="ask AI to manage tasks..."
-              value={chatInput}
-              onChange={(e) => {
-                setChatInput(e.target.value);
-                e.target.style.height = "auto";
-                e.target.style.height = `${e.target.scrollHeight}px`;
-              }}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" && !e.shiftKey) {
-                  e.preventDefault();
-                  handleSendChat();
-                  if (chatInputRef.current) {
-                    chatInputRef.current.style.height = "auto";
-                  }
-                }
-              }}
-              disabled={chatLoading}
-            />
-            <button
-              onClick={handleSendChat}
-              disabled={!chatInput.trim() || chatLoading}
-              className="p-2 text-primary hover:text-primary/80 disabled:text-base-content/20 transition-colors motion-reduce:transition-none"
-              aria-label="Send message"
-            >
-              <Send className="w-4 h-4" />
-            </button>
-          </div>
         </div>
       )}
     </div>

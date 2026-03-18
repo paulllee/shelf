@@ -1,5 +1,8 @@
 @import "tailwindcss";
 
+/* Use .dark class for dark: variant (app controls theme via class, not OS preference) */
+@custom-variant dark (&:where(.dark, .dark *));
+
 @theme {
   --font-josefin: "Josefin Sans", sans-serif;
 
@@ -30,6 +33,18 @@
 
 html {
   font-family: var(--font-josefin);
+}
+
+/* iOS renders date/time inputs with system chrome that ignores CSS padding.
+   appearance: none strips that chrome so our styles fully control the sizing.
+   The date/time wheel picker still fires on tap — only the visual is affected.
+   Scoped to touch devices so desktop keeps its native calendar/clock icon. */
+@media (pointer: coarse) {
+  input[type="date"],
+  input[type="time"] {
+    -webkit-appearance: none;
+    appearance: none;
+  }
 }
 
 /* Remove 300ms tap delay on touch devices */
