@@ -65,10 +65,12 @@ function TaskInlineForm({
   task,
   parentId,
   onClose,
+  isVisible,
 }: {
   task?: Task;
   parentId?: string | null;
   onClose: () => void;
+  isVisible?: boolean;
 }) {
   const queryClient = useQueryClient();
   const isEdit = !!task;
@@ -80,8 +82,10 @@ function TaskInlineForm({
   const titleRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    titleRef.current?.focus({ preventScroll: true });
-  }, []);
+    if (isVisible) {
+      titleRef.current?.focus({ preventScroll: true });
+    }
+  }, [isVisible]);
 
   const saveMutation = useMutation({
     mutationFn: (data: TaskFormData) =>
@@ -337,7 +341,7 @@ function TaskItem({
       </div>
 
       <ExpandCollapse expanded={isEditing} className={depth > 0 ? "ml-6" : ""}>
-        <TaskInlineForm task={task} onClose={onCloseEdit} />
+        <TaskInlineForm task={task} onClose={onCloseEdit} isVisible={isEditing} />
       </ExpandCollapse>
 
       {hasSubtasks && expanded && (
@@ -359,7 +363,7 @@ function TaskItem({
       )}
 
       <ExpandCollapse expanded={addingSubtaskFor === task.id} className="ml-6">
-        <TaskInlineForm parentId={task.id} onClose={onCloseEdit} />
+        <TaskInlineForm parentId={task.id} onClose={onCloseEdit} isVisible={addingSubtaskFor === task.id} />
       </ExpandCollapse>
     </div>
   );
@@ -570,7 +574,7 @@ export default function TaskSection() {
       {/* Inline add form */}
       <ExpandCollapse expanded={showAddForm}>
         <div className="pb-2">
-          <TaskInlineForm onClose={closeEdit} />
+          <TaskInlineForm onClose={closeEdit} isVisible={showAddForm} />
         </div>
       </ExpandCollapse>
 
