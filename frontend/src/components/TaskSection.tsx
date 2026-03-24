@@ -380,12 +380,16 @@ export default function TaskSection() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [addingSubtaskFor, setAddingSubtaskFor] = useState<string | null>(null);
   const [showClosed, setShowClosed] = useState(false);
+  const hasShownAddForm = useRef(false);
+  if (showAddForm) hasShownAddForm.current = true;
 
   // Chat state
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
   const [chatInput, setChatInput] = useState("");
   const [chatLoading, setChatLoading] = useState(false);
   const [showChat, setShowChat] = useState(false);
+  const hasShownChat = useRef(false);
+  if (showChat) hasShownChat.current = true;
   const chatEndRef = useRef<HTMLDivElement>(null);
   const chatInputRef = useRef<HTMLTextAreaElement>(null);
 
@@ -500,7 +504,7 @@ export default function TaskSection() {
       </div>
 
       {/* Chat panel */}
-      <ExpandCollapse
+      {hasShownChat.current && <ExpandCollapse
         expanded={showChat}
         onExpanded={() => chatInputRef.current?.focus()}
       >
@@ -569,14 +573,14 @@ export default function TaskSection() {
             </button>
           </div>
         </div>
-      </ExpandCollapse>
+      </ExpandCollapse>}
 
       {/* Inline add form */}
-      <ExpandCollapse expanded={showAddForm}>
+      {hasShownAddForm.current && <ExpandCollapse expanded={showAddForm}>
         <div className="pb-2">
           <TaskInlineForm onClose={closeEdit} isVisible={showAddForm} />
         </div>
-      </ExpandCollapse>
+      </ExpandCollapse>}
 
       {/* Open tasks */}
       {openTasks.length === 0 && closedCount === 0 && !showAddForm ? (
