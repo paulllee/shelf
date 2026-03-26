@@ -200,15 +200,6 @@ function formReducer(state: FormState, action: FormAction): FormState {
 
 // --- helpers ---
 
-function nowDate(): string {
-  return formatDateStr(new Date());
-}
-
-function nowTime(): string {
-  const d = new Date();
-  return `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
-}
-
 function initState(
   editWorkout?: Workout,
   copyFromWorkout?: Workout,
@@ -222,10 +213,11 @@ function initState(
       content: editWorkout.content || "",
     };
   }
+  const now = new Date();
   const groups = copyFromWorkout?.groups ?? template?.groups ?? [emptyGroup()];
   return {
-    date: nowDate(),
-    time: nowTime(),
+    date: formatDateStr(now),
+    time: `${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`,
     groups,
     content: "",
   };

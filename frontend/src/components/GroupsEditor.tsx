@@ -34,6 +34,9 @@ export default function GroupsEditor({ groups, onChange }: GroupsEditorProps) {
   const [exIds, setExIds] = useState<string[][]>(() =>
     groups.map((g) => g.exercises.map(() => nextKey())),
   );
+  const [setIds, setSetIds] = useState<string[][][]>(() =>
+    groups.map((g) => g.exercises.map((ex) => ex.sets.map(() => nextKey()))),
+  );
 
 function reorderGroups(from: number, to: number) {
     setGroupIds((ids) => {
@@ -48,6 +51,12 @@ function reorderGroups(from: number, to: number) {
       next.splice(to, 0, eids);
       return next;
     });
+    setSetIds((ids) => {
+      const next = [...ids];
+      const [sids] = next.splice(from, 1);
+      next.splice(to, 0, sids);
+      return next;
+    });
     onChange(moveItem(groups, from, to));
   }
 
@@ -56,6 +65,12 @@ function reorderGroups(from: number, to: number) {
       const next = ids.map((row) => [...row]);
       const [eid] = next[gi].splice(from, 1);
       next[gi].splice(to, 0, eid);
+      return next;
+    });
+    setSetIds((ids) => {
+      const next = ids.map((row) => [...row]);
+      const [sids] = next[gi].splice(from, 1);
+      next[gi].splice(to, 0, sids);
       return next;
     });
     onChange(
@@ -70,18 +85,23 @@ function reorderGroups(from: number, to: number) {
     if (groups.length <= 1) return;
     setGroupIds((ids) => removeAt(ids, gi));
     setExIds((ids) => removeAt(ids, gi));
+    setSetIds((ids) => removeAt(ids, gi));
     onChange(removeAt(groups, gi));
   }
 
   function addGroup() {
     setGroupIds((ids) => [...ids, nextKey()]);
-    setExIds((ids) => [...ids, []]);
+    setExIds((ids) => [...ids, [nextKey()]]);
+    setSetIds((ids) => [...ids, [[]]]);
     onChange([...groups, emptyGroup()]);
   }
 
   function removeExercise(gi: number, ei: number) {
     if (groups[gi].exercises.length <= 1) return;
     setExIds((ids) =>
+      ids.map((row, i) => (i === gi ? removeAt(row, ei) : row)),
+    );
+    setSetIds((ids) =>
       ids.map((row, i) => (i === gi ? removeAt(row, ei) : row)),
     );
     onChange(
@@ -96,10 +116,51 @@ function reorderGroups(from: number, to: number) {
     setExIds((ids) =>
       ids.map((row, i) => (i === gi ? [...row, nextKey()] : row)),
     );
+    setSetIds((ids) =>
+      ids.map((row, i) => (i === gi ? [...row, []] : row)),
+    );
     onChange(
       updateAt(groups, gi, (g) => ({
         ...g,
         exercises: [...g.exercises, emptyExercise()],
+      })),
+    );
+  }
+
+  function addSet(gi: number, ei: number) {
+    setSetIds((ids) =>
+      ids.map((row, i) =>
+        i === gi
+          ? row.map((srow, j) => (j === ei ? [...srow, nextKey()] : srow))
+          : row,
+      ),
+    );
+    onChange(
+      updateAt(groups, gi, (g) => ({
+        ...g,
+        exercises: updateAt(g.exercises, ei, (ex) => ({
+          ...ex,
+          sets: [...ex.sets, emptySet()],
+        })),
+      })),
+    );
+  }
+
+  function removeSet(gi: number, ei: number, si: number) {
+    setSetIds((ids) =>
+      ids.map((row, i) =>
+        i === gi
+          ? row.map((srow, j) => (j === ei ? removeAt(srow, si) : srow))
+          : row,
+      ),
+    );
+    onChange(
+      updateAt(groups, gi, (g) => ({
+        ...g,
+        exercises: updateAt(g.exercises, ei, (ex) => ({
+          ...ex,
+          sets: removeAt(ex.sets, si),
+        })),
       })),
     );
   }
@@ -322,7 +383,7 @@ function reorderGroups(from: number, to: number) {
 
                 <div className="space-y-1">
                   {exercise.sets.map((set, si) => (
-                    <div key={si} className="set-row flex gap-2 items-center">
+                    <div key={setIds[gi]?.[ei]?.[si] ?? si} className="set-row flex gap-2 items-center">
                       <span className="text-xs text-base-content/50 w-5 flex-shrink-0">
                         #{si + 1}
                       </span>
@@ -374,17 +435,7 @@ function reorderGroups(from: number, to: number) {
                       <button
                         type="button"
                         className={`${btnGhostXs} flex-shrink-0`}
-                        onClick={() =>
-                          onChange(
-                            updateAt(groups, gi, (g) => ({
-                              ...g,
-                              exercises: updateAt(g.exercises, ei, (ex) => ({
-                                ...ex,
-                                sets: removeAt(ex.sets, si),
-                              })),
-                            })),
-                          )
-                        }
+                        onClick={() => removeSet(gi, ei, si)}
                         aria-label="Remove set"
                       >
                         &times;
@@ -396,17 +447,7 @@ function reorderGroups(from: number, to: number) {
                 <button
                   type="button"
                   className={`${btnGhostXs} mt-1`}
-                  onClick={() =>
-                    onChange(
-                      updateAt(groups, gi, (g) => ({
-                        ...g,
-                        exercises: updateAt(g.exercises, ei, (ex) => ({
-                          ...ex,
-                          sets: [...ex.sets, emptySet()],
-                        })),
-                      })),
-                    )
-                  }
+                  onClick={() => addSet(gi, ei)}
                 >
                   + add set
                 </button>
