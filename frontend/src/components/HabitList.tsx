@@ -9,9 +9,10 @@ import {
 import { useState, useRef, useCallback } from "react";
 import type { Habit } from "../types";
 import { formatDateStr } from "../utils/date";
-import { getDaysText, getShiftForDay } from "../utils/habits";
+import { getDaysText, getShiftForDay, getDateForWeekday } from "../utils/habits";
 import { useClickOutside } from "../hooks/useClickOutside";
 import { menuItemCls } from "../styles";
+import ConfirmDelete from "./ConfirmDelete";
 type ConfettiFunc = (options?: Record<string, unknown>) => Promise<null> | null;
 
 let confettiPromise: Promise<ConfettiFunc> | null = null;
@@ -66,7 +67,7 @@ export default function HabitList({
     if (shiftedHere) return shiftedHere.from;
     const todayDow = date.getDay();
     const upcomingDow = habit.days.find((d) => d > todayDow) ?? habit.days[0];
-    return upcomingDow !== undefined ? getDateForWeekday(upcomingDow) : dateStr;
+    return upcomingDow !== undefined ? getDateForWeekday(date, upcomingDow) : dateStr;
   }
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
   const [shiftPickerHabitId, setShiftPickerHabitId] = useState<string | null>(
@@ -79,13 +80,6 @@ export default function HabitList({
   const closeMenu = useCallback(() => setOpenMenuId(null), []);
   useClickOutside(menuRef, !!openMenuId, closeMenu);
 
-  function getDateForWeekday(weekday: number): string {
-    const d = new Date(date);
-    const currentDay = d.getDay();
-    d.setDate(d.getDate() - currentDay + weekday);
-    d.setHours(0, 0, 0, 0);
-    return formatDateStr(d);
-  }
 
   if (habits.length === 0) {
     return (
@@ -208,26 +202,16 @@ export default function HabitList({
                         );
                       })()}
                     {confirmingDeleteId === habit.id ? (
-                      <div className="flex items-center gap-2 px-3 py-2 animate-fade-in">
-                        <span className="text-xs text-base-content/50">
-                          delete?
-                        </span>
-                        <button
-                          onClick={() => {
+                      <div className="px-3 py-2">
+                        <ConfirmDelete
+                          size="xs"
+                          onConfirm={() => {
                             setOpenMenuId(null);
                             setConfirmingDeleteId(null);
                             onDelete(habit.id);
                           }}
-                          className="text-error text-xs font-semibold"
-                        >
-                          yes
-                        </button>
-                        <button
-                          onClick={() => setConfirmingDeleteId(null)}
-                          className="text-base-content/50 hover:text-base-content text-xs font-semibold"
-                        >
-                          cancel
-                        </button>
+                          onCancel={() => setConfirmingDeleteId(null)}
+                        />
                       </div>
                     ) : (
                       <button
@@ -265,7 +249,7 @@ export default function HabitList({
                           onShift?.(
                             habit.id,
                             habitFromDate,
-                            getDateForWeekday(weekday),
+                            getDateForWeekday(date, weekday),
                           );
                           setShiftPickerHabitId(null);
                         }}

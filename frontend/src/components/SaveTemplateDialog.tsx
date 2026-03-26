@@ -16,6 +16,7 @@ export default function SaveTemplateDialog({
 }: SaveTemplateDialogProps) {
   const queryClient = useQueryClient();
   const [name, setName] = useState("");
+  const [nameError, setNameError] = useState("");
 
   const mutation = useMutation({
     mutationFn: () => createTemplate({ name, groups }),
@@ -27,9 +28,10 @@ export default function SaveTemplateDialog({
 
   const handleSave = () => {
     if (!name.trim()) {
-      alert("please enter a template name");
+      setNameError("please enter a template name");
       return;
     }
+    setNameError("");
     mutation.mutate();
   };
 
@@ -49,7 +51,10 @@ export default function SaveTemplateDialog({
             className={inputCls}
             placeholder="e.g., push day, leg day"
             value={name}
-            onChange={(e) => setName(e.target.value)}
+            onChange={(e) => {
+              setName(e.target.value);
+              if (nameError) setNameError("");
+            }}
             onKeyDown={(e) => {
               if (e.key === "Enter") {
                 e.preventDefault();
@@ -58,6 +63,7 @@ export default function SaveTemplateDialog({
             }}
             autoFocus
           />
+          {nameError && <p className="text-error text-sm mt-1">{nameError}</p>}
         </div>
 
         <div className="flex gap-3">

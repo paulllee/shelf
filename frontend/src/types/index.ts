@@ -1,3 +1,5 @@
+export type Section = "media" | "workouts" | "habits" | "tasks";
+
 export interface WorkoutSet {
   reps: number | null;
   weight: number | null;

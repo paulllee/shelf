@@ -10,6 +10,11 @@ interface GroupsEditorProps {
   onChange: (groups: ExerciseGroup[]) => void;
 }
 
+let _keyCounter = 0;
+function nextKey() {
+  return `k${++_keyCounter}`;
+}
+
 export default function GroupsEditor({ groups, onChange }: GroupsEditorProps) {
   const [draggingGroup, setDraggingGroup] = useState<number | null>(null);
   const [dragOverGroup, setDragOverGroup] = useState<number | null>(null);
@@ -22,11 +27,37 @@ export default function GroupsEditor({ groups, onChange }: GroupsEditorProps) {
     ei: number;
   } | null>(null);
 
-  function reorderGroups(from: number, to: number) {
+  // Stable IDs stored in state — initialized from groups, explicitly updated on mutations
+  const [groupIds, setGroupIds] = useState<string[]>(() =>
+    groups.map(() => nextKey()),
+  );
+  const [exIds, setExIds] = useState<string[][]>(() =>
+    groups.map((g) => g.exercises.map(() => nextKey())),
+  );
+
+function reorderGroups(from: number, to: number) {
+    setGroupIds((ids) => {
+      const next = [...ids];
+      const [gid] = next.splice(from, 1);
+      next.splice(to, 0, gid);
+      return next;
+    });
+    setExIds((ids) => {
+      const next = [...ids];
+      const [eids] = next.splice(from, 1);
+      next.splice(to, 0, eids);
+      return next;
+    });
     onChange(moveItem(groups, from, to));
   }
 
   function reorderExercises(gi: number, from: number, to: number) {
+    setExIds((ids) => {
+      const next = ids.map((row) => [...row]);
+      const [eid] = next[gi].splice(from, 1);
+      next[gi].splice(to, 0, eid);
+      return next;
+    });
     onChange(
       updateAt(groups, gi, (g) => ({
         ...g,
@@ -35,11 +66,49 @@ export default function GroupsEditor({ groups, onChange }: GroupsEditorProps) {
     );
   }
 
+  function removeGroup(gi: number) {
+    if (groups.length <= 1) return;
+    setGroupIds((ids) => removeAt(ids, gi));
+    setExIds((ids) => removeAt(ids, gi));
+    onChange(removeAt(groups, gi));
+  }
+
+  function addGroup() {
+    setGroupIds((ids) => [...ids, nextKey()]);
+    setExIds((ids) => [...ids, []]);
+    onChange([...groups, emptyGroup()]);
+  }
+
+  function removeExercise(gi: number, ei: number) {
+    if (groups[gi].exercises.length <= 1) return;
+    setExIds((ids) =>
+      ids.map((row, i) => (i === gi ? removeAt(row, ei) : row)),
+    );
+    onChange(
+      updateAt(groups, gi, (g) => ({
+        ...g,
+        exercises: removeAt(g.exercises, ei),
+      })),
+    );
+  }
+
+  function addExercise(gi: number) {
+    setExIds((ids) =>
+      ids.map((row, i) => (i === gi ? [...row, nextKey()] : row)),
+    );
+    onChange(
+      updateAt(groups, gi, (g) => ({
+        ...g,
+        exercises: [...g.exercises, emptyExercise()],
+      })),
+    );
+  }
+
   return (
     <div className="space-y-4 mb-4">
       {groups.map((group, gi) => (
         <div
-          key={gi}
+          key={groupIds[gi]}
           onDragOver={(e) => {
             e.preventDefault();
             // Only handle group drag, not exercise drag
@@ -133,9 +202,7 @@ export default function GroupsEditor({ groups, onChange }: GroupsEditorProps) {
               <button
                 type="button"
                 className={`${btnGhostSm} flex-shrink-0`}
-                onClick={() =>
-                  onChange(groups.length > 1 ? removeAt(groups, gi) : groups)
-                }
+                onClick={() => removeGroup(gi)}
                 aria-label="Remove group"
               >
                 &times;
@@ -146,7 +213,7 @@ export default function GroupsEditor({ groups, onChange }: GroupsEditorProps) {
           <div className="space-y-3">
             {group.exercises.map((exercise, ei) => (
               <div
-                key={ei}
+                key={exIds[gi]?.[ei]}
                 onDragOver={(e) => {
                   e.preventDefault();
                   // Only handle exercise drag — don't stop propagation for group drag
@@ -246,17 +313,7 @@ export default function GroupsEditor({ groups, onChange }: GroupsEditorProps) {
                   <button
                     type="button"
                     className={btnGhostSm}
-                    onClick={() =>
-                      onChange(
-                        updateAt(groups, gi, (g) => ({
-                          ...g,
-                          exercises:
-                            g.exercises.length > 1
-                              ? removeAt(g.exercises, ei)
-                              : g.exercises,
-                        })),
-                      )
-                    }
+                    onClick={() => removeExercise(gi, ei)}
                     aria-label="Remove exercise"
                   >
                     &times;
@@ -360,14 +417,7 @@ export default function GroupsEditor({ groups, onChange }: GroupsEditorProps) {
           <button
             type="button"
             className={`${btnGhostXs} mt-2`}
-            onClick={() =>
-              onChange(
-                updateAt(groups, gi, (g) => ({
-                  ...g,
-                  exercises: [...g.exercises, emptyExercise()],
-                })),
-              )
-            }
+            onClick={() => addExercise(gi)}
           >
             + add exercise
           </button>
@@ -377,7 +427,7 @@ export default function GroupsEditor({ groups, onChange }: GroupsEditorProps) {
       <button
         type="button"
         className={`${btnGhostSm} w-full`}
-        onClick={() => onChange([...groups, emptyGroup()])}
+        onClick={addGroup}
       >
         + add group
       </button>

@@ -39,6 +39,17 @@ export function getHabitsForDay(habits: Habit[], date: Date): Habit[] {
 }
 
 /**
+ * Returns the date string (YYYY-MM-DD) for a given weekday (0=Sun…6=Sat)
+ * within the same week as `date`.
+ */
+export function getDateForWeekday(date: Date, weekday: number): string {
+  const d = new Date(date);
+  d.setDate(d.getDate() - d.getDay() + weekday);
+  d.setHours(0, 0, 0, 0);
+  return formatDateStr(d);
+}
+
+/**
  * Returns the shift entry for a habit on a given date (keyed by `from`), or null.
  * Used by the UI to show "cancel shift/skip" vs "shift / skip day".
  */

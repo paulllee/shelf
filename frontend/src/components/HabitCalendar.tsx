@@ -41,8 +41,11 @@ export default function HabitCalendar({
   const daysInMonth = lastDayOfMonth.getDate();
   const startingDayOfWeek = firstDayOfMonth.getDay();
 
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
+  const today = useMemo(() => {
+    const d = new Date();
+    d.setHours(0, 0, 0, 0);
+    return d;
+  }, []);
 
   const days = useMemo<(number | null)[]>(() => {
     const result: (number | null)[] = [];

@@ -1,373 +1,12 @@
-import { useState, useRef, useEffect, useCallback } from "react";
+import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import {
-  Plus,
-  ChevronRight,
-  ChevronDown,
-  Send,
-  Square,
-  CheckSquare,
-  Calendar,
-  MessageCircle,
-} from "lucide-react";
-import {
-  fetchTasks,
-  createTask,
-  updateTask,
-  deleteTask,
-  sendChatMessage,
-} from "../api/tasks";
-import type { Task, TaskFormData, ChatMessage } from "../types";
+import { Plus, ChevronRight, ChevronDown, MessageCircle } from "lucide-react";
+import { fetchTasks, updateTask } from "../api/tasks";
+import type { Task } from "../types";
 import ExpandCollapse from "./ExpandCollapse";
-import { inputCls, selectCls } from "../styles";
-
-function formatDueDate(due: string): string {
-  const d = new Date(due + "T00:00:00");
-  const now = new Date();
-  const isThisYear = d.getFullYear() === now.getFullYear();
-  return d.toLocaleDateString("en-US", {
-    month: "short",
-    day: "numeric",
-    ...(isThisYear ? {} : { year: "numeric" }),
-  });
-}
-
-function getDueBadge(due: string | null): {
-  label: string;
-  color: string;
-} | null {
-  if (!due) return null;
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  const dueDate = new Date(due + "T00:00:00");
-  const diffDays = Math.ceil(
-    (dueDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24),
-  );
-  if (diffDays < 0) return { label: formatDueDate(due), color: "error" };
-  if (diffDays === 0) return { label: "today", color: "warning" };
-  if (diffDays === 1) return { label: "tomorrow", color: "info" };
-  return { label: formatDueDate(due), color: "muted" };
-}
-
-function formatCompletedAt(completedAt: string): string {
-  const d = new Date(completedAt);
-  const now = new Date();
-  const isThisYear = d.getFullYear() === now.getFullYear();
-  return d.toLocaleDateString("en-US", {
-    month: "short",
-    day: "numeric",
-    ...(isThisYear ? {} : { year: "numeric" }),
-  });
-}
-
-/** Inline edit form shown below a task row when editing */
-function TaskInlineForm({
-  task,
-  parentId,
-  onClose,
-  isVisible,
-}: {
-  task?: Task;
-  parentId?: string | null;
-  onClose: () => void;
-  isVisible?: boolean;
-}) {
-  const queryClient = useQueryClient();
-  const isEdit = !!task;
-  const [title, setTitle] = useState(task?.title ?? "");
-  const [status, setStatus] = useState(task?.status ?? "open");
-  const [due, setDue] = useState(task?.due ?? "");
-  const [notes, setNotes] = useState(task?.notes ?? "");
-  const [confirmingDelete, setConfirmingDelete] = useState(false);
-  const titleRef = useRef<HTMLInputElement>(null);
-
-  useEffect(() => {
-    if (isVisible) {
-      titleRef.current?.focus({ preventScroll: true });
-    }
-  }, [isVisible]);
-
-  const saveMutation = useMutation({
-    mutationFn: (data: TaskFormData) =>
-      isEdit ? updateTask(task!.id, data) : createTask(data),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["tasks"] });
-      if (!isEdit) {
-        setTitle("");
-        setStatus("open");
-        setDue("");
-        setNotes("");
-        titleRef.current?.focus({ preventScroll: true });
-      }
-      onClose();
-    },
-  });
-
-  const deleteMutation = useMutation({
-    mutationFn: () => deleteTask(task!.id),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["tasks"] });
-      onClose();
-    },
-  });
-
-  const handleSubmit = useCallback(
-    (e: React.FormEvent) => {
-      e.preventDefault();
-      if (!title.trim()) return;
-      saveMutation.mutate({
-        title: title.trim(),
-        status,
-        due: due || null,
-        parent: parentId ?? task?.parent ?? null,
-        notes: notes.trim() || null,
-      });
-    },
-    [title, status, due, notes, parentId, task, saveMutation],
-  );
-
-  const isPending = saveMutation.isPending || deleteMutation.isPending;
-
-  return (
-    <form
-      onSubmit={handleSubmit}
-      className="py-2 space-y-2 border-b border-base-content/5"
-    >
-      <input
-        ref={titleRef}
-        type="text"
-        autoComplete="off"
-        value={title}
-        onChange={(e) => setTitle(e.target.value)}
-        placeholder={parentId ? "sub-task title" : "task title"}
-        className={inputCls}
-        onKeyDown={(e) => {
-          if (e.key === "Escape") onClose();
-        }}
-        required
-      />
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-        <select
-          value={status}
-          onChange={(e) => setStatus(e.target.value)}
-          className={selectCls}
-        >
-          <option value="open">open</option>
-          <option value="closed">closed</option>
-        </select>
-        <div className="relative">
-          <input
-            type="date"
-            value={due}
-            onChange={(e) => setDue(e.target.value)}
-            className={inputCls}
-          />
-          {!due && (
-            <span className="absolute inset-0 hidden [@media(pointer:coarse)]:flex items-center px-4 text-base-content/30 pointer-events-none text-sm">
-              due date
-            </span>
-          )}
-        </div>
-      </div>
-      <textarea
-        value={notes}
-        onChange={(e) => setNotes(e.target.value)}
-        placeholder="notes"
-        className={`${inputCls} h-16 resize-none`}
-      />
-      <div className="flex items-center gap-2">
-        {isEdit &&
-          (confirmingDelete ? (
-            <div className="flex items-center gap-2 animate-fade-in">
-              <span className="text-xs text-base-content/50">delete?</span>
-              <button
-                type="button"
-                onClick={() => deleteMutation.mutate()}
-                disabled={isPending}
-                className="text-error text-xs font-semibold transition-colors motion-reduce:transition-none"
-              >
-                yes
-              </button>
-              <button
-                type="button"
-                onClick={() => setConfirmingDelete(false)}
-                className="text-base-content/50 hover:text-base-content text-xs font-semibold transition-colors motion-reduce:transition-none"
-              >
-                cancel
-              </button>
-            </div>
-          ) : (
-            <button
-              type="button"
-              onClick={() => setConfirmingDelete(true)}
-              disabled={isPending}
-              className="text-error/60 hover:text-error text-xs font-semibold transition-colors motion-reduce:transition-none"
-            >
-              delete
-            </button>
-          ))}
-        <div className="flex-1" />
-        <button
-          type="button"
-          onClick={onClose}
-          className="text-base-content/50 hover:text-base-content text-xs font-semibold transition-colors motion-reduce:transition-none"
-        >
-          cancel
-        </button>
-        <button
-          type="submit"
-          disabled={!title.trim() || isPending}
-          className="px-3 py-1.5 bg-primary text-primary-content rounded-lg text-xs font-semibold hover:brightness-110 transition-[filter,opacity] motion-reduce:transition-none disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          {isPending ? (
-            <span className="loading loading-spinner loading-xs" />
-          ) : isEdit ? (
-            "save"
-          ) : (
-            "add"
-          )}
-        </button>
-      </div>
-    </form>
-  );
-}
-
-interface TaskItemProps {
-  task: Task;
-  editingId: string | null;
-  addingSubtaskFor: string | null;
-  onEdit: (task: Task) => void;
-  onAddSubtask: (parentId: string) => void;
-  onCloseEdit: () => void;
-  onToggleStatus: (task: Task) => void;
-  depth?: number;
-}
-
-function TaskItem({
-  task,
-  editingId,
-  addingSubtaskFor,
-  onEdit,
-  onAddSubtask,
-  onCloseEdit,
-  onToggleStatus,
-  depth = 0,
-}: TaskItemProps) {
-  const [expanded, setExpanded] = useState(true);
-  const hasSubtasks = task.subtasks.length > 0;
-  const dueBadge = getDueBadge(task.due);
-  const isClosed = task.status === "closed";
-  const isEditing = editingId === task.id;
-
-  return (
-    <div>
-      <div
-        className={`group flex items-center gap-2 py-1.5 ${depth > 0 ? "ml-6" : ""}`}
-      >
-        {hasSubtasks ? (
-          <button
-            onClick={() => setExpanded(!expanded)}
-            className="text-base-content/40 hover:text-base-content shrink-0 transition-colors motion-reduce:transition-none"
-          >
-            {expanded ? (
-              <ChevronDown className="w-4 h-4" />
-            ) : (
-              <ChevronRight className="w-4 h-4" />
-            )}
-          </button>
-        ) : (
-          <span className="w-4 shrink-0" />
-        )}
-
-        <button
-          onClick={() => onToggleStatus(task)}
-          className={`shrink-0 ${isClosed ? "text-success" : "text-base-content/30 hover:text-base-content/60"}`}
-        >
-          {isClosed ? (
-            <CheckSquare className="w-4 h-4" />
-          ) : (
-            <Square className="w-4 h-4" />
-          )}
-        </button>
-
-        <span
-          onClick={() => (isEditing ? onCloseEdit() : onEdit(task))}
-          onKeyDown={(e) => {
-            if (e.key === "Enter" || e.key === " ") {
-              e.preventDefault();
-              isEditing ? onCloseEdit() : onEdit(task);
-            }
-          }}
-          role="button"
-          tabIndex={0}
-          className={`text-left text-sm leading-none translate-y-px flex-1 min-w-0 truncate transition-colors motion-reduce:transition-none cursor-pointer ${isEditing ? "text-primary" : isClosed ? "line-through text-base-content/40 hover:text-primary" : "text-base-content hover:text-primary"}`}
-        >
-          {task.title}
-        </span>
-
-        {!isEditing && isClosed && task.completed_at && (
-          <span className="text-xs text-base-content/30 shrink-0 whitespace-nowrap translate-y-px">
-            {formatCompletedAt(task.completed_at)}
-          </span>
-        )}
-
-        {!isEditing && !isClosed && dueBadge && (
-          <span
-            className={`flex items-center text-xs shrink-0 whitespace-nowrap ${
-              dueBadge.color === "error"
-                ? "text-error"
-                : dueBadge.color === "warning"
-                  ? "text-warning"
-                  : dueBadge.color === "info"
-                    ? "text-info"
-                    : "text-base-content/50"
-            }`}
-          >
-            <Calendar size={12} className="mr-1" />
-            <span className="translate-y-px">{dueBadge.label}</span>
-          </span>
-        )}
-
-        {depth === 0 && !isEditing && (
-          <button
-            onClick={() => onAddSubtask(task.id)}
-            className="text-base-content/30 hover:text-base-content/60 shrink-0 transition-colors motion-reduce:transition-none"
-            title="Add sub-task"
-            aria-label="Add sub-task"
-          >
-            <Plus className="w-3.5 h-3.5" />
-          </button>
-        )}
-      </div>
-
-      <ExpandCollapse expanded={isEditing} className={depth > 0 ? "ml-6" : ""}>
-        <TaskInlineForm task={task} onClose={onCloseEdit} isVisible={isEditing} />
-      </ExpandCollapse>
-
-      {hasSubtasks && expanded && (
-        <div>
-          {task.subtasks.map((sub) => (
-            <TaskItem
-              key={sub.id}
-              task={sub}
-              editingId={editingId}
-              addingSubtaskFor={addingSubtaskFor}
-              onEdit={onEdit}
-              onAddSubtask={onAddSubtask}
-              onCloseEdit={onCloseEdit}
-              onToggleStatus={onToggleStatus}
-              depth={depth + 1}
-            />
-          ))}
-        </div>
-      )}
-
-      <ExpandCollapse expanded={addingSubtaskFor === task.id} className="ml-6">
-        <TaskInlineForm parentId={task.id} onClose={onCloseEdit} isVisible={addingSubtaskFor === task.id} />
-      </ExpandCollapse>
-    </div>
-  );
-}
+import TaskItem from "./TaskItem";
+import TaskInlineForm from "./TaskInlineForm";
+import ChatPanel from "./ChatPanel";
 
 export default function TaskSection() {
   const queryClient = useQueryClient();
@@ -380,22 +19,9 @@ export default function TaskSection() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [addingSubtaskFor, setAddingSubtaskFor] = useState<string | null>(null);
   const [showClosed, setShowClosed] = useState(false);
-  const hasShownAddForm = useRef(false);
-  if (showAddForm) hasShownAddForm.current = true;
-
-  // Chat state
-  const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
-  const [chatInput, setChatInput] = useState("");
-  const [chatLoading, setChatLoading] = useState(false);
   const [showChat, setShowChat] = useState(false);
-  const hasShownChat = useRef(false);
-  if (showChat) hasShownChat.current = true;
-  const chatEndRef = useRef<HTMLDivElement>(null);
-  const chatInputRef = useRef<HTMLTextAreaElement>(null);
-
-  useEffect(() => {
-    chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [chatMessages]);
+  const [hasShownAddForm, setHasShownAddForm] = useState(false);
+  const [hasShownChat, setHasShownChat] = useState(false);
 
   const toggleMutation = useMutation({
     mutationFn: ({ task }: { task: Task }) =>
@@ -441,46 +67,25 @@ export default function TaskSection() {
     setShowAddForm(false);
   };
 
-  const handleSendChat = async () => {
-    const msg = chatInput.trim();
-    if (!msg || chatLoading) return;
-
-    const userMsg: ChatMessage = { role: "user", content: msg };
-    const newHistory = [...chatMessages, userMsg];
-    setChatMessages(newHistory);
-    setChatInput("");
-    setChatLoading(true);
-
-    try {
-      const response = await sendChatMessage(msg, chatMessages);
-      setChatMessages([
-        ...newHistory,
-        { role: "assistant", content: response.response },
-      ]);
-      if (response.tasks_changed) {
-        queryClient.invalidateQueries({ queryKey: ["tasks"] });
-      }
-    } catch {
-      setChatMessages([
-        ...newHistory,
-        {
-          role: "assistant",
-          content: "Sorry, something went wrong. Please try again.",
-        },
-      ]);
-    } finally {
-      setChatLoading(false);
-    }
+  const taskItemProps = {
+    editingId,
+    addingSubtaskFor,
+    onEdit: (t: Task) => { closeEdit(); setEditingId(t.id); },
+    onAddSubtask: (parentId: string) => { closeEdit(); setAddingSubtaskFor(parentId); },
+    onCloseEdit: closeEdit,
+    onToggleStatus: (t: Task) => toggleMutation.mutate({ task: t }),
   };
 
   return (
     <div className="space-y-4">
-      {/* Header */}
       <div className="flex items-center justify-between">
         <h2 className="text-lg font-semibold">tasks</h2>
         <div className="flex items-center gap-2">
           <button
-            onClick={() => setShowChat(!showChat)}
+            onClick={() => {
+              if (!showChat) setHasShownChat(true);
+              setShowChat(!showChat);
+            }}
             className={`p-2 rounded-lg transition-colors motion-reduce:transition-none ${showChat ? "bg-primary/15 text-primary" : "text-base-content/50 hover:text-base-content"}`}
             title="AI chat"
           >
@@ -488,12 +93,8 @@ export default function TaskSection() {
           </button>
           <button
             onClick={() => {
-              if (showAddForm) {
-                closeEdit();
-              } else {
-                closeEdit();
-                setShowAddForm(true);
-              }
+              closeEdit();
+              if (!showAddForm) { setShowAddForm(true); setHasShownAddForm(true); }
             }}
             className="h-9 sm:h-10 px-3 sm:px-4 rounded-full bg-primary border border-primary/80 text-primary-content hover:brightness-110 transition-[filter] motion-reduce:transition-none flex items-center gap-1.5 text-sm font-semibold"
           >
@@ -503,86 +104,23 @@ export default function TaskSection() {
         </div>
       </div>
 
-      {/* Chat panel */}
-      {hasShownChat.current && <ExpandCollapse
-        expanded={showChat}
-        onExpanded={() => chatInputRef.current?.focus()}
-      >
-        <div className="border border-base-content/10 rounded-xl overflow-hidden">
-          {chatMessages.length > 0 && (
-            <div className="max-h-64 overflow-y-auto p-3 space-y-2">
-              {chatMessages.map((msg, i) => (
-                <div
-                  key={i}
-                  className={`text-sm flex ${
-                    msg.role === "user"
-                      ? "text-base-content ml-4 sm:ml-8 justify-end"
-                      : "text-base-content/70 mr-4 sm:mr-8"
-                  }`}
-                >
-                  <span
-                    className={`inline-block px-3 py-1.5 rounded-lg ${
-                      msg.role === "user" ? "bg-primary/10" : "bg-base-200"
-                    }`}
-                  >
-                    {msg.content}
-                  </span>
-                </div>
-              ))}
-              {chatLoading && (
-                <div className="text-sm text-base-content/50 mr-4 sm:mr-8">
-                  <span className="inline-block px-3 py-1.5 bg-base-200 rounded-lg">
-                    <span className="loading loading-dots loading-xs" />
-                  </span>
-                </div>
-              )}
-              <div ref={chatEndRef} />
-            </div>
-          )}
+      {hasShownChat && (
+        <ChatPanel
+          expanded={showChat}
+          onTasksChanged={() =>
+            queryClient.invalidateQueries({ queryKey: ["tasks"] })
+          }
+        />
+      )}
 
-          <div className="flex items-end gap-2 p-2 border-t border-base-content/5">
-            <textarea
-              ref={chatInputRef}
-              rows={1}
-              className="flex-1 bg-transparent text-sm text-base-content px-3 py-2 focus:outline-none placeholder:text-base-content/30 resize-none overflow-hidden"
-              placeholder="ask AI to manage tasks..."
-              value={chatInput}
-              onChange={(e) => {
-                setChatInput(e.target.value);
-                e.target.style.height = "auto";
-                e.target.style.height = `${e.target.scrollHeight}px`;
-              }}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" && !e.shiftKey) {
-                  e.preventDefault();
-                  handleSendChat();
-                  if (chatInputRef.current) {
-                    chatInputRef.current.style.height = "auto";
-                  }
-                }
-              }}
-              disabled={chatLoading}
-            />
-            <button
-              onClick={handleSendChat}
-              disabled={!chatInput.trim() || chatLoading}
-              className="p-2 text-primary hover:text-primary/80 disabled:text-base-content/20 transition-colors motion-reduce:transition-none"
-              aria-label="Send message"
-            >
-              <Send className="w-4 h-4" />
-            </button>
+      {hasShownAddForm && (
+        <ExpandCollapse expanded={showAddForm}>
+          <div className="pb-2">
+            <TaskInlineForm onClose={closeEdit} isVisible={showAddForm} />
           </div>
-        </div>
-      </ExpandCollapse>}
+        </ExpandCollapse>
+      )}
 
-      {/* Inline add form */}
-      {hasShownAddForm.current && <ExpandCollapse expanded={showAddForm}>
-        <div className="pb-2">
-          <TaskInlineForm onClose={closeEdit} isVisible={showAddForm} />
-        </div>
-      </ExpandCollapse>}
-
-      {/* Open tasks */}
       {openTasks.length === 0 && closedCount === 0 && !showAddForm ? (
         <p className="text-base-content/40 text-sm py-8 text-center">
           no tasks yet
@@ -590,27 +128,11 @@ export default function TaskSection() {
       ) : (
         <div className="space-y-0.5">
           {openTasks.map((task) => (
-            <TaskItem
-              key={task.id}
-              task={task}
-              editingId={editingId}
-              addingSubtaskFor={addingSubtaskFor}
-              onEdit={(t) => {
-                closeEdit();
-                setEditingId(t.id);
-              }}
-              onAddSubtask={(parentId) => {
-                closeEdit();
-                setAddingSubtaskFor(parentId);
-              }}
-              onCloseEdit={closeEdit}
-              onToggleStatus={(t) => toggleMutation.mutate({ task: t })}
-            />
+            <TaskItem key={task.id} task={task} {...taskItemProps} />
           ))}
         </div>
       )}
 
-      {/* Closed tasks */}
       {closedCount > 0 && (
         <div>
           <button
@@ -627,22 +149,7 @@ export default function TaskSection() {
           {showClosed && (
             <div className="mt-1 space-y-0.5">
               {closedTasks.map((task) => (
-                <TaskItem
-                  key={task.id}
-                  task={task}
-                  editingId={editingId}
-                  addingSubtaskFor={addingSubtaskFor}
-                  onEdit={(t) => {
-                    closeEdit();
-                    setEditingId(t.id);
-                  }}
-                  onAddSubtask={(parentId) => {
-                    closeEdit();
-                    setAddingSubtaskFor(parentId);
-                  }}
-                  onCloseEdit={closeEdit}
-                  onToggleStatus={(t) => toggleMutation.mutate({ task: t })}
-                />
+                <TaskItem key={task.id} task={task} {...taskItemProps} />
               ))}
             </div>
           )}

@@ -13,9 +13,10 @@ import type {
   ExerciseGroup,
   WorkoutFormData,
 } from "../types";
-import { updateAt, removeAt } from "../utils/arrays";
+import { updateAt, removeAt, moveItem } from "../utils/arrays";
 import ExpandCollapse from "./ExpandCollapse";
 import { emptySet, emptyExercise, emptyGroup } from "../utils/workout";
+import { formatDateStr } from "../utils/date";
 import { btnPrimary, btnSecondary, inputCls } from "../styles";
 
 // --- reducer types ---
@@ -184,31 +185,23 @@ function formReducer(state: FormState, action: FormAction): FormState {
           })),
         })),
       };
-    case "REORDER_GROUPS": {
-      const groups = [...state.groups];
-      const [item] = groups.splice(action.from, 1);
-      groups.splice(action.to, 0, item);
-      return { ...state, groups };
-    }
-    case "REORDER_EXERCISES": {
+    case "REORDER_GROUPS":
+      return { ...state, groups: moveItem(state.groups, action.from, action.to) };
+    case "REORDER_EXERCISES":
       return {
         ...state,
-        groups: updateAt(state.groups, action.groupIdx, (g) => {
-          const exercises = [...g.exercises];
-          const [item] = exercises.splice(action.from, 1);
-          exercises.splice(action.to, 0, item);
-          return { ...g, exercises };
-        }),
+        groups: updateAt(state.groups, action.groupIdx, (g) => ({
+          ...g,
+          exercises: moveItem(g.exercises, action.from, action.to),
+        })),
       };
-    }
   }
 }
 
 // --- helpers ---
 
 function nowDate(): string {
-  const d = new Date();
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+  return formatDateStr(new Date());
 }
 
 function nowTime(): string {
@@ -268,6 +261,7 @@ export default function WorkoutFormModal({
     queryKey: ["templates"],
     queryFn: fetchTemplates,
     enabled: !isEdit,
+    staleTime: 5 * 60 * 1000,
   });
 
   const createMutation = useMutation({
@@ -338,10 +332,11 @@ export default function WorkoutFormModal({
       <form onSubmit={handleSubmit}>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 mb-4">
           <div className="flex flex-col gap-1.5">
-            <label className="text-sm font-semibold text-base-content">
+            <label htmlFor="workout-date" className="text-sm font-semibold text-base-content">
               date
             </label>
             <input
+              id="workout-date"
               type="date"
               className={inputCls}
               value={state.date}
@@ -352,10 +347,11 @@ export default function WorkoutFormModal({
             />
           </div>
           <div className="flex flex-col gap-1.5">
-            <label className="text-sm font-semibold text-base-content">
+            <label htmlFor="workout-time" className="text-sm font-semibold text-base-content">
               time
             </label>
             <input
+              id="workout-time"
               type="time"
               className={inputCls}
               value={state.time}

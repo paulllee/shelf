@@ -18,6 +18,11 @@ export default function ExpandCollapse({
   const isFirstRender = useRef(true);
   const raf1 = useRef(0);
   const raf2 = useRef(0);
+  const onExpandedRef = useRef(onExpanded);
+  // Keep onExpandedRef in sync without re-triggering the animation effect
+  useLayoutEffect(() => {
+    onExpandedRef.current = onExpanded;
+  });
 
   useLayoutEffect(() => {
     const outer = outerRef.current;
@@ -35,7 +40,7 @@ export default function ExpandCollapse({
 
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
       outer.style.height = expanded ? "auto" : "0px";
-      if (expanded) onExpanded?.();
+      if (expanded) onExpandedRef.current?.();
       return;
     }
 

@@ -10,6 +10,7 @@ import {
   CalendarClock,
 } from "lucide-react";
 import SlideOver from "./SlideOver";
+import ConfirmDelete from "./ConfirmDelete";
 import {
   toggleCompletion,
   createActivity,
@@ -19,7 +20,7 @@ import {
 } from "../api/habits";
 import type { Activity, Habit } from "../types";
 import { formatDateStr } from "../utils/date";
-import { getHabitsForDay } from "../utils/habits";
+import { getHabitsForDay, getDateForWeekday } from "../utils/habits";
 
 interface DayDetailModalProps {
   date: Date;
@@ -105,13 +106,6 @@ export default function DayDetailModal({
   const [shiftPickerHabitId, setShiftPickerHabitId] = useState<string | null>(
     null,
   );
-
-  function getDateForWeekday(weekday: number): string {
-    const d = new Date(date);
-    d.setDate(d.getDate() - date.getDay() + weekday);
-    d.setHours(0, 0, 0, 0);
-    return formatDateStr(d);
-  }
 
   const habitsForDay = useMemo(
     () => getHabitsForDay(habits, date),
@@ -306,7 +300,7 @@ export default function DayDetailModal({
                                       shiftMutation.mutate({
                                         habitId: habit.id,
                                         from: habitFromDate,
-                                        to: getDateForWeekday(weekday),
+                                        to: getDateForWeekday(date, weekday),
                                       });
                                     }
                                     setShiftPickerHabitId(null);
@@ -420,24 +414,15 @@ export default function DayDetailModal({
                     {activity.name}
                   </span>
                   {confirmingDeleteActivityId === activity.id ? (
-                    <div className="flex items-center gap-1.5 animate-fade-in">
-                      <button
-                        onClick={() => {
-                          deleteActivityMutation.mutate(activity.id);
-                          setConfirmingDeleteActivityId(null);
-                        }}
-                        className="text-error text-xs font-semibold"
-                      >
-                        delete
-                      </button>
-                      <button
-                        onClick={() => setConfirmingDeleteActivityId(null)}
-                        className="p-1 text-base-content/30 hover:text-base-content transition-colors motion-reduce:transition-none"
-                        aria-label="Cancel"
-                      >
-                        <X className="w-3 h-3" />
-                      </button>
-                    </div>
+                    <ConfirmDelete
+                      size="xs"
+                      onConfirm={() => {
+                        deleteActivityMutation.mutate(activity.id);
+                        setConfirmingDeleteActivityId(null);
+                      }}
+                      onCancel={() => setConfirmingDeleteActivityId(null)}
+                      isPending={deleteActivityMutation.isPending}
+                    />
                   ) : (
                     <button
                       onClick={() => setConfirmingDeleteActivityId(activity.id)}

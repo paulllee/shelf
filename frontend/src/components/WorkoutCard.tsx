@@ -4,6 +4,7 @@ import { ChevronDown, ChevronUp } from "lucide-react";
 import { deleteWorkout } from "../api/workouts";
 import type { Workout } from "../types";
 import ExpandCollapse from "./ExpandCollapse";
+import ConfirmDelete from "./ConfirmDelete";
 
 interface WorkoutCardProps {
   workout: Workout;
@@ -129,28 +130,12 @@ export default function WorkoutCard({
           {/* Actions */}
           <div className="flex items-center gap-2 border-t border-base-content/5 pt-3">
             {confirmingDelete ? (
-              <div className="flex items-center gap-2 animate-fade-in">
-                <span className="text-xs text-base-content/50">delete?</span>
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    deleteMutation.mutate();
-                  }}
-                  disabled={deleteMutation.isPending}
-                  className="text-error text-xs font-semibold transition-colors motion-reduce:transition-none"
-                >
-                  yes
-                </button>
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setConfirmingDelete(false);
-                  }}
-                  className="text-base-content/50 hover:text-base-content text-xs font-semibold transition-colors motion-reduce:transition-none"
-                >
-                  cancel
-                </button>
-              </div>
+              <ConfirmDelete
+                size="xs"
+                onConfirm={() => deleteMutation.mutate()}
+                onCancel={() => setConfirmingDelete(false)}
+                isPending={deleteMutation.isPending}
+              />
             ) : (
               <button
                 onClick={(e) => {

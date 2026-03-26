@@ -11,6 +11,7 @@ import {
 import { ApiError } from "../api/client";
 import type { MediaItem, MediaFormData } from "../types";
 import { inputCls, selectCls, btnPrimary, btnSecondary } from "../styles";
+import ConfirmDelete from "./ConfirmDelete";
 
 interface MediaModalProps {
   item?: MediaItem | null;
@@ -28,34 +29,28 @@ export default function MediaModal({ item, onClose }: MediaModalProps) {
   });
 
   const [name, setName] = useState(item?.name ?? "");
-  const [country, setCountry] = useState(item?.country ?? "");
-  const [type, setType] = useState(item?.type ?? "");
+  const [countryInput, setCountryInput] = useState(item?.country ?? "");
+  const [typeInput, setTypeInput] = useState(item?.type ?? "");
   const [status, setStatus] = useState(item?.status ?? "queued");
   const [rating, setRating] = useState(
     item?.rating && item.rating !== "n/a" ? item.rating : "",
   );
   const [review, setReview] = useState(item?.review ?? "");
-  const [nameError, setNameError] = useState("");
+  const [nameErrorState, setNameErrorState] = useState("");
   const [confirmingDelete, setConfirmingDelete] = useState(false);
 
-  useEffect(() => {
-    if (!enums) return;
-    if (!item) {
-      if (!country && enums.countries.length > 0)
-        setCountry(enums.countries[0]);
-      if (!type && enums.types.length > 0) setType(enums.types[0]);
-    }
-  }, [enums, item, country, type]);
+  // Derive country/type: use user selection if set, otherwise first enum option
+  const country = countryInput || (enums?.countries[0] ?? "");
+  const type = typeInput || (enums?.types[0] ?? "");
+  // Derive nameError: clear automatically when name is empty
+  const nameError = name.trim() ? nameErrorState : "";
 
   useEffect(() => {
-    if (!name.trim()) {
-      setNameError("");
-      return;
-    }
+    if (!name.trim()) return;
     const timer = setTimeout(async () => {
       try {
         const result = await checkMediaName(name, item?.id);
-        setNameError(result.duplicate ? "this name already exists" : "");
+        setNameErrorState(result.duplicate ? "this name already exists" : "");
       } catch {
         // ignore check errors
       }
@@ -71,7 +66,7 @@ export default function MediaModal({ item, onClose }: MediaModalProps) {
     },
     onError: (err: Error) => {
       if (err instanceof ApiError && err.status === 422)
-        setNameError(err.detail);
+        setNameErrorState(err.detail);
     },
   });
 
@@ -83,7 +78,7 @@ export default function MediaModal({ item, onClose }: MediaModalProps) {
     },
     onError: (err: Error) => {
       if (err instanceof ApiError && err.status === 422)
-        setNameError(err.detail);
+        setNameErrorState(err.detail);
     },
   });
 
@@ -163,7 +158,7 @@ export default function MediaModal({ item, onClose }: MediaModalProps) {
               name="country"
               className={selectCls}
               value={country}
-              onChange={(e) => setCountry(e.target.value)}
+              onChange={(e) => setCountryInput(e.target.value)}
             >
               {enums?.countries.map((c) => (
                 <option key={c} value={c}>
@@ -184,7 +179,7 @@ export default function MediaModal({ item, onClose }: MediaModalProps) {
               name="type"
               className={selectCls}
               value={type}
-              onChange={(e) => setType(e.target.value)}
+              onChange={(e) => setTypeInput(e.target.value)}
             >
               {enums?.types.map((t) => (
                 <option key={t} value={t}>
@@ -260,24 +255,11 @@ export default function MediaModal({ item, onClose }: MediaModalProps) {
         <div className="flex flex-wrap gap-2 pt-2">
           {isEdit &&
             (confirmingDelete ? (
-              <div className="flex items-center gap-2 animate-fade-in">
-                <span className="text-sm text-base-content/50">delete?</span>
-                <button
-                  type="button"
-                  onClick={() => deleteMutation.mutate()}
-                  disabled={deleteMutation.isPending}
-                  className="text-error text-sm font-semibold transition-colors motion-reduce:transition-none"
-                >
-                  yes
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setConfirmingDelete(false)}
-                  className="text-base-content/50 hover:text-base-content text-sm font-semibold transition-colors motion-reduce:transition-none"
-                >
-                  cancel
-                </button>
-              </div>
+              <ConfirmDelete
+                onConfirm={() => deleteMutation.mutate()}
+                onCancel={() => setConfirmingDelete(false)}
+                isPending={deleteMutation.isPending}
+              />
             ) : (
               <button
                 type="button"

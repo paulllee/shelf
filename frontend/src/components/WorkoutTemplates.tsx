@@ -3,7 +3,11 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Pencil } from "lucide-react";
 import { deleteTemplate } from "../api/templates";
 import type { WorkoutTemplate } from "../types";
-import { btnPrimary, btnGhostXs } from "../styles";
+import { btnGhostXs } from "../styles";
+import ConfirmDelete from "./ConfirmDelete";
+
+const btnUseTemplate =
+  "px-3 py-1 text-xs bg-primary text-primary-content rounded-full border border-primary/80 font-semibold hover:brightness-110 transition-[filter] motion-reduce:transition-none";
 
 interface WorkoutTemplatesProps {
   templates: WorkoutTemplate[];
@@ -49,7 +53,7 @@ export default function WorkoutTemplates({
           <div className="flex gap-1 self-end sm:self-auto flex-shrink-0">
             <button
               type="button"
-              className={btnPrimary.replace("px-4 py-2.5", "px-3 py-1 text-xs")}
+              className={btnUseTemplate}
               onClick={() => onUse(template)}
             >
               use
@@ -64,26 +68,15 @@ export default function WorkoutTemplates({
               </button>
             )}
             {confirmingDeleteId === template.id ? (
-              <div className="flex items-center gap-1.5 animate-fade-in">
-                <button
-                  type="button"
-                  onClick={() => {
-                    deleteMutation.mutate(template.id);
-                    setConfirmingDeleteId(null);
-                  }}
-                  disabled={deleteMutation.isPending}
-                  className="text-error text-xs font-semibold px-1 transition-colors motion-reduce:transition-none"
-                >
-                  delete
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setConfirmingDeleteId(null)}
-                  className={btnGhostXs}
-                >
-                  &times;
-                </button>
-              </div>
+              <ConfirmDelete
+                size="xs"
+                onConfirm={() => {
+                  deleteMutation.mutate(template.id);
+                  setConfirmingDeleteId(null);
+                }}
+                onCancel={() => setConfirmingDeleteId(null)}
+                isPending={deleteMutation.isPending}
+              />
             ) : (
               <button
                 type="button"

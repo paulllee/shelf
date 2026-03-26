@@ -4,6 +4,7 @@ import type { Habit } from "../types";
 import { getDaysText } from "../utils/habits";
 import { useClickOutside } from "../hooks/useClickOutside";
 import { menuItemCls } from "../styles";
+import ConfirmDelete from "./ConfirmDelete";
 
 interface AllHabitsListProps {
   habits: Habit[];
@@ -70,26 +71,16 @@ export default function AllHabitsList({
                       edit
                     </button>
                     {confirmingDeleteId === habit.id ? (
-                      <div className="flex items-center gap-2 px-3 py-2 animate-fade-in">
-                        <span className="text-xs text-base-content/50">
-                          delete?
-                        </span>
-                        <button
-                          onClick={() => {
+                      <div className="px-3 py-2">
+                        <ConfirmDelete
+                          size="xs"
+                          onConfirm={() => {
                             setOpenMenuId(null);
                             setConfirmingDeleteId(null);
                             onDelete(habit.id);
                           }}
-                          className="text-error text-xs font-semibold"
-                        >
-                          yes
-                        </button>
-                        <button
-                          onClick={() => setConfirmingDeleteId(null)}
-                          className="text-base-content/50 hover:text-base-content text-xs font-semibold"
-                        >
-                          cancel
-                        </button>
+                          onCancel={() => setConfirmingDeleteId(null)}
+                        />
                       </div>
                     ) : (
                       <button

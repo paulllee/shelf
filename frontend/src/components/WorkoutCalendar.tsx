@@ -9,14 +9,18 @@ interface WorkoutCalendarProps {
 }
 
 export default function WorkoutCalendar({ onDateClick }: WorkoutCalendarProps) {
-  const today = new Date();
-  const [year, setYear] = useState(today.getFullYear());
-  const [month, setMonth] = useState(today.getMonth() + 1);
+  const [year, setYear] = useState(() => new Date().getFullYear());
+  const [month, setMonth] = useState(() => new Date().getMonth() + 1);
 
   const { data: cal } = useQuery({
     queryKey: ["calendar", year, month],
     queryFn: () => fetchCalendar(year, month),
   });
+
+  const workoutDateSet = useMemo(
+    () => new Set(cal?.workout_dates ?? []),
+    [cal],
+  );
 
   if (!cal) {
     return (
@@ -26,11 +30,10 @@ export default function WorkoutCalendar({ onDateClick }: WorkoutCalendarProps) {
     );
   }
 
-  const workoutDateSet = useMemo(() => new Set(cal.workout_dates), [cal]);
-
   const goToday = () => {
-    setYear(today.getFullYear());
-    setMonth(today.getMonth() + 1);
+    const now = new Date();
+    setYear(now.getFullYear());
+    setMonth(now.getMonth() + 1);
   };
 
   const goPrev = () => {
@@ -92,16 +95,30 @@ export default function WorkoutCalendar({ onDateClick }: WorkoutCalendarProps) {
           const hasWorkout = workoutDateSet.has(dateStr);
           const isToday = dateStr === cal.today;
 
+          if (hasWorkout) {
+            return (
+              <button
+                key={day}
+                onClick={() => onDateClick(dateStr)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    onDateClick(dateStr);
+                  }
+                }}
+                className={`relative py-2 sm:py-1 rounded min-h-[36px] flex items-center justify-center cursor-pointer hover:bg-base-300 active:bg-base-300 ${isToday ? "bg-primary/20" : ""}`}
+              >
+                {day}
+                <div className="absolute bottom-0.5 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-primary" />
+              </button>
+            );
+          }
           return (
             <div
               key={day}
-              className={`relative py-2 sm:py-1 rounded min-h-[36px] flex items-center justify-center ${isToday ? "bg-primary/20" : ""} ${hasWorkout ? "cursor-pointer hover:bg-base-300 active:bg-base-300" : ""}`}
-              onClick={hasWorkout ? () => onDateClick(dateStr) : undefined}
+              className={`relative py-2 sm:py-1 rounded min-h-[36px] flex items-center justify-center ${isToday ? "bg-primary/20" : ""}`}
             >
               {day}
-              {hasWorkout && (
-                <div className="absolute bottom-0.5 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-primary" />
-              )}
             </div>
           );
         })}

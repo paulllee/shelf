@@ -1,6 +1,5 @@
 import ThemeToggle from "./ThemeToggle";
-
-type Section = "media" | "workouts" | "habits" | "tasks";
+import type { Section } from "../types";
 
 interface HeaderProps {
   section: Section;

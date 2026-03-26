@@ -10,17 +10,10 @@ export default function MediaCard({ item, onClick }: MediaCardProps) {
   const showCountry = item.country !== "undefined";
 
   return (
-    <div
-      className="media-card bg-base-200 rounded-lg p-3 active:bg-base-300 cursor-pointer transition-colors motion-reduce:transition-none"
+    <button
+      type="button"
+      className="media-card w-full text-left bg-base-200 rounded-lg p-3 active:bg-base-300 cursor-pointer transition-colors motion-reduce:transition-none"
       onClick={onClick}
-      onKeyDown={(e) => {
-        if (e.key === "Enter" || e.key === " ") {
-          e.preventDefault();
-          onClick();
-        }
-      }}
-      role="button"
-      tabIndex={0}
     >
       <div className="flex justify-between items-start">
         <span className="font-medium min-w-0 truncate">{item.name}</span>
@@ -35,6 +28,6 @@ export default function MediaCard({ item, onClick }: MediaCardProps) {
         {showType && showCountry && " \u00B7 "}
         {showCountry && item.country}
       </div>
-    </div>
+    </button>
   );
 }

@@ -1,12 +1,13 @@
+import { lazy, Suspense } from "react";
 import { useLocalStorage } from "./hooks/useLocalStorage";
 import { useSSE } from "./hooks/useSSE";
 import Header from "./components/Header";
-import MediaSection from "./components/MediaSection";
-import WorkoutSection from "./components/WorkoutSection";
-import HabitSection from "./components/HabitSection";
-import TaskSection from "./components/TaskSection";
+import type { Section } from "./types";
 
-type Section = "media" | "workouts" | "habits" | "tasks";
+const MediaSection = lazy(() => import("./components/MediaSection"));
+const WorkoutSection = lazy(() => import("./components/WorkoutSection"));
+const HabitSection = lazy(() => import("./components/HabitSection"));
+const TaskSection = lazy(() => import("./components/TaskSection"));
 
 const sectionWidth: Record<Section, string> = {
   media: "max-w-6xl",
@@ -28,17 +29,19 @@ export default function App() {
       data-section={section}
     >
       <Header section={section} onSectionChange={setSection} />
-      <div key={section} className="animate-fade-in">
-        {section === "media" ? (
-          <MediaSection />
-        ) : section === "workouts" ? (
-          <WorkoutSection />
-        ) : section === "habits" ? (
-          <HabitSection />
-        ) : (
-          <TaskSection />
-        )}
-      </div>
+      <Suspense fallback={<div />}>
+        <div key={section} className="animate-fade-in">
+          {section === "media" ? (
+            <MediaSection />
+          ) : section === "workouts" ? (
+            <WorkoutSection />
+          ) : section === "habits" ? (
+            <HabitSection />
+          ) : (
+            <TaskSection />
+          )}
+        </div>
+      </Suspense>
     </div>
   );
 }
