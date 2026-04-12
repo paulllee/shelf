@@ -138,10 +138,11 @@ export default function HabitList({
 
               <div className="flex-1 min-w-0 flex items-baseline gap-2">
                 <h3
-                  className={`text-sm font-semibold transition-colors motion-reduce:transition-none truncate ${
+                  onClick={() => onEdit(habit)}
+                  className={`text-sm font-semibold transition-colors motion-reduce:transition-none truncate cursor-pointer ${
                     completed
-                      ? "text-base-content/40 line-through"
-                      : "text-base-content"
+                      ? "text-base-content/40 line-through hover:text-primary/60"
+                      : "text-base-content hover:text-primary"
                   }`}
                 >
                   {habit.name}
