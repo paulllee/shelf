@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { Send } from "lucide-react";
+import ReactMarkdown from "react-markdown";
 import { sendChatMessage } from "../api/tasks";
 import type { ChatMessage } from "../types";
 import ExpandCollapse from "./ExpandCollapse";
@@ -72,13 +73,15 @@ export default function ChatPanel({
                     : "text-base-content/70 mr-4 sm:mr-8"
                 }`}
               >
-                <span
-                  className={`inline-block px-3 py-1.5 rounded-lg ${
-                    msg.role === "user" ? "bg-primary/10" : "bg-base-200"
-                  }`}
-                >
-                  {msg.content}
-                </span>
+                {msg.role === "user" ? (
+                  <span className="inline-block px-3 py-1.5 rounded-lg bg-primary/10">
+                    {msg.content}
+                  </span>
+                ) : (
+                  <div className="px-3 py-1.5 rounded-lg bg-base-200 [&_p]:mb-2 [&_p:last-child]:mb-0 [&_ul]:list-disc [&_ul]:pl-4 [&_ul]:mb-2 [&_ol]:list-decimal [&_ol]:pl-4 [&_ol]:mb-2 [&_li]:mb-0.5 [&_code]:bg-base-300 [&_code]:px-1 [&_code]:rounded [&_code]:text-xs [&_code]:font-mono [&_pre]:bg-base-300 [&_pre]:p-2 [&_pre]:rounded [&_pre]:overflow-x-auto [&_pre]:mb-2 [&_pre_code]:bg-transparent [&_pre_code]:p-0 [&_strong]:font-semibold [&_em]:italic [&_a]:underline [&_a]:text-primary [&_h1]:font-bold [&_h1]:text-base [&_h2]:font-semibold [&_h3]:font-semibold">
+                    <ReactMarkdown>{msg.content}</ReactMarkdown>
+                  </div>
+                )}
               </div>
             ))}
             {loading && (
