@@ -38,7 +38,7 @@ export default function GroupsEditor({ groups, onChange }: GroupsEditorProps) {
     groups.map((g) => g.exercises.map((ex) => ex.sets.map(() => nextKey()))),
   );
 
-function reorderGroups(from: number, to: number) {
+  function reorderGroups(from: number, to: number) {
     setGroupIds((ids) => {
       const next = [...ids];
       const [gid] = next.splice(from, 1);
@@ -116,9 +116,7 @@ function reorderGroups(from: number, to: number) {
     setExIds((ids) =>
       ids.map((row, i) => (i === gi ? [...row, nextKey()] : row)),
     );
-    setSetIds((ids) =>
-      ids.map((row, i) => (i === gi ? [...row, []] : row)),
-    );
+    setSetIds((ids) => ids.map((row, i) => (i === gi ? [...row, []] : row)));
     onChange(
       updateAt(groups, gi, (g) => ({
         ...g,
@@ -383,7 +381,10 @@ function reorderGroups(from: number, to: number) {
 
                 <div className="space-y-1">
                   {exercise.sets.map((set, si) => (
-                    <div key={setIds[gi]?.[ei]?.[si] ?? si} className="set-row flex gap-2 items-center">
+                    <div
+                      key={setIds[gi]?.[ei]?.[si] ?? si}
+                      className="set-row flex gap-2 items-center"
+                    >
                       <span className="text-xs text-base-content/50 w-5 flex-shrink-0">
                         #{si + 1}
                       </span>

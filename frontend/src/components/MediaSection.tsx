@@ -61,7 +61,9 @@ export default function MediaSection() {
         const bVal = b.rating === "n/a" ? -1 : parseFloat(b.rating) || 0;
         return mobileSortDir === "asc" ? aVal - bVal : bVal - aVal;
       }
-      const cmp = String(a[mobileSortKey]).localeCompare(String(b[mobileSortKey]));
+      const cmp = String(a[mobileSortKey]).localeCompare(
+        String(b[mobileSortKey]),
+      );
       return mobileSortDir === "asc" ? cmp : -cmp;
     });
   }, [filtered, mobileSortKey, mobileSortDir]);
@@ -158,8 +160,12 @@ export default function MediaSection() {
             </select>
             <button
               className={btnGhostSm}
-              onClick={() => setMobileSortDir((d) => (d === "asc" ? "desc" : "asc"))}
-              aria-label={mobileSortDir === "asc" ? "Sort descending" : "Sort ascending"}
+              onClick={() =>
+                setMobileSortDir((d) => (d === "asc" ? "desc" : "asc"))
+              }
+              aria-label={
+                mobileSortDir === "asc" ? "Sort descending" : "Sort ascending"
+              }
             >
               {mobileSortDir === "asc" ? "▲" : "▼"}
             </button>

@@ -9,7 +9,11 @@ import {
 import { useState, useRef, useCallback } from "react";
 import type { Habit } from "../types";
 import { formatDateStr } from "../utils/date";
-import { getDaysText, getShiftForDay, getDateForWeekday } from "../utils/habits";
+import {
+  getDaysText,
+  getShiftForDay,
+  getDateForWeekday,
+} from "../utils/habits";
 import { useClickOutside } from "../hooks/useClickOutside";
 import { menuItemCls } from "../styles";
 import ConfirmDelete from "./ConfirmDelete";
@@ -67,7 +71,9 @@ export default function HabitList({
     if (shiftedHere) return shiftedHere.from;
     const todayDow = date.getDay();
     const upcomingDow = habit.days.find((d) => d > todayDow) ?? habit.days[0];
-    return upcomingDow !== undefined ? getDateForWeekday(date, upcomingDow) : dateStr;
+    return upcomingDow !== undefined
+      ? getDateForWeekday(date, upcomingDow)
+      : dateStr;
   }
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
   const [shiftPickerHabitId, setShiftPickerHabitId] = useState<string | null>(
@@ -79,7 +85,6 @@ export default function HabitList({
   const menuRef = useRef<HTMLDivElement>(null);
   const closeMenu = useCallback(() => setOpenMenuId(null), []);
   useClickOutside(menuRef, !!openMenuId, closeMenu);
-
 
   if (habits.length === 0) {
     return (

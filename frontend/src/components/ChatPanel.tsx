@@ -9,7 +9,10 @@ interface ChatPanelProps {
   onTasksChanged: () => void;
 }
 
-export default function ChatPanel({ expanded, onTasksChanged }: ChatPanelProps) {
+export default function ChatPanel({
+  expanded,
+  onTasksChanged,
+}: ChatPanelProps) {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);

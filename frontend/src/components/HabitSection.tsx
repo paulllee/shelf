@@ -45,7 +45,9 @@ export default function HabitSection() {
   const [selectedDayDetail, setSelectedDayDetail] = useState<Date | null>(null);
   const [isOtherHabitsExpanded, setIsOtherHabitsExpanded] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
-  const [settingsTab, setSettingsTab] = useState<"habits" | "presets">("habits");
+  const [settingsTab, setSettingsTab] = useState<"habits" | "presets">(
+    "habits",
+  );
 
   const queryClient = useQueryClient();
 

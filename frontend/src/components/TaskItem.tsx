@@ -1,11 +1,5 @@
 import { useState } from "react";
-import {
-  Plus,
-  ChevronRight,
-  ChevronDown,
-  Check,
-  Calendar,
-} from "lucide-react";
+import { Plus, ChevronRight, ChevronDown, Check, Calendar } from "lucide-react";
 import type { Task } from "../types";
 import ExpandCollapse from "./ExpandCollapse";
 import TaskInlineForm from "./TaskInlineForm";
@@ -132,7 +126,9 @@ export default function TaskItem({
             borderColor: isClosed
               ? "oklch(var(--bc) / 0.8)"
               : "oklch(var(--bc) / 0.25)",
-            backgroundColor: isClosed ? "oklch(var(--bc) / 0.8)" : "transparent",
+            backgroundColor: isClosed
+              ? "oklch(var(--bc) / 0.8)"
+              : "transparent",
           }}
         >
           {isClosed && <Check className="w-4 h-4 text-white" strokeWidth={3} />}
@@ -143,7 +139,8 @@ export default function TaskItem({
           onKeyDown={(e) => {
             if (e.key === "Enter" || e.key === " ") {
               e.preventDefault();
-              if (isEditing) onCloseEdit(); else onEdit(task);
+              if (isEditing) onCloseEdit();
+              else onEdit(task);
             }
           }}
           role="button"
@@ -178,7 +175,11 @@ export default function TaskItem({
 
         {depth === 0 && !isEditing && (
           <button
-            onClick={() => addingSubtaskFor === task.id ? onCloseEdit() : onAddSubtask(task.id)}
+            onClick={() =>
+              addingSubtaskFor === task.id
+                ? onCloseEdit()
+                : onAddSubtask(task.id)
+            }
             className="p-1.5 text-base-content/30 hover:text-base-content/60 shrink-0 transition-colors motion-reduce:transition-none"
             title="Add sub-task"
             aria-label="Add sub-task"
@@ -189,7 +190,11 @@ export default function TaskItem({
       </div>
 
       <ExpandCollapse expanded={isEditing} className={depth > 0 ? "ml-6" : ""}>
-        <TaskInlineForm task={task} onClose={onCloseEdit} isVisible={isEditing} />
+        <TaskInlineForm
+          task={task}
+          onClose={onCloseEdit}
+          isVisible={isEditing}
+        />
       </ExpandCollapse>
 
       {hasSubtasks && expanded && (

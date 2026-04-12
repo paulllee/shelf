@@ -186,7 +186,10 @@ function formReducer(state: FormState, action: FormAction): FormState {
         })),
       };
     case "REORDER_GROUPS":
-      return { ...state, groups: moveItem(state.groups, action.from, action.to) };
+      return {
+        ...state,
+        groups: moveItem(state.groups, action.from, action.to),
+      };
     case "REORDER_EXERCISES":
       return {
         ...state,
@@ -324,7 +327,10 @@ export default function WorkoutFormModal({
       <form onSubmit={handleSubmit}>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 mb-4">
           <div className="flex flex-col gap-1.5">
-            <label htmlFor="workout-date" className="text-sm font-semibold text-base-content">
+            <label
+              htmlFor="workout-date"
+              className="text-sm font-semibold text-base-content"
+            >
               date
             </label>
             <input
@@ -339,7 +345,10 @@ export default function WorkoutFormModal({
             />
           </div>
           <div className="flex flex-col gap-1.5">
-            <label htmlFor="workout-time" className="text-sm font-semibold text-base-content">
+            <label
+              htmlFor="workout-time"
+              className="text-sm font-semibold text-base-content"
+            >
               time
             </label>
             <input

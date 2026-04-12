@@ -15,9 +15,12 @@ export default function PresetsPanel({ presetsData }: PresetsPanelProps) {
   const [newName, setNewName] = useState("");
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editingName, setEditingName] = useState("");
-  const [confirmingDeleteId, setConfirmingDeleteId] = useState<string | null>(null);
+  const [confirmingDeleteId, setConfirmingDeleteId] = useState<string | null>(
+    null,
+  );
 
-  const invalidate = () => queryClient.invalidateQueries({ queryKey: ["presets"] });
+  const invalidate = () =>
+    queryClient.invalidateQueries({ queryKey: ["presets"] });
 
   const createMutation = useMutation({
     mutationFn: createPreset,
@@ -65,7 +68,8 @@ export default function PresetsPanel({ presetsData }: PresetsPanelProps) {
           />
           <button
             onClick={() => {
-              if (newName.trim()) createMutation.mutate({ name: newName.trim() });
+              if (newName.trim())
+                createMutation.mutate({ name: newName.trim() });
             }}
             disabled={createMutation.isPending}
             className="px-3 py-2 bg-primary text-primary-content rounded-lg hover:brightness-110 transition-[filter] motion-reduce:transition-none"
