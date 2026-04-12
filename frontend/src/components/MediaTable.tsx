@@ -50,7 +50,7 @@ export default function MediaTable({ items, onEdit }: MediaTableProps) {
     <table className="table w-full bg-base-100">
       <thead className="sticky top-0 bg-base-100 z-10">
         <tr className="border-b-2 border-base-300">
-          <th className="text-left">
+          <th className="text-left whitespace-nowrap">
             <button
               className="w-full text-left cursor-pointer select-none hover:bg-base-200 px-0 py-0 bg-transparent border-none font-inherit"
               onClick={() => handleSort("name")}
@@ -61,7 +61,7 @@ export default function MediaTable({ items, onEdit }: MediaTableProps) {
               </span>
             </button>
           </th>
-          <th className="text-left w-24">
+          <th className="text-left w-24 whitespace-nowrap">
             <button
               className="w-full text-left cursor-pointer select-none hover:bg-base-200 px-0 py-0 bg-transparent border-none font-inherit"
               onClick={() => handleSort("type")}
@@ -72,7 +72,7 @@ export default function MediaTable({ items, onEdit }: MediaTableProps) {
               </span>
             </button>
           </th>
-          <th className="text-left w-24">
+          <th className="text-left w-24 whitespace-nowrap">
             <button
               className="w-full text-left cursor-pointer select-none hover:bg-base-200 px-0 py-0 bg-transparent border-none font-inherit"
               onClick={() => handleSort("country")}
@@ -83,7 +83,7 @@ export default function MediaTable({ items, onEdit }: MediaTableProps) {
               </span>
             </button>
           </th>
-          <th className="text-left w-20">
+          <th className="text-left w-24 whitespace-nowrap">
             <button
               className="w-full text-left cursor-pointer select-none hover:bg-base-200 px-0 py-0 bg-transparent border-none font-inherit"
               onClick={() => handleSort("rating")}
