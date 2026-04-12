@@ -3,13 +3,23 @@ import {
   Plus,
   ChevronRight,
   ChevronDown,
-  Square,
-  CheckSquare,
+  Check,
   Calendar,
 } from "lucide-react";
 import type { Task } from "../types";
 import ExpandCollapse from "./ExpandCollapse";
 import TaskInlineForm from "./TaskInlineForm";
+
+type ConfettiFunc = (options?: Record<string, unknown>) => Promise<null> | null;
+let confettiPromise: Promise<ConfettiFunc> | null = null;
+function getConfetti(): Promise<ConfettiFunc> {
+  if (!confettiPromise) {
+    confettiPromise = import("canvas-confetti").then(
+      (m) => m.default as unknown as ConfettiFunc,
+    );
+  }
+  return confettiPromise;
+}
 
 function formatDueDate(due: string): string {
   const d = new Date(due + "T00:00:00");
@@ -80,7 +90,7 @@ export default function TaskItem({
   return (
     <div>
       <div
-        className={`group flex items-center gap-2 py-1.5 ${depth > 0 ? "ml-6" : ""}`}
+        className={`group flex items-center gap-2 py-2 ${depth > 0 ? "ml-6" : ""}`}
       >
         {hasSubtasks ? (
           <button
@@ -98,14 +108,34 @@ export default function TaskItem({
         )}
 
         <button
-          onClick={() => onToggleStatus(task)}
-          className={`shrink-0 ${isClosed ? "text-success" : "text-base-content/30 hover:text-base-content/60"}`}
+          onClick={(e) => {
+            if (!isClosed) {
+              const rect = e.currentTarget.getBoundingClientRect();
+              getConfetti().then((confetti) =>
+                confetti({
+                  origin: {
+                    x: (rect.left + rect.width / 2) / window.innerWidth,
+                    y: (rect.top + rect.height / 2) / window.innerHeight,
+                  },
+                  spread: 70,
+                  startVelocity: 25,
+                  particleCount: 40,
+                  scalar: 0.8,
+                  colors: ["#e2e8f0", "#ffffff", "#94a3b8"],
+                }),
+              );
+            }
+            onToggleStatus(task);
+          }}
+          className={`flex-shrink-0 w-8 h-8 rounded-full border-2 transition-colors motion-reduce:transition-none flex items-center justify-center${isClosed ? " animate-check-pulse" : ""}`}
+          style={{
+            borderColor: isClosed
+              ? "oklch(var(--bc) / 0.8)"
+              : "oklch(var(--bc) / 0.25)",
+            backgroundColor: isClosed ? "oklch(var(--bc) / 0.8)" : "transparent",
+          }}
         >
-          {isClosed ? (
-            <CheckSquare className="w-4 h-4" />
-          ) : (
-            <Square className="w-4 h-4" />
-          )}
+          {isClosed && <Check className="w-4 h-4 text-white" strokeWidth={3} />}
         </button>
 
         <span
@@ -148,8 +178,8 @@ export default function TaskItem({
 
         {depth === 0 && !isEditing && (
           <button
-            onClick={() => onAddSubtask(task.id)}
-            className="text-base-content/30 hover:text-base-content/60 shrink-0 transition-colors motion-reduce:transition-none"
+            onClick={() => addingSubtaskFor === task.id ? onCloseEdit() : onAddSubtask(task.id)}
+            className="p-1.5 text-base-content/30 hover:text-base-content/60 shrink-0 transition-colors motion-reduce:transition-none"
             title="Add sub-task"
             aria-label="Add sub-task"
           >
