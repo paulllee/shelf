@@ -1,9 +1,16 @@
-import { useState, useRef, useEffect, useCallback } from "react";
+import {
+  useState,
+  useRef,
+  useEffect,
+  useLayoutEffect,
+  useCallback,
+} from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { createTask, updateTask, deleteTask } from "../api/tasks";
 import type { Task, TaskFormData } from "../types";
 import { inputCls, selectCls } from "../styles";
 import ConfirmDelete from "./ConfirmDelete";
+import { Plus } from "lucide-react";
 
 interface TaskInlineFormProps {
   task?: Task;
@@ -25,13 +32,38 @@ export default function TaskInlineForm({
   const [due, setDue] = useState(task?.due ?? "");
   const [notes, setNotes] = useState(task?.notes ?? "");
   const [confirmingDelete, setConfirmingDelete] = useState(false);
-  const titleRef = useRef<HTMLInputElement>(null);
+  const [showSubForm, setShowSubForm] = useState(false);
+  const [subTitle, setSubTitle] = useState("");
+  const titleRef = useRef<HTMLTextAreaElement>(null);
+  const notesRef = useRef<HTMLTextAreaElement>(null);
+  const subTitleRef = useRef<HTMLInputElement>(null);
+
+  function resizeTextarea(el: HTMLTextAreaElement | null) {
+    if (!el) return;
+    el.style.height = "auto";
+    el.style.height = el.scrollHeight + "px";
+  }
+
+  // useLayoutEffect runs children-before-parents, so this fires before
+  // ExpandCollapse measures the container — textareas are already the right
+  // height when ExpandCollapse locks in its animation target.
+  useLayoutEffect(() => {
+    if (!isVisible) return;
+    resizeTextarea(titleRef.current);
+    resizeTextarea(notesRef.current);
+  }, [isVisible]);
 
   useEffect(() => {
     if (isVisible) {
       titleRef.current?.focus({ preventScroll: true });
     }
   }, [isVisible]);
+
+  useEffect(() => {
+    if (showSubForm) {
+      subTitleRef.current?.focus({ preventScroll: true });
+    }
+  }, [showSubForm]);
 
   const saveMutation = useMutation({
     mutationFn: (data: TaskFormData) =>
@@ -57,6 +89,22 @@ export default function TaskInlineForm({
     },
   });
 
+  const addSubtaskMutation = useMutation({
+    mutationFn: (subTaskTitle: string) =>
+      createTask({
+        title: subTaskTitle,
+        status: "open",
+        due: null,
+        parent: task!.id,
+        notes: null,
+      }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["tasks"] });
+      setSubTitle("");
+      setShowSubForm(false);
+    },
+  });
+
   const handleSubmit = useCallback(
     (e: React.FormEvent) => {
       e.preventDefault();
@@ -72,6 +120,15 @@ export default function TaskInlineForm({
     [title, status, due, notes, parentId, task, saveMutation],
   );
 
+  const handleAddSubtask = useCallback(
+    (e: React.FormEvent) => {
+      e.preventDefault();
+      if (!subTitle.trim()) return;
+      addSubtaskMutation.mutate(subTitle.trim());
+    },
+    [subTitle, addSubtaskMutation],
+  );
+
   const isPending = saveMutation.isPending || deleteMutation.isPending;
 
   return (
@@ -79,18 +136,24 @@ export default function TaskInlineForm({
       onSubmit={handleSubmit}
       className="py-2 space-y-2 border-b border-base-content/5"
     >
-      <input
+      <textarea
         ref={titleRef}
-        type="text"
         autoComplete="off"
         value={title}
-        onChange={(e) => setTitle(e.target.value)}
+        onChange={(e) => {
+          setTitle(e.target.value);
+          resizeTextarea(e.target);
+        }}
         placeholder={parentId ? "sub-task title" : "task title"}
-        className={inputCls}
+        rows={1}
+        className={`${inputCls} resize-none overflow-hidden`}
         onKeyDown={(e) => {
           if (e.key === "Escape") onClose();
+          if (e.key === "Enter") {
+            e.preventDefault();
+            if (title.trim()) handleSubmit(e as unknown as React.FormEvent);
+          }
         }}
-        required
       />
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
         <select
@@ -116,11 +179,76 @@ export default function TaskInlineForm({
         </div>
       </div>
       <textarea
+        ref={notesRef}
         value={notes}
-        onChange={(e) => setNotes(e.target.value)}
+        onChange={(e) => {
+          setNotes(e.target.value);
+          resizeTextarea(e.target);
+        }}
         placeholder="notes"
-        className={`${inputCls} h-16 resize-none`}
+        rows={1}
+        className={`${inputCls} resize-none overflow-hidden`}
       />
+
+      {isEdit && !task?.parent && (
+        <div className="space-y-1.5">
+          {showSubForm ? (
+            <div className="flex gap-2">
+              <input
+                ref={subTitleRef}
+                type="text"
+                value={subTitle}
+                onChange={(e) => setSubTitle(e.target.value)}
+                placeholder="sub-task title"
+                className={inputCls}
+                onKeyDown={(e) => {
+                  if (e.key === "Escape") {
+                    setShowSubForm(false);
+                    setSubTitle("");
+                  }
+                  if (e.key === "Enter") {
+                    e.preventDefault();
+                    if (subTitle.trim())
+                      addSubtaskMutation.mutate(subTitle.trim());
+                  }
+                }}
+              />
+              <button
+                type="button"
+                onClick={handleAddSubtask}
+                disabled={!subTitle.trim() || addSubtaskMutation.isPending}
+                className="px-3 py-1.5 bg-primary text-primary-content rounded-lg text-xs font-semibold hover:brightness-110 transition-[filter,opacity] motion-reduce:transition-none disabled:opacity-50 disabled:cursor-not-allowed shrink-0"
+              >
+                {addSubtaskMutation.isPending ? (
+                  <span className="loading loading-spinner loading-xs" />
+                ) : (
+                  "add"
+                )}
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setShowSubForm(false);
+                  setSubTitle("");
+                }}
+                className="text-base-content/50 hover:text-base-content text-xs font-semibold transition-colors motion-reduce:transition-none shrink-0"
+              >
+                cancel
+              </button>
+            </div>
+          ) : (
+            <button
+              type="button"
+              onClick={() => setShowSubForm(true)}
+              className="flex items-center gap-1.5 text-xs text-base-content/50 hover:text-base-content transition-colors motion-reduce:transition-none"
+            >
+              <Plus className="w-3.5 h-3.5" />
+              Add Sub-task
+            </button>
+          )}
+        </div>
+      )}
+
       <div className="flex items-center gap-2">
         {isEdit &&
           (confirmingDelete ? (

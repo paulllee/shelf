@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Plus, ChevronRight, ChevronDown, Check, Calendar } from "lucide-react";
+import { ChevronRight, ChevronDown, Check, Calendar } from "lucide-react";
 import type { Task } from "../types";
 import ExpandCollapse from "./ExpandCollapse";
 import TaskInlineForm from "./TaskInlineForm";
@@ -57,9 +57,7 @@ function formatCompletedAt(completedAt: string): string {
 export interface TaskItemProps {
   task: Task;
   editingId: string | null;
-  addingSubtaskFor: string | null;
   onEdit: (task: Task) => void;
-  onAddSubtask: (parentId: string) => void;
   onCloseEdit: () => void;
   onToggleStatus: (task: Task) => void;
   depth?: number;
@@ -68,9 +66,7 @@ export interface TaskItemProps {
 export default function TaskItem({
   task,
   editingId,
-  addingSubtaskFor,
   onEdit,
-  onAddSubtask,
   onCloseEdit,
   onToggleStatus,
   depth = 0,
@@ -86,21 +82,6 @@ export default function TaskItem({
       <div
         className={`group flex items-center gap-2 py-2 ${depth > 0 ? "ml-6" : ""}`}
       >
-        {hasSubtasks ? (
-          <button
-            onClick={() => setExpanded(!expanded)}
-            className="text-base-content/40 hover:text-base-content shrink-0 transition-colors motion-reduce:transition-none"
-          >
-            {expanded ? (
-              <ChevronDown className="w-4 h-4" />
-            ) : (
-              <ChevronRight className="w-4 h-4" />
-            )}
-          </button>
-        ) : (
-          <span className="w-4 shrink-0" />
-        )}
-
         <button
           onClick={(e) => {
             if (!isClosed) {
@@ -134,7 +115,8 @@ export default function TaskItem({
           {isClosed && <Check className="w-4 h-4 text-white" strokeWidth={3} />}
         </button>
 
-        <span
+        {/* title + notes + due date column */}
+        <div
           onClick={() => (isEditing ? onCloseEdit() : onEdit(task))}
           onKeyDown={(e) => {
             if (e.key === "Enter" || e.key === " ") {
@@ -145,47 +127,60 @@ export default function TaskItem({
           }}
           role="button"
           tabIndex={0}
-          className={`text-left text-sm leading-none translate-y-px flex-1 min-w-0 truncate transition-colors motion-reduce:transition-none cursor-pointer ${isEditing ? "text-primary" : isClosed ? "line-through text-base-content/40 hover:text-primary" : "text-base-content hover:text-primary"}`}
+          className="flex-1 min-w-0 cursor-pointer"
         >
-          {task.title}
-        </span>
-
-        {!isEditing && isClosed && task.completed_at && (
-          <span className="text-xs text-base-content/30 shrink-0 whitespace-nowrap translate-y-px">
-            {formatCompletedAt(task.completed_at)}
-          </span>
-        )}
-
-        {!isEditing && !isClosed && dueBadge && (
           <span
-            className={`flex items-center text-xs shrink-0 whitespace-nowrap ${
-              dueBadge.color === "error"
-                ? "text-error"
-                : dueBadge.color === "warning"
-                  ? "text-warning"
-                  : dueBadge.color === "info"
-                    ? "text-info"
-                    : "text-base-content/50"
-            }`}
+            className={`text-sm leading-snug block transition-colors motion-reduce:transition-none ${isEditing ? "text-primary" : isClosed ? "line-through text-base-content/40 hover:text-primary" : "text-base-content hover:text-primary"}`}
           >
-            <Calendar size={12} className="mr-1" />
-            <span className="translate-y-px">{dueBadge.label}</span>
+            {task.title}
           </span>
-        )}
 
-        {depth === 0 && !isEditing && (
+          {task.notes && !isEditing && (
+            <span className="block text-xs text-base-content/40 truncate mt-0.5">
+              {task.notes.split("\n")[0]}
+            </span>
+          )}
+
+          {!isEditing && isClosed && task.completed_at && (
+            <span className="block text-xs text-base-content/30 mt-0.5">
+              {formatCompletedAt(task.completed_at)}
+            </span>
+          )}
+
+          {!isEditing && !isClosed && dueBadge && (
+            <span
+              className={`flex items-center gap-1 text-xs mt-0.5 ${
+                dueBadge.color === "error"
+                  ? "text-error"
+                  : dueBadge.color === "warning"
+                    ? "text-warning"
+                    : dueBadge.color === "info"
+                      ? "text-info"
+                      : "text-base-content/50"
+              }`}
+            >
+              <Calendar size={11} className="shrink-0" />
+              <span className="leading-none translate-y-[1.5px]">
+                {dueBadge.label}
+              </span>
+            </span>
+          )}
+        </div>
+
+        {/* chevron on the right — only when there are subtasks */}
+        {hasSubtasks ? (
           <button
-            onClick={() =>
-              addingSubtaskFor === task.id
-                ? onCloseEdit()
-                : onAddSubtask(task.id)
-            }
-            className="p-1.5 text-base-content/30 hover:text-base-content/60 shrink-0 transition-colors motion-reduce:transition-none"
-            title="Add sub-task"
-            aria-label="Add sub-task"
+            onClick={() => setExpanded(!expanded)}
+            className="text-base-content/40 hover:text-base-content shrink-0 transition-colors motion-reduce:transition-none"
           >
-            <Plus className="w-3.5 h-3.5" />
+            {expanded ? (
+              <ChevronDown className="w-4 h-4" />
+            ) : (
+              <ChevronRight className="w-4 h-4" />
+            )}
           </button>
+        ) : (
+          <span className="w-4 shrink-0" />
         )}
       </div>
 
@@ -204,9 +199,7 @@ export default function TaskItem({
               key={sub.id}
               task={sub}
               editingId={editingId}
-              addingSubtaskFor={addingSubtaskFor}
               onEdit={onEdit}
-              onAddSubtask={onAddSubtask}
               onCloseEdit={onCloseEdit}
               onToggleStatus={onToggleStatus}
               depth={depth + 1}
@@ -214,14 +207,6 @@ export default function TaskItem({
           ))}
         </div>
       )}
-
-      <ExpandCollapse expanded={addingSubtaskFor === task.id} className="ml-6">
-        <TaskInlineForm
-          parentId={task.id}
-          onClose={onCloseEdit}
-          isVisible={addingSubtaskFor === task.id}
-        />
-      </ExpandCollapse>
     </div>
   );
 }

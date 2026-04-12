@@ -17,7 +17,6 @@ export default function TaskSection() {
 
   const [showAddForm, setShowAddForm] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
-  const [addingSubtaskFor, setAddingSubtaskFor] = useState<string | null>(null);
   const [showClosed, setShowClosed] = useState(false);
   const [showChat, setShowChat] = useState(false);
   const [hasShownAddForm, setHasShownAddForm] = useState(false);
@@ -63,20 +62,14 @@ export default function TaskSection() {
 
   const closeEdit = () => {
     setEditingId(null);
-    setAddingSubtaskFor(null);
     setShowAddForm(false);
   };
 
   const taskItemProps = {
     editingId,
-    addingSubtaskFor,
     onEdit: (t: Task) => {
       closeEdit();
       setEditingId(t.id);
-    },
-    onAddSubtask: (parentId: string) => {
-      closeEdit();
-      setAddingSubtaskFor(parentId);
     },
     onCloseEdit: closeEdit,
     onToggleStatus: (t: Task) => toggleMutation.mutate({ task: t }),
