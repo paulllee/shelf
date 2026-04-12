@@ -45,6 +45,14 @@ html {
     -webkit-appearance: none;
     appearance: none;
   }
+
+  /* Prevent iOS Safari from auto-zooming on input focus.
+     The zoom triggers when font-size < 16px — this floors all inputs. */
+  input,
+  select,
+  textarea {
+    font-size: 16px;
+  }
 }
 
 /* Remove 300ms tap delay on touch devices */
