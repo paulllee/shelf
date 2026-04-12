@@ -4,10 +4,13 @@ import { Plus } from "lucide-react";
 import { useLocalStorage } from "../hooks/useLocalStorage";
 import { fetchMedia } from "../api/media";
 import type { MediaItem } from "../types";
-import { selectCls } from "../styles";
+import { selectCls, btnGhostSm } from "../styles";
 import MediaTable from "./MediaTable";
 import MediaCard from "./MediaCard";
 import MediaModal from "./MediaModal";
+
+type SortKey = "name" | "type" | "country" | "rating";
+type SortDir = "asc" | "desc";
 
 const STATUSES = ["queued", "watching", "watched"] as const;
 
@@ -17,6 +20,8 @@ export default function MediaSection() {
   const [countryFilter, setCountryFilter] = useState("");
   const [editItem, setEditItem] = useState<MediaItem | null>(null);
   const [showAddModal, setShowAddModal] = useState(false);
+  const [mobileSortKey, setMobileSortKey] = useState<SortKey>("name");
+  const [mobileSortDir, setMobileSortDir] = useState<SortDir>("asc");
 
   const { data: items = [], isLoading } = useQuery({
     queryKey: ["media", tab],
@@ -49,6 +54,18 @@ export default function MediaSection() {
     [items, typeFilter, countryFilter],
   );
 
+  const mobileSorted = useMemo(() => {
+    return [...filtered].sort((a, b) => {
+      if (mobileSortKey === "rating") {
+        const aVal = a.rating === "n/a" ? -1 : parseFloat(a.rating) || 0;
+        const bVal = b.rating === "n/a" ? -1 : parseFloat(b.rating) || 0;
+        return mobileSortDir === "asc" ? aVal - bVal : bVal - aVal;
+      }
+      const cmp = String(a[mobileSortKey]).localeCompare(String(b[mobileSortKey]));
+      return mobileSortDir === "asc" ? cmp : -cmp;
+    });
+  }, [filtered, mobileSortKey, mobileSortDir]);
+
   return (
     <>
       <div className="flex items-center gap-3 mb-6">
@@ -66,6 +83,8 @@ export default function MediaSection() {
                 setTab(s);
                 setTypeFilter("");
                 setCountryFilter("");
+                setMobileSortKey("name");
+                setMobileSortDir("asc");
               }}
             >
               {s}
@@ -124,9 +143,31 @@ export default function MediaSection() {
             </select>
           </div>
 
+          {/* mobile sort controls */}
+          <div className="flex gap-2 md:hidden mb-4">
+            <select
+              className={`${selectCls} flex-1`}
+              value={mobileSortKey}
+              onChange={(e) => setMobileSortKey(e.target.value as SortKey)}
+              aria-label="Sort by"
+            >
+              <option value="name">name</option>
+              <option value="type">type</option>
+              <option value="country">country</option>
+              <option value="rating">rating</option>
+            </select>
+            <button
+              className={btnGhostSm}
+              onClick={() => setMobileSortDir((d) => (d === "asc" ? "desc" : "asc"))}
+              aria-label={mobileSortDir === "asc" ? "Sort descending" : "Sort ascending"}
+            >
+              {mobileSortDir === "asc" ? "▲" : "▼"}
+            </button>
+          </div>
+
           {/* mobile card view */}
           <div className="space-y-2 md:hidden">
-            {filtered.map((item) => (
+            {mobileSorted.map((item) => (
               <MediaCard
                 key={item.id}
                 item={item}
