@@ -61,6 +61,7 @@ export interface TaskItemProps {
   onCloseEdit: () => void;
   onToggleStatus: (task: Task) => void;
   depth?: number;
+  hideDue?: boolean;
 }
 
 export default function TaskItem({
@@ -70,6 +71,7 @@ export default function TaskItem({
   onCloseEdit,
   onToggleStatus,
   depth = 0,
+  hideDue = false,
 }: TaskItemProps) {
   const [expanded, setExpanded] = useState(true);
   const hasSubtasks = task.subtasks.length > 0;
@@ -147,7 +149,7 @@ export default function TaskItem({
             </span>
           )}
 
-          {!isEditing && !isClosed && dueBadge && (
+          {!isEditing && !isClosed && !hideDue && dueBadge && (
             <span
               className={`flex items-center gap-1 text-xs mt-0.5 ${
                 dueBadge.color === "error"

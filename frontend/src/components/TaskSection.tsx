@@ -8,6 +8,40 @@ import TaskItem from "./TaskItem";
 import TaskInlineForm from "./TaskInlineForm";
 import ChatPanel from "./ChatPanel";
 
+type View = "inbox" | "today" | "upcoming";
+
+function localDateStr(d = new Date()): string {
+  return [d.getFullYear(), d.getMonth() + 1, d.getDate()]
+    .map((n) => String(n).padStart(2, "0"))
+    .join("-");
+}
+
+function formatGroupDate(due: string): string {
+  const d = new Date(due + "T00:00:00");
+  const now = new Date();
+  const isThisYear = d.getFullYear() === now.getFullYear();
+  return d.toLocaleDateString("en-US", {
+    weekday: "short",
+    month: "short",
+    day: "numeric",
+    ...(isThisYear ? {} : { year: "numeric" }),
+  });
+}
+
+function dueDateSort(a: Task, b: Task): number {
+  if (a.due && b.due) {
+    const dueCmp = a.due.localeCompare(b.due);
+    if (dueCmp !== 0) return dueCmp;
+    // same due: open before closed
+    if (a.status !== b.status)
+      return a.status === "open" ? -1 : 1;
+    return a.title.localeCompare(b.title);
+  }
+  if (a.due && !b.due) return -1;
+  if (!a.due && b.due) return 1;
+  return a.title.localeCompare(b.title);
+}
+
 export default function TaskSection() {
   const queryClient = useQueryClient();
   const { data: tasks = [] } = useQuery({
@@ -15,6 +49,8 @@ export default function TaskSection() {
     queryFn: fetchTasks,
   });
 
+  const [view, setView] = useState<View>("today");
+  const todayStr = localDateStr();
   const [showAddForm, setShowAddForm] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [showClosed, setShowClosed] = useState(false);
@@ -36,6 +72,7 @@ export default function TaskSection() {
     },
   });
 
+  // Inbox: all open tasks (or has open subtask), sorted due ASC then title
   const openTasks = tasks
     .filter(
       (t) => t.status === "open" || t.subtasks.some((s) => s.status === "open"),
@@ -60,6 +97,16 @@ export default function TaskSection() {
     });
   const closedCount = closedTasks.length;
 
+  // Today: all tasks (open + closed) with due == today
+  const todayViewTasks = tasks
+    .filter((t) => t.due !== null && t.due === todayStr)
+    .sort(dueDateSort);
+
+  // Upcoming: all tasks (open + closed) with due > today
+  const upcomingViewTasks = tasks
+    .filter((t) => t.due !== null && t.due > todayStr)
+    .sort(dueDateSort);
+
   const closeEdit = () => {
     setEditingId(null);
     setShowAddForm(false);
@@ -75,17 +122,39 @@ export default function TaskSection() {
     onToggleStatus: (t: Task) => toggleMutation.mutate({ task: t }),
   };
 
+  const views: { id: View; label: string }[] = [
+    { id: "inbox", label: "inbox" },
+    { id: "today", label: "today" },
+    { id: "upcoming", label: "upcoming" },
+  ];
+
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <h2 className="text-lg font-semibold">tasks</h2>
+      <div className="flex items-center gap-3">
+        <div role="tablist" className="flex gap-1 bg-base-200 rounded-full p-1 flex-1">
+          {views.map(({ id, label }) => (
+            <button
+              key={id}
+              role="tab"
+              aria-selected={view === id}
+              onClick={() => setView(id)}
+              className={`flex-1 px-3 py-1.5 rounded-full text-sm font-semibold transition-colors motion-reduce:transition-none cursor-pointer ${
+                view === id
+                  ? "bg-primary/20 text-primary"
+                  : "text-base-content/50 hover:text-base-content"
+              }`}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
         <div className="flex items-center gap-2">
           <button
             onClick={() => {
               if (!showChat) setHasShownChat(true);
               setShowChat(!showChat);
             }}
-            className={`p-2 rounded-lg transition-colors motion-reduce:transition-none ${showChat ? "bg-primary/15 text-primary" : "text-base-content/50 hover:text-base-content"}`}
+            className={`h-9 sm:h-10 w-9 sm:w-10 rounded-full flex items-center justify-center transition-colors motion-reduce:transition-none ${showChat ? "bg-primary/15 text-primary" : "text-base-content/50 hover:text-base-content"}`}
             title="AI chat"
           >
             <MessageCircle className="w-4 h-4" />
@@ -123,39 +192,90 @@ export default function TaskSection() {
         </ExpandCollapse>
       )}
 
-      {openTasks.length === 0 && closedCount === 0 && !showAddForm ? (
-        <p className="text-base-content/40 text-sm py-8 text-center">
-          no tasks yet
-        </p>
-      ) : (
-        <div className="space-y-0.5">
-          {openTasks.map((task) => (
-            <TaskItem key={task.id} task={task} {...taskItemProps} />
-          ))}
-        </div>
+      {view === "today" && (
+        <>
+          {todayViewTasks.length === 0 && !showAddForm ? (
+            <p className="text-base-content/40 text-sm py-8 text-center">
+              nothing due today
+            </p>
+          ) : (
+            <div className="space-y-0.5">
+              {todayViewTasks.map((task) => (
+                <TaskItem key={task.id} task={task} hideDue {...taskItemProps} />
+              ))}
+            </div>
+          )}
+        </>
       )}
 
-      {closedCount > 0 && (
-        <div>
-          <button
-            onClick={() => setShowClosed(!showClosed)}
-            className="flex items-center gap-1.5 text-sm font-semibold text-base-content/40 hover:text-base-content/60 transition-colors motion-reduce:transition-none"
-          >
-            {showClosed ? (
-              <ChevronDown className="w-4 h-4" />
-            ) : (
-              <ChevronRight className="w-4 h-4" />
-            )}
-            closed ({closedCount})
-          </button>
-          {showClosed && (
-            <div className="mt-1 space-y-0.5">
-              {closedTasks.map((task) => (
+      {view === "inbox" && (
+        <>
+          {openTasks.length === 0 && closedCount === 0 && !showAddForm ? (
+            <p className="text-base-content/40 text-sm py-8 text-center">
+              no tasks yet
+            </p>
+          ) : (
+            <div className="space-y-0.5">
+              {openTasks.map((task) => (
                 <TaskItem key={task.id} task={task} {...taskItemProps} />
               ))}
             </div>
           )}
-        </div>
+
+          {closedCount > 0 && (
+            <div>
+              <button
+                onClick={() => setShowClosed(!showClosed)}
+                className="flex items-center gap-1.5 text-sm font-semibold text-base-content/40 hover:text-base-content/60 transition-colors motion-reduce:transition-none"
+              >
+                {showClosed ? (
+                  <ChevronDown className="w-4 h-4" />
+                ) : (
+                  <ChevronRight className="w-4 h-4" />
+                )}
+                closed ({closedCount})
+              </button>
+              {showClosed && (
+                <div className="mt-1 space-y-0.5">
+                  {closedTasks.map((task) => (
+                    <TaskItem key={task.id} task={task} {...taskItemProps} />
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+        </>
+      )}
+
+      {view === "upcoming" && (
+        <>
+          {upcomingViewTasks.length === 0 && !showAddForm ? (
+            <p className="text-base-content/40 text-sm py-8 text-center">
+              nothing upcoming
+            </p>
+          ) : (
+            <div className="space-y-4">
+              {Object.entries(
+                upcomingViewTasks.reduce<Record<string, Task[]>>((acc, task) => {
+                  const key = task.due!;
+                  (acc[key] ??= []).push(task);
+                  return acc;
+                }, {}),
+              ).map(([due, group]) => (
+                <div key={due}>
+                  <p className="text-xs font-semibold text-base-content/40 uppercase tracking-wide mb-1">
+                    {formatGroupDate(due)}
+                  </p>
+                  <div className="space-y-0.5">
+                    {group.map((task) => (
+                      <TaskItem key={task.id} task={task} hideDue {...taskItemProps} />
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </>
       )}
     </div>
   );
