@@ -377,6 +377,12 @@ def _execute_tool(
                     "already a sub-task. Only top-level tasks can have sub-tasks.",
                     False,
                 )
+            if parent_task.status == "closed":
+                return (
+                    f"Cannot create a sub-task under '{parent_task.title}' because it is "
+                    "completed. Create a new top-level task with the same name instead.",
+                    False,
+                )
 
         task_model = TaskModel(
             title=title,
@@ -434,6 +440,12 @@ def _execute_tool(
                     return (
                         f"Cannot set '{parent_task.title}' as parent because it is "
                         "already a sub-task. Only top-level tasks can have sub-tasks.",
+                        False,
+                    )
+                if parent_task.status == "closed":
+                    return (
+                        f"Cannot set '{parent_task.title}' as parent because it is "
+                        "completed. Create a new top-level task with the same name instead.",
                         False,
                     )
             parent = new_parent_id
@@ -574,6 +586,8 @@ async def chat(request: Request, body: ChatRequest) -> dict:
         "ones to avoid duplicates. "
         "When creating sub-tasks, always call list_tasks first to get the exact parent task ID, "
         "then pass that ID as parent_id in create_task. Never guess or omit parent_id when creating sub-tasks. "
+        "Never use a closed/completed task as a parent_id. "
+        "If the intended parent is closed, create a new top-level task with the same name instead. "
         "Be concise in your responses. "
         f"The current date and time is {now.strftime('%A, %Y-%m-%d %H:%M')}. "
         "Use this to resolve relative dates like 'tomorrow', 'next week', 'next Monday', etc."
