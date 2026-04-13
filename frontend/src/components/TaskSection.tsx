@@ -33,8 +33,7 @@ function dueDateSort(a: Task, b: Task): number {
     const dueCmp = a.doDate.localeCompare(b.doDate);
     if (dueCmp !== 0) return dueCmp;
     // same do date: open before closed
-    if (a.status !== b.status)
-      return a.status === "open" ? -1 : 1;
+    if (a.status !== b.status) return a.status === "open" ? -1 : 1;
     return a.title.localeCompare(b.title);
   }
   if (a.doDate && !b.doDate) return -1;
@@ -131,7 +130,10 @@ export default function TaskSection() {
   return (
     <div className="space-y-4">
       <div className="flex items-center gap-3">
-        <div role="tablist" className="flex gap-1 bg-base-200 rounded-full p-1 flex-1">
+        <div
+          role="tablist"
+          className="flex gap-1 bg-base-200 rounded-full p-1 flex-1"
+        >
           {views.map(({ id, label }) => (
             <button
               key={id}
@@ -201,7 +203,12 @@ export default function TaskSection() {
           ) : (
             <div className="space-y-0.5">
               {todayViewTasks.map((task) => (
-                <TaskItem key={task.id} task={task} hideDue {...taskItemProps} />
+                <TaskItem
+                  key={task.id}
+                  task={task}
+                  hideDue
+                  {...taskItemProps}
+                />
               ))}
             </div>
           )}
@@ -256,11 +263,14 @@ export default function TaskSection() {
           ) : (
             <div className="space-y-4">
               {Object.entries(
-                upcomingViewTasks.reduce<Record<string, Task[]>>((acc, task) => {
-                  const key = task.doDate!;
-                  (acc[key] ??= []).push(task);
-                  return acc;
-                }, {}),
+                upcomingViewTasks.reduce<Record<string, Task[]>>(
+                  (acc, task) => {
+                    const key = task.doDate!;
+                    (acc[key] ??= []).push(task);
+                    return acc;
+                  },
+                  {},
+                ),
               ).map(([due, group]) => (
                 <div key={due}>
                   <p className="text-xs font-semibold text-base-content/40 uppercase tracking-wide mb-1">
@@ -268,7 +278,12 @@ export default function TaskSection() {
                   </p>
                   <div className="space-y-0.5">
                     {group.map((task) => (
-                      <TaskItem key={task.id} task={task} hideDue {...taskItemProps} />
+                      <TaskItem
+                        key={task.id}
+                        task={task}
+                        hideDue
+                        {...taskItemProps}
+                      />
                     ))}
                   </div>
                 </div>
