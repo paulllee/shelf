@@ -411,7 +411,11 @@ def _execute_tool(
         status = tool_input.get("status", existing.status)
         do_date = existing.do_date
         if "doDate" in tool_input:
-            do_date = date.fromisoformat(tool_input["doDate"]) if tool_input["doDate"] else None
+            do_date = (
+                date.fromisoformat(tool_input["doDate"])
+                if tool_input["doDate"]
+                else None
+            )
         notes = tool_input.get("notes", existing.notes)
         parent = existing.parent
         if "parent_id" in tool_input:

@@ -2,7 +2,7 @@ from dataclasses import dataclass, field
 from datetime import date, datetime, time
 from enum import IntEnum
 
-from pydantic import BaseModel, field_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 from slugify import slugify
 
 
@@ -344,9 +344,11 @@ class Task:
 class TaskModel(BaseModel):
     """Pydantic model for task API input."""
 
+    model_config = ConfigDict(populate_by_name=True)
+
     title: str
     status: str = "open"
-    do_date: date | None = None
+    do_date: date | None = Field(default=None, alias="doDate")
     parent: str | None = None
     notes: str | None = None
 
