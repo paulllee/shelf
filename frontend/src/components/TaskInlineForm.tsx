@@ -29,7 +29,7 @@ export default function TaskInlineForm({
   const isEdit = !!task;
   const [title, setTitle] = useState(task?.title ?? "");
   const [status, setStatus] = useState(task?.status ?? "open");
-  const [due, setDue] = useState(task?.due ?? "");
+  const [doDate, setDoDate] = useState(task?.doDate ?? "");
   const [notes, setNotes] = useState(task?.notes ?? "");
   const [confirmingDelete, setConfirmingDelete] = useState(false);
   const [showSubForm, setShowSubForm] = useState(false);
@@ -73,7 +73,7 @@ export default function TaskInlineForm({
       if (!isEdit) {
         setTitle("");
         setStatus("open");
-        setDue("");
+        setDoDate("");
         setNotes("");
         titleRef.current?.focus({ preventScroll: true });
       }
@@ -94,7 +94,7 @@ export default function TaskInlineForm({
       createTask({
         title: subTaskTitle,
         status: "open",
-        due: null,
+        doDate: null,
         parent: task!.id,
         notes: null,
       }),
@@ -112,12 +112,12 @@ export default function TaskInlineForm({
       saveMutation.mutate({
         title: title.trim(),
         status,
-        due: due || null,
+        doDate: doDate || null,
         parent: parentId ?? task?.parent ?? null,
         notes: notes.trim() || null,
       });
     },
-    [title, status, due, notes, parentId, task, saveMutation],
+    [title, status, doDate, notes, parentId, task, saveMutation],
   );
 
   const handleAddSubtask = useCallback(
@@ -167,13 +167,13 @@ export default function TaskInlineForm({
         <div className="relative">
           <input
             type="date"
-            value={due}
-            onChange={(e) => setDue(e.target.value)}
+            value={doDate}
+            onChange={(e) => setDoDate(e.target.value)}
             className={inputCls}
           />
-          {!due && (
+          {!doDate && (
             <span className="absolute inset-0 hidden [@media(pointer:coarse)]:flex items-center px-4 text-base-content/30 pointer-events-none text-sm">
-              due date
+              do date
             </span>
           )}
         </div>

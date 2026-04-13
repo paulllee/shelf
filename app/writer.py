@@ -113,7 +113,7 @@ def write_task(
     post = frontmatter.Post(content=task.notes or "")
     post["title"] = task.title
     post["status"] = task.status
-    post["due"] = task.due.isoformat() if task.due else None
+    post["do_date"] = task.do_date.isoformat() if task.do_date else None
     post["parent"] = task.parent
     post["created_at"] = created_at_iso
     post["completed_at"] = completed_at_iso

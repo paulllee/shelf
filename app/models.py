@@ -327,7 +327,7 @@ class Task:
 
     title: str
     status: str  # "open" or "closed"
-    due: date | None
+    do_date: date | None
     parent: str | None
     notes: str
     created_at: datetime
@@ -346,7 +346,7 @@ class TaskModel(BaseModel):
 
     title: str
     status: str = "open"
-    due: date | None = None
+    do_date: date | None = None
     parent: str | None = None
     notes: str | None = None
 

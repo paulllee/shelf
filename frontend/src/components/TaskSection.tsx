@@ -29,16 +29,16 @@ function formatGroupDate(due: string): string {
 }
 
 function dueDateSort(a: Task, b: Task): number {
-  if (a.due && b.due) {
-    const dueCmp = a.due.localeCompare(b.due);
+  if (a.doDate && b.doDate) {
+    const dueCmp = a.doDate.localeCompare(b.doDate);
     if (dueCmp !== 0) return dueCmp;
-    // same due: open before closed
+    // same do date: open before closed
     if (a.status !== b.status)
       return a.status === "open" ? -1 : 1;
     return a.title.localeCompare(b.title);
   }
-  if (a.due && !b.due) return -1;
-  if (!a.due && b.due) return 1;
+  if (a.doDate && !b.doDate) return -1;
+  if (!a.doDate && b.doDate) return 1;
   return a.title.localeCompare(b.title);
 }
 
@@ -63,7 +63,7 @@ export default function TaskSection() {
       updateTask(task.id, {
         title: task.title,
         status: task.status === "open" ? "closed" : "open",
-        due: task.due,
+        doDate: task.doDate,
         parent: task.parent,
         notes: task.notes,
       }),
@@ -78,9 +78,9 @@ export default function TaskSection() {
       (t) => t.status === "open" || t.subtasks.some((s) => s.status === "open"),
     )
     .sort((a, b) => {
-      if (a.due && b.due) return a.due.localeCompare(b.due);
-      if (a.due && !b.due) return -1;
-      if (!a.due && b.due) return 1;
+      if (a.doDate && b.doDate) return a.doDate.localeCompare(b.doDate);
+      if (a.doDate && !b.doDate) return -1;
+      if (!a.doDate && b.doDate) return 1;
       return a.title.localeCompare(b.title);
     });
   const closedTasks = tasks
@@ -97,14 +97,14 @@ export default function TaskSection() {
     });
   const closedCount = closedTasks.length;
 
-  // Today: all tasks (open + closed) with due == today
+  // Today: all tasks (open + closed) with doDate == today
   const todayViewTasks = tasks
-    .filter((t) => t.due !== null && t.due === todayStr)
+    .filter((t) => t.doDate !== null && t.doDate === todayStr)
     .sort(dueDateSort);
 
-  // Upcoming: all tasks (open + closed) with due > today
+  // Upcoming: all tasks (open + closed) with doDate > today
   const upcomingViewTasks = tasks
-    .filter((t) => t.due !== null && t.due > todayStr)
+    .filter((t) => t.doDate !== null && t.doDate > todayStr)
     .sort(dueDateSort);
 
   const closeEdit = () => {
@@ -196,7 +196,7 @@ export default function TaskSection() {
         <>
           {todayViewTasks.length === 0 && !showAddForm ? (
             <p className="text-base-content/40 text-sm py-8 text-center">
-              nothing due today
+              nothing to do today
             </p>
           ) : (
             <div className="space-y-0.5">
@@ -257,7 +257,7 @@ export default function TaskSection() {
             <div className="space-y-4">
               {Object.entries(
                 upcomingViewTasks.reduce<Record<string, Task[]>>((acc, task) => {
-                  const key = task.due!;
+                  const key = task.doDate!;
                   (acc[key] ??= []).push(task);
                   return acc;
                 }, {}),

@@ -75,7 +75,7 @@ export default function TaskItem({
 }: TaskItemProps) {
   const [expanded, setExpanded] = useState(true);
   const hasSubtasks = task.subtasks.length > 0;
-  const dueBadge = getDueBadge(task.due);
+  const dueBadge = getDueBadge(task.doDate);
   const isClosed = task.status === "closed";
   const isEditing = editingId === task.id;
 

@@ -321,11 +321,11 @@ def parse_md_to_task(md_path: Path) -> Task:
         with md_path.open("r", encoding="utf-8") as f:
             post: frontmatter.Post = frontmatter.load(f)
 
-        due_val: Any = post.get("due")
-        if isinstance(due_val, str):
-            due_val = date.fromisoformat(due_val)
-        elif not isinstance(due_val, date):
-            due_val = None
+        do_date_val: Any = post.get("do_date")
+        if isinstance(do_date_val, str):
+            do_date_val = date.fromisoformat(do_date_val)
+        elif not isinstance(do_date_val, date):
+            do_date_val = None
 
         created_at_val: Any = post.get("created_at", "")
         if isinstance(created_at_val, str):
@@ -346,7 +346,7 @@ def parse_md_to_task(md_path: Path) -> Task:
         return Task(
             title=str(post.get("title", "")),
             status=str(post.get("status", "open")),
-            due=due_val,
+            do_date=do_date_val,
             parent=parent_val,
             notes=post.content,
             created_at=created_at_val,

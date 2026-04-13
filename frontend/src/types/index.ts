@@ -126,7 +126,7 @@ export interface Task {
   id: string;
   title: string;
   status: string;
-  due: string | null;
+  doDate: string | null;
   parent: string | null;
   notes: string;
   created_at: string;
@@ -137,7 +137,7 @@ export interface Task {
 export interface TaskFormData {
   title: string;
   status?: string;
-  due?: string | null;
+  doDate?: string | null;
   parent?: string | null;
   notes?: string | null;
 }

@@ -52,7 +52,7 @@ def _cascade_close(
             child_model = TaskModel(
                 title=child.title,
                 status="closed",
-                due=child.due,
+                do_date=child.do_date,
                 parent=child.parent,
                 notes=child.notes,
             )
@@ -77,7 +77,7 @@ def parse_task_to_dict(task: Task, all_tasks: list[Task]) -> dict:
         "id": task.id,
         "title": task.title,
         "status": task.status,
-        "due": task.due.isoformat() if task.due else None,
+        "doDate": task.do_date.isoformat() if task.do_date else None,
         "parent": task.parent,
         "notes": task.notes,
         "created_at": task.created_at.isoformat(),
@@ -153,7 +153,7 @@ async def update_task(request: Request, task_id: str, task: TaskModel) -> dict:
             child_model = TaskModel(
                 title=child.title,
                 status=child.status,
-                due=child.due,
+                do_date=child.do_date,
                 parent=new_id,
                 notes=child.notes,
             )
@@ -236,9 +236,9 @@ def _build_chat_tools() -> list[types.Tool]:
                                 "enum": ["open", "closed"],
                                 "description": "Task status, defaults to open",
                             },
-                            "due": {
+                            "doDate": {
                                 "type": "string",
-                                "description": "Optional due date in YYYY-MM-DD format",
+                                "description": "Optional do date in YYYY-MM-DD format",
                             },
                             "parent_id": {
                                 "type": "string",
@@ -268,9 +268,9 @@ def _build_chat_tools() -> list[types.Tool]:
                                 "enum": ["open", "closed"],
                                 "description": "New status",
                             },
-                            "due": {
+                            "doDate": {
                                 "type": "string",
-                                "description": "New due date in YYYY-MM-DD or null to clear",
+                                "description": "New do date in YYYY-MM-DD or null to clear",
                             },
                             "notes": {"type": "string", "description": "New notes"},
                             "parent_id": {
@@ -358,9 +358,9 @@ def _execute_tool(
                 )
 
         now = datetime.now()
-        due = None
-        if tool_input.get("due"):
-            due = date.fromisoformat(tool_input["due"])
+        do_date = None
+        if tool_input.get("doDate"):
+            do_date = date.fromisoformat(tool_input["doDate"])
 
         # Validate parent exists and is not itself a sub-task
         if parent_id:
@@ -381,7 +381,7 @@ def _execute_tool(
         task_model = TaskModel(
             title=title,
             status=tool_input.get("status", "open"),
-            due=due,
+            do_date=do_date,
             parent=parent_id,
             notes=tool_input.get("notes"),
         )
@@ -391,7 +391,7 @@ def _execute_tool(
         request.app.state.task_items = request.app.state.parse_all_tasks()
         return (
             f"Created task '{title}' (ID: {task_id})"
-            + (f" due {tool_input['due']}" if tool_input.get("due") else "")
+            + (f" do date {tool_input['doDate']}" if tool_input.get("doDate") else "")
             + (
                 f" as sub-task of {tool_input['parent_id']}"
                 if tool_input.get("parent_id")
@@ -409,9 +409,9 @@ def _execute_tool(
         existing: Task = request.app.state.parse_md_to_task(md_path)
         title = tool_input.get("title", existing.title)
         status = tool_input.get("status", existing.status)
-        due = existing.due
-        if "due" in tool_input:
-            due = date.fromisoformat(tool_input["due"]) if tool_input["due"] else None
+        do_date = existing.do_date
+        if "doDate" in tool_input:
+            do_date = date.fromisoformat(tool_input["doDate"]) if tool_input["doDate"] else None
         notes = tool_input.get("notes", existing.notes)
         parent = existing.parent
         if "parent_id" in tool_input:
@@ -437,7 +437,7 @@ def _execute_tool(
         task_model = TaskModel(
             title=title,
             status=status,
-            due=due,
+            do_date=do_date,
             parent=parent,
             notes=notes,
         )
@@ -451,7 +451,7 @@ def _execute_tool(
                 child_model = TaskModel(
                     title=child.title,
                     status=child.status,
-                    due=child.due,
+                    do_date=child.do_date,
                     parent=new_id,
                     notes=child.notes,
                 )
@@ -494,7 +494,7 @@ def _execute_tool(
         task_model = TaskModel(
             title=existing.title,
             status="closed",
-            due=existing.due,
+            do_date=existing.do_date,
             parent=existing.parent,
             notes=existing.notes,
         )
@@ -524,7 +524,7 @@ def _execute_tool(
         lines = []
         for t in sorted(filtered, key=lambda t: t.title.lower()):
             prefix = f"[{t.status}]"
-            due_str = f" (due {t.due.isoformat()})" if t.due else ""
+            due_str = f" (do date {t.do_date.isoformat()})" if t.do_date else ""
             parent_str = f" [sub-task of {t.parent}]" if t.parent else ""
             lines.append(f"- {prefix} {t.title}{due_str}{parent_str} — ID: {t.id}")
         return "\n".join(lines), False
@@ -542,7 +542,7 @@ def _execute_tool(
         lines = []
         for t in sorted(matches, key=lambda t: t.title.lower()):
             prefix = f"[{t.status}]"
-            due_str = f" (due {t.due.isoformat()})" if t.due else ""
+            due_str = f" (do date {t.do_date.isoformat()})" if t.do_date else ""
             lines.append(f"- {prefix} {t.title}{due_str} — ID: {t.id}")
         return "\n".join(lines), False
 
