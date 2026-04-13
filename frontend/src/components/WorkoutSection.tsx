@@ -19,7 +19,7 @@ export default function WorkoutSection() {
   return (
     <>
       <div className="flex items-center justify-between mb-4">
-        <h2 className="text-lg font-semibold">workouts</h2>
+        <h2 className="text-lg font-semibold">log</h2>
         <button
           onClick={() => setShowAddModal(true)}
           className="h-9 sm:h-10 px-3 sm:px-4 rounded-full bg-primary border border-primary/80 text-primary-content hover:brightness-110 transition-[filter] motion-reduce:transition-none flex items-center gap-1.5 text-sm font-semibold"

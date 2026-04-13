@@ -116,7 +116,7 @@ export default function HabitSection() {
       <div>
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">
-            <h2 className="text-lg font-semibold">today's habits</h2>
+            <h2 className="text-lg font-semibold">today</h2>
             {habits.length > 0 && (
               <button
                 onClick={() => setShowSettings((v) => !v)}
@@ -242,7 +242,7 @@ export default function HabitSection() {
             ) : (
               <ChevronDown className="w-4 h-4" />
             )}
-            other habits ({otherHabits.length})
+            other ({otherHabits.length})
           </button>
           <ExpandCollapse expanded={isOtherHabitsExpanded}>
             <HabitList
