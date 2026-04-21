@@ -61,6 +61,7 @@ export default function ChatPanel({
       expanded={expanded}
       onExpanded={() => inputRef.current?.focus()}
     >
+      <div className="pb-4">
       <div className="border border-base-content/10 rounded-xl overflow-hidden">
         {messages.length > 0 && (
           <div className="max-h-64 overflow-y-auto p-3 space-y-2">
@@ -127,6 +128,7 @@ export default function ChatPanel({
             <Send className="w-4 h-4" />
           </button>
         </div>
+      </div>
       </div>
     </ExpandCollapse>
   );

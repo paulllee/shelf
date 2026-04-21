@@ -128,8 +128,8 @@ export default function TaskSection() {
   ];
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-center gap-3">
+    <div>
+      <div className="flex items-center gap-3 mb-4">
         <div
           role="tablist"
           className="flex gap-1 bg-base-200 rounded-full p-1 flex-1"
@@ -188,7 +188,7 @@ export default function TaskSection() {
 
       {hasShownAddForm && (
         <ExpandCollapse expanded={showAddForm}>
-          <div className="pb-2">
+          <div className="pb-4">
             <TaskInlineForm onClose={closeEdit} isVisible={showAddForm} />
           </div>
         </ExpandCollapse>
