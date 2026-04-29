@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { ChevronRight, ChevronDown, Check, Calendar } from "lucide-react";
 import type { Task } from "../types";
 import ExpandCollapse from "./ExpandCollapse";
@@ -62,6 +62,8 @@ export interface TaskItemProps {
   onToggleStatus: (task: Task) => void;
   depth?: number;
   hideDue?: boolean;
+  parentTask?: Task;
+  onEditParent?: (task: Task) => void;
 }
 
 export default function TaskItem({
@@ -72,20 +74,38 @@ export default function TaskItem({
   onToggleStatus,
   depth = 0,
   hideDue = false,
+  parentTask,
+  onEditParent,
 }: TaskItemProps) {
   const [expanded, setExpanded] = useState(true);
+  const [pendingClose, setPendingClose] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
   const hasSubtasks = task.subtasks.length > 0;
   const dueBadge = getDueBadge(task.doDate);
   const isClosed = task.status === "closed";
   const isEditing = editingId === task.id;
 
+  useEffect(() => {
+    if (isEditing) {
+      containerRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    }
+  }, [isEditing]);
+
+  const openSubtaskCount = task.subtasks.filter(
+    (s) => s.status === "open",
+  ).length;
+
   return (
-    <div>
+    <div ref={containerRef}>
       <div
         className={`group flex items-center gap-2 py-2 ${depth > 0 ? "ml-6" : ""}`}
       >
         <button
           onClick={(e) => {
+            if (!isClosed && openSubtaskCount > 0) {
+              setPendingClose(true);
+              return;
+            }
             if (!isClosed) {
               const rect = e.currentTarget.getBoundingClientRect();
               getConfetti().then((confetti) =>
@@ -185,6 +205,41 @@ export default function TaskItem({
           <span className="w-4 shrink-0" />
         )}
       </div>
+
+      {parentTask && (
+        <button
+          onClick={() => onEditParent?.(parentTask)}
+          className={`block text-xs text-base-content/40 hover:text-primary transition-colors motion-reduce:transition-none mt-0.5 mb-1 leading-none ${depth > 0 ? "ml-12" : "ml-10"}`}
+        >
+          ↳ {parentTask.title}
+        </button>
+      )}
+
+      {pendingClose && (
+        <div
+          className={`flex items-center gap-3 text-xs text-base-content/60 mb-1 ${depth > 0 ? "ml-12" : "ml-10"}`}
+        >
+          <span>
+            complete {openSubtaskCount} subtask
+            {openSubtaskCount !== 1 ? "s" : ""} too?
+          </span>
+          <button
+            onClick={() => {
+              setPendingClose(false);
+              onToggleStatus(task);
+            }}
+            className="font-semibold text-primary hover:brightness-110 transition-[filter] motion-reduce:transition-none"
+          >
+            yes
+          </button>
+          <button
+            onClick={() => setPendingClose(false)}
+            className="text-base-content/40 hover:text-base-content transition-colors motion-reduce:transition-none"
+          >
+            cancel
+          </button>
+        </div>
+      )}
 
       <ExpandCollapse expanded={isEditing} className={depth > 0 ? "ml-6" : ""}>
         <TaskInlineForm

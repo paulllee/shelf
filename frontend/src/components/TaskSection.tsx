@@ -10,6 +10,10 @@ import ChatPanel from "./ChatPanel";
 
 type View = "inbox" | "today" | "upcoming";
 
+type FlatItem =
+  | { kind: "task"; task: Task }
+  | { kind: "subtask"; task: Task; parentTask: Task };
+
 function localDateStr(d = new Date()): string {
   return [d.getFullYear(), d.getMonth() + 1, d.getDate()]
     .map((n) => String(n).padStart(2, "0"))
@@ -96,19 +100,48 @@ export default function TaskSection() {
     });
   const closedCount = closedTasks.length;
 
-  // Today: all tasks (open + closed) with doDate == today
-  const todayViewTasks = tasks
-    .filter((t) => t.doDate !== null && t.doDate === todayStr)
-    .sort(dueDateSort);
+  // Today flat list: parent tasks due today + orphaned subtasks due today
+  const todayParents = tasks.filter((t) => t.doDate === todayStr);
+  const todayParentIds = new Set(todayParents.map((t) => t.id));
+  const todayOrphans = tasks.flatMap((parent) =>
+    parent.subtasks
+      .filter((s) => s.doDate === todayStr && !todayParentIds.has(parent.id))
+      .map((s) => ({ kind: "subtask" as const, task: s, parentTask: parent })),
+  );
+  const todayFlatItems: FlatItem[] = [
+    ...todayParents.map((t) => ({ kind: "task" as const, task: t })),
+    ...todayOrphans,
+  ].sort((a, b) => dueDateSort(a.task, b.task));
 
-  // Upcoming: all tasks (open + closed) with doDate > today
-  const upcomingViewTasks = tasks
-    .filter((t) => t.doDate !== null && t.doDate > todayStr)
-    .sort(dueDateSort);
+  // Upcoming flat list: parent tasks after today + orphaned subtasks after today
+  const upcomingParents = tasks.filter(
+    (t) => t.doDate !== null && t.doDate > todayStr,
+  );
+  const upcomingParentIds = new Set(upcomingParents.map((t) => t.id));
+  const upcomingOrphans = tasks.flatMap((parent) =>
+    parent.subtasks
+      .filter(
+        (s) =>
+          s.doDate !== null &&
+          s.doDate > todayStr &&
+          !upcomingParentIds.has(parent.id),
+      )
+      .map((s) => ({ kind: "subtask" as const, task: s, parentTask: parent })),
+  );
+  const upcomingFlatItems: FlatItem[] = [
+    ...upcomingParents.map((t) => ({ kind: "task" as const, task: t })),
+    ...upcomingOrphans,
+  ].sort((a, b) => dueDateSort(a.task, b.task));
 
   const closeEdit = () => {
     setEditingId(null);
     setShowAddForm(false);
+  };
+
+  const handleEditParent = (parent: Task) => {
+    closeEdit();
+    setView("inbox");
+    setEditingId(parent.id);
   };
 
   const taskItemProps = {
@@ -196,20 +229,31 @@ export default function TaskSection() {
 
       {view === "today" && (
         <>
-          {todayViewTasks.length === 0 && !showAddForm ? (
+          {todayFlatItems.length === 0 && !showAddForm ? (
             <p className="text-base-content/40 text-sm py-8 text-center">
               nothing to do today
             </p>
           ) : (
             <div className="space-y-0.5">
-              {todayViewTasks.map((task) => (
-                <TaskItem
-                  key={task.id}
-                  task={task}
-                  hideDue
-                  {...taskItemProps}
-                />
-              ))}
+              {todayFlatItems.map((item) =>
+                item.kind === "task" ? (
+                  <TaskItem
+                    key={item.task.id}
+                    task={item.task}
+                    hideDue
+                    {...taskItemProps}
+                  />
+                ) : (
+                  <TaskItem
+                    key={item.task.id}
+                    task={item.task}
+                    hideDue
+                    parentTask={item.parentTask}
+                    onEditParent={handleEditParent}
+                    {...taskItemProps}
+                  />
+                ),
+              )}
             </div>
           )}
         </>
@@ -256,17 +300,17 @@ export default function TaskSection() {
 
       {view === "upcoming" && (
         <>
-          {upcomingViewTasks.length === 0 && !showAddForm ? (
+          {upcomingFlatItems.length === 0 && !showAddForm ? (
             <p className="text-base-content/40 text-sm py-8 text-center">
               nothing upcoming
             </p>
           ) : (
             <div className="space-y-4">
               {Object.entries(
-                upcomingViewTasks.reduce<Record<string, Task[]>>(
-                  (acc, task) => {
-                    const key = task.doDate!;
-                    (acc[key] ??= []).push(task);
+                upcomingFlatItems.reduce<Record<string, FlatItem[]>>(
+                  (acc, item) => {
+                    const key = item.task.doDate!;
+                    (acc[key] ??= []).push(item);
                     return acc;
                   },
                   {},
@@ -277,14 +321,25 @@ export default function TaskSection() {
                     {formatGroupDate(due)}
                   </p>
                   <div className="space-y-0.5">
-                    {group.map((task) => (
-                      <TaskItem
-                        key={task.id}
-                        task={task}
-                        hideDue
-                        {...taskItemProps}
-                      />
-                    ))}
+                    {group.map((item) =>
+                      item.kind === "task" ? (
+                        <TaskItem
+                          key={item.task.id}
+                          task={item.task}
+                          hideDue
+                          {...taskItemProps}
+                        />
+                      ) : (
+                        <TaskItem
+                          key={item.task.id}
+                          task={item.task}
+                          hideDue
+                          parentTask={item.parentTask}
+                          onEditParent={handleEditParent}
+                          {...taskItemProps}
+                        />
+                      ),
+                    )}
                   </div>
                 </div>
               ))}
