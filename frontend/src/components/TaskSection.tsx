@@ -55,6 +55,7 @@ export default function TaskSection() {
   const [view, setView] = useState<View>("today");
   const todayStr = localDateStr();
   const [showAddForm, setShowAddForm] = useState(false);
+  const [addFormInitialDoDate, setAddFormInitialDoDate] = useState<string>("");
   const [editingId, setEditingId] = useState<string | null>(null);
   const [showClosed, setShowClosed] = useState(false);
   const [showChat, setShowChat] = useState(false);
@@ -198,6 +199,7 @@ export default function TaskSection() {
             onClick={() => {
               closeEdit();
               if (!showAddForm) {
+                setAddFormInitialDoDate(view === "today" ? todayStr : "");
                 setShowAddForm(true);
                 setHasShownAddForm(true);
               }
@@ -222,7 +224,7 @@ export default function TaskSection() {
       {hasShownAddForm && (
         <ExpandCollapse expanded={showAddForm}>
           <div className="pb-4">
-            <TaskInlineForm onClose={closeEdit} isVisible={showAddForm} />
+            <TaskInlineForm onClose={closeEdit} isVisible={showAddForm} initialDoDate={addFormInitialDoDate} />
           </div>
         </ExpandCollapse>
       )}

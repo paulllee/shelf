@@ -17,6 +17,7 @@ interface TaskInlineFormProps {
   parentId?: string | null;
   onClose: () => void;
   isVisible?: boolean;
+  initialDoDate?: string;
 }
 
 export default function TaskInlineForm({
@@ -24,12 +25,13 @@ export default function TaskInlineForm({
   parentId,
   onClose,
   isVisible,
+  initialDoDate = "",
 }: TaskInlineFormProps) {
   const queryClient = useQueryClient();
   const isEdit = !!task;
   const [title, setTitle] = useState(task?.title ?? "");
   const [status, setStatus] = useState(task?.status ?? "open");
-  const [doDate, setDoDate] = useState(task?.doDate ?? "");
+  const [doDate, setDoDate] = useState(task?.doDate ?? initialDoDate);
   const [notes, setNotes] = useState(task?.notes ?? "");
   const [confirmingDelete, setConfirmingDelete] = useState(false);
   const [showSubForm, setShowSubForm] = useState(false);
@@ -37,6 +39,7 @@ export default function TaskInlineForm({
   const titleRef = useRef<HTMLTextAreaElement>(null);
   const notesRef = useRef<HTMLTextAreaElement>(null);
   const subTitleRef = useRef<HTMLInputElement>(null);
+  const wasVisible = useRef(false);
 
   function resizeTextarea(el: HTMLTextAreaElement | null) {
     if (!el) return;
@@ -57,7 +60,11 @@ export default function TaskInlineForm({
     if (isVisible) {
       titleRef.current?.focus({ preventScroll: true });
     }
-  }, [isVisible]);
+    if (isVisible && !wasVisible.current && !isEdit) {
+      setDoDate(initialDoDate);
+    }
+    wasVisible.current = !!isVisible;
+  }, [isVisible, initialDoDate, isEdit]);
 
   useEffect(() => {
     if (showSubForm) {
@@ -73,7 +80,7 @@ export default function TaskInlineForm({
       if (!isEdit) {
         setTitle("");
         setStatus("open");
-        setDoDate("");
+        setDoDate(initialDoDate);
         setNotes("");
         titleRef.current?.focus({ preventScroll: true });
       }
