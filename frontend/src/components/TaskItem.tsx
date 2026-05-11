@@ -87,7 +87,10 @@ export default function TaskItem({
 
   useEffect(() => {
     if (isEditing) {
-      containerRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" });
+      containerRef.current?.scrollIntoView({
+        behavior: "smooth",
+        block: "nearest",
+      });
     }
   }, [isEditing]);
 

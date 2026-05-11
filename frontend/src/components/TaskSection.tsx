@@ -224,7 +224,11 @@ export default function TaskSection() {
       {hasShownAddForm && (
         <ExpandCollapse expanded={showAddForm}>
           <div className="pb-4">
-            <TaskInlineForm onClose={closeEdit} isVisible={showAddForm} initialDoDate={addFormInitialDoDate} />
+            <TaskInlineForm
+              onClose={closeEdit}
+              isVisible={showAddForm}
+              initialDoDate={addFormInitialDoDate}
+            />
           </div>
         </ExpandCollapse>
       )}
