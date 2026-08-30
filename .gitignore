@@ -1,4 +1,4 @@
-# uv generated
+# generated files
 __pycache__/
 *.py[oc]
 build/
@@ -6,15 +6,12 @@ dist/
 wheels/
 *.egg-info
 .venv
-
-# env details
-uv.lock
+.pixi/
 
 # frontend stuff
 node_modules/
 static/css/
 static/spa/
-package-lock.json
 
 # misc
 contents/

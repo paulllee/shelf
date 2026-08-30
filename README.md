@@ -4,68 +4,44 @@ a self-hosted, markdown-backed personal tracker for media, workouts, habits, and
 
 ## features
 
-- **media tracking**: track movies, shows, and other media with status, ratings,
-  and reviews
-- **workout logging**: log workouts with exercise groups, sets, reps, and
-  weights. drag-and-drop to reorder groups and exercises
+- **media tracking**: track movies, shows, and other media with status, ratings, and reviews
+- **workout logging**: log workouts with exercise groups, sets, reps, and weights with drag-and-drop ordering
 - **workout templates**: save routines as templates for quick reuse
-- **habit tracking**: track daily habits with completion history and a monthly
-  calendar view
+- **habit tracking**: track daily habits with completion history and a monthly calendar view
 - **activity logging**: log one-off activities with preset quick-add
-- **task management**: hierarchical tasks with drag-and-drop reordering and an
-  optional ai chat assistant (powered by gemini)
-- **markdown storage**: all data stored as plain markdown files with yaml
-  frontmatter
+- **task management**: hierarchical tasks with drag-and-drop reordering and an optional ai chat assistant powered by Gemini
+- **markdown storage**: all data stored as plain markdown files with yaml frontmatter
 
 ## requirements
 
-- python 3.14+
-- [uv](https://github.com/astral-sh/uv)
-- node.js
+- [pixi](https://pixi.prefix.dev/)
 
 ## setup
 
 ```bash
-git clone <repo-url>
-cd shelf
-uv sync
-cd frontend && npm install
+pixi run install
 ```
 
-configure paths in `config.toml` if needed — content directories are created
-automatically on first run.
+configure paths in `config.toml` if needed. content directories are created automatically on first run
 
 ### environment variables
 
-| variable | required | purpose |
-|----------|----------|---------|
-| `GEMINI_API_KEY` | no | enables ai chat in the tasks section. if not set, the app starts normally but the chat endpoint returns 503 |
-| `GEMINI_MODEL` | no | override the gemini model used for chat (defaults to `gemini-3-flash-preview`) |
+- `GEMINI_API_KEY`: enables ai chat in the tasks section. without it, the app starts normally but the chat endpoint returns 503
+- `GEMINI_MODEL`: overrides the Gemini model used for chat. the default is `gemini-3.1-flash-lite`
 
 ## running
 
 ```bash
-make dev     # backend + frontend dev servers (hot reload)
-make prod    # build frontend and serve from fastapi
+pixi run dev
+pixi run prod
 ```
 
 dev: frontend at `http://localhost:5173`, api at `http://localhost:8000`
 prod: everything at `http://localhost:80`
-
-## commands
-
-```bash
-make dev            # run both servers
-make dev-api        # backend only
-make dev-ui         # frontend only
-make lint           # ruff + tsc
-make format-all     # ruff + prettier
-make build-frontend # production build
-```
 
 ## tech stack
 
 - **backend**: fastapi + python-frontmatter
 - **frontend**: react 19 + vite + tailwindcss 4 + tanstack query
 - **data**: markdown with yaml frontmatter
-- **tooling**: uv, ruff, prettier, typescript
+- **tooling**: Pixi, ruff, prettier, typescript

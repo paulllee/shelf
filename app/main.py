@@ -522,5 +522,5 @@ async def serve_spa(full_path: str) -> FileResponse:
     if index_path.is_file():
         return FileResponse(index_path)
     raise HTTPException(
-        status_code=404, detail="SPA not built. Run: make build-frontend"
+        status_code=404, detail="SPA not built. Run: pixi run build"
     )

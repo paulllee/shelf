@@ -1,0 +1,31 @@
+[workspace]
+name = "shelf"
+version = "1.0.0"
+description = "self hosted markdown-backed shelf"
+channels = ["conda-forge"]
+platforms = ["osx-arm64", "linux-64"]
+
+[dependencies]
+python = ">=3.14,<3.15"
+nodejs = ">=24,<25"
+
+[pypi-dependencies]
+google-genai = ">=1.0.0"
+fastapi = { version = ">=0.128.0", extras = ["standard"] }
+python-frontmatter = ">=1.1.0"
+python-slugify = ">=8.0.0"
+ruff = "==0.14.10"
+
+[tasks]
+install = { cmd = "npm ci", cwd = "frontend" }
+lint-python = "ruff check"
+lint-ui = { cmd = "npx tsc --noEmit", cwd = "frontend", depends-on = ["install"] }
+lint = { depends-on = ["lint-python", "lint-ui"] }
+format-python = "ruff format"
+format-ui = { cmd = "npx prettier -w src/", cwd = "frontend", depends-on = ["install"] }
+format = { depends-on = ["format-python", "format-ui"] }
+dev-api = "fastapi dev app/main.py --host 0.0.0.0 --port 8000"
+dev-ui = { cmd = "npm run dev", cwd = "frontend", depends-on = ["install"] }
+dev = { cmd = "(npm --prefix frontend run dev) & fastapi dev app/main.py --host 0.0.0.0 --port 8000", depends-on = ["install"] }
+build = { cmd = "npm run build", cwd = "frontend", depends-on = ["install"] }
+prod = { cmd = "fastapi run app/main.py --host 0.0.0.0 --port 80", depends-on = ["build"] }
