@@ -1,6 +1,8 @@
 import { lazy, Suspense } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { useLocalStorage } from "./hooks/useLocalStorage";
 import { useSSE } from "./hooks/useSSE";
+import { fetchViewSettings } from "./api/views";
 import Header from "./components/Header";
 import type { Section } from "./types";
 
@@ -22,20 +24,33 @@ export default function App() {
     "shelf-section",
     "media",
   );
+  const { data } = useQuery({
+    queryKey: ["view-settings"],
+    queryFn: fetchViewSettings,
+    staleTime: Infinity,
+  });
+
+  if (!data) return <div />;
+
+  const activeSection = data.views.includes(section) ? section : data.views[0];
 
   return (
     <div
-      className={`container mx-auto px-3 pt-6 pb-4 sm:px-4 sm:py-6 md:py-8 transition-[max-width] duration-200 motion-reduce:transition-none ${sectionWidth[section]}`}
-      data-section={section}
+      className={`container mx-auto px-3 pt-6 pb-4 sm:px-4 sm:py-6 md:py-8 transition-[max-width] duration-200 motion-reduce:transition-none ${sectionWidth[activeSection]}`}
+      data-section={activeSection}
     >
-      <Header section={section} onSectionChange={setSection} />
+      <Header
+        section={activeSection}
+        sections={data.views}
+        onSectionChange={setSection}
+      />
       <Suspense fallback={<div />}>
-        <div key={section} className="animate-fade-in">
-          {section === "media" ? (
+        <div key={activeSection} className="animate-fade-in">
+          {activeSection === "media" ? (
             <MediaSection />
-          ) : section === "workouts" ? (
+          ) : activeSection === "workouts" ? (
             <WorkoutSection />
-          ) : section === "habits" ? (
+          ) : activeSection === "habits" ? (
             <HabitSection />
           ) : (
             <TaskSection />

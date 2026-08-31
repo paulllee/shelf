@@ -4,6 +4,7 @@ from pathlib import Path
 
 from fastapi import APIRouter, HTTPException, Request
 
+from app.features import require_view
 from app.models import (
     Workout,
     WorkoutModel,
@@ -13,7 +14,7 @@ from app.models import (
 from app.writer import write_template, write_workout
 from app.sse import manager
 
-router = APIRouter()
+router = APIRouter(dependencies=[require_view("workouts")])
 
 
 def get_workout_dir(request: Request) -> Path:

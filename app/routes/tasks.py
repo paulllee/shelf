@@ -8,13 +8,14 @@ from google.genai import types
 from pydantic import BaseModel
 from slugify import slugify
 
+from app.features import require_view
 from app.models import Task, TaskModel
 from app.writer import write_task
 from app.sse import manager
 
 logger: logging.Logger = logging.getLogger("uvicorn.error")
 
-router = APIRouter()
+router = APIRouter(dependencies=[require_view("tasks")])
 
 
 def get_tasks_dir(request: Request) -> Path:

@@ -3,12 +3,15 @@ import type { Section } from "../types";
 
 interface HeaderProps {
   section: Section;
+  sections: Section[];
   onSectionChange: (section: Section) => void;
 }
 
-const TABS: Section[] = ["media", "workouts", "habits", "tasks"];
-
-export default function Header({ section, onSectionChange }: HeaderProps) {
+export default function Header({
+  section,
+  sections,
+  onSectionChange,
+}: HeaderProps) {
   return (
     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 md:mb-8 gap-3">
       <div className="flex items-center gap-3">
@@ -16,21 +19,23 @@ export default function Header({ section, onSectionChange }: HeaderProps) {
         <ThemeToggle />
       </div>
 
-      <div className="flex items-center gap-1 sm:gap-2">
-        {TABS.map((tab) => (
-          <button
-            key={tab}
-            onClick={() => onSectionChange(tab)}
-            className={`flex-1 sm:flex-none h-9 sm:h-10 px-3 sm:px-4 rounded-full transition-colors motion-reduce:transition-none text-sm font-semibold ${
-              section === tab
-                ? "bg-primary/20 text-primary"
-                : "text-base-content/50 hover:text-base-content"
-            }`}
-          >
-            {tab}
-          </button>
-        ))}
-      </div>
+      {sections.length > 1 && (
+        <div className="flex items-center gap-1 sm:gap-2">
+          {sections.map((tab) => (
+            <button
+              key={tab}
+              onClick={() => onSectionChange(tab)}
+              className={`flex-1 sm:flex-none h-9 sm:h-10 px-3 sm:px-4 rounded-full transition-colors motion-reduce:transition-none text-sm font-semibold ${
+                section === tab
+                  ? "bg-primary/20 text-primary"
+                  : "text-base-content/50 hover:text-base-content"
+              }`}
+            >
+              {tab}
+            </button>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

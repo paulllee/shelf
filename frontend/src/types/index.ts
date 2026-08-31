@@ -1,5 +1,9 @@
 export type Section = "media" | "workouts" | "habits" | "tasks";
 
+export interface ViewSettings {
+  views: Section[];
+}
+
 export interface WorkoutSet {
   reps: number | null;
   weight: number | null;

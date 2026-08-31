@@ -24,6 +24,16 @@ pixi run install
 
 configure paths in `config.toml` if needed. content directories are created automatically on first run
 
+views can be enabled or disabled at startup. disabled views are hidden and their markdown directories are not loaded or polled. all views default to enabled when this table is omitted:
+
+```toml
+[views]
+media = true
+workouts = false
+habits = false
+tasks = false
+```
+
 ### environment variables
 
 - `GEMINI_API_KEY`: enables ai chat in the tasks section. without it, the app starts normally but the chat endpoint returns 503

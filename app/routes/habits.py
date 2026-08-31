@@ -5,6 +5,7 @@ from fastapi import APIRouter, HTTPException, Request
 from pydantic import BaseModel, Field
 from slugify import slugify
 
+from app.features import require_view
 from app.models import (
     Activity,
     ActivityModel,
@@ -26,7 +27,7 @@ class ShiftRequestModel(BaseModel):
     model_config = {"populate_by_name": True}
 
 
-router = APIRouter()
+router = APIRouter(dependencies=[require_view("habits")])
 
 
 def get_habits_dir(request: Request) -> Path:

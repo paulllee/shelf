@@ -1,7 +1,5 @@
 import asyncio
 import logging
-import sys
-import tomllib
 from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
 from datetime import date, datetime, time
@@ -14,6 +12,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 
+from app.features import require_view
 from app.models import (
     Activity,
     Exercise,
@@ -35,31 +34,9 @@ from app.routes import media as media_routes
 from app.routes import tasks as tasks_routes
 from app.routes import workout as workout_routes
 from app.sse import manager
+from app.settings import Settings, load_settings
 
 logger: logging.Logger = logging.getLogger("uvicorn.error")
-
-
-def get_dir_from_config(config_path: str, key: str) -> Path:
-    """Read a directory path from a TOML config file by key."""
-    try:
-        with open(config_path, "rb") as f:
-            config: dict[str, Any] = tomllib.load(f)
-
-        dir_path: Any | None = config.get(key)
-
-        if dir_path:
-            logger.info("Loaded config %s=%s", key, dir_path)
-            return Path(dir_path)
-        else:
-            logger.error("%s not found in config.toml", key)
-            sys.exit(1)
-
-    except FileNotFoundError:
-        logger.error("Config file %s not found", config_path)
-        sys.exit(1)
-    except tomllib.TOMLDecodeError:
-        logger.error("Config file %s is not valid toml", config_path)
-        sys.exit(1)
 
 
 def validate_dir(dir_path: Path) -> None:
@@ -93,18 +70,26 @@ def parse_all_media(media_dir: Path) -> list[Media]:
     return [parse_md_to_media(p) for p in media_dir.iterdir() if p.is_file()]
 
 
-async def poll_all_items(app: FastAPI, interval_in_seconds: int) -> None:
-    """Periodically refresh all in-memory item caches from disk."""
+def refresh_enabled_items(app: FastAPI) -> None:
+    enabled_views = app.state.enabled_views
+    if "media" in enabled_views:
+        app.state.media_items = parse_all_media(app.state.media_dir)
+    if "workouts" in enabled_views:
+        app.state.workout_items = parse_all_workouts(app.state.workout_dir)
+        app.state.template_items = parse_all_templates(app.state.template_dir)
+    if "habits" in enabled_views:
+        app.state.habit_items = parse_all_habits(app.state.habits_dir)
+        app.state.activity_items = parse_all_activities(app.state.activities_dir)
+        app.state.preset_items = parse_all_presets(app.state.presets_dir)
+    if "tasks" in enabled_views:
+        app.state.task_items = parse_all_tasks(app.state.tasks_dir)
+
+
+async def poll_enabled_items(app: FastAPI, interval_in_seconds: int) -> None:
     while True:
         try:
-            logger.info("Refreshing all items")
-            app.state.media_items = parse_all_media(app.state.media_dir)
-            app.state.workout_items = parse_all_workouts(app.state.workout_dir)
-            app.state.template_items = parse_all_templates(app.state.template_dir)
-            app.state.habit_items = parse_all_habits(app.state.habits_dir)
-            app.state.activity_items = parse_all_activities(app.state.activities_dir)
-            app.state.preset_items = parse_all_presets(app.state.presets_dir)
-            app.state.task_items = parse_all_tasks(app.state.tasks_dir)
+            logger.info("Refreshing enabled items")
+            refresh_enabled_items(app)
         except Exception:
             logger.exception("Error during poll")
         await asyncio.sleep(interval_in_seconds)
@@ -370,61 +355,55 @@ def parse_all_tasks(tasks_dir: Path) -> list[Task]:
 
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
-    """Initialize app state directories, caches, and background polling."""
-    # load directories from config
-    app.state.media_dir = get_dir_from_config("./config.toml", "media_dir")
-    validate_dir(app.state.media_dir)
+    settings: Settings = load_settings(Path("./config.toml"))
+    app.state.enabled_views = settings.enabled_views
+    logger.info("Enabled views: %s", ", ".join(settings.enabled_views))
 
-    app.state.workout_dir = get_dir_from_config("./config.toml", "workout_dir")
-    validate_dir(app.state.workout_dir)
+    for key, directory in settings.directories.items():
+        validate_dir(directory)
+        setattr(app.state, key, directory)
 
-    app.state.template_dir = get_dir_from_config("./config.toml", "template_dir")
-    validate_dir(app.state.template_dir)
+    if "media" in settings.enabled_views:
+        app.state.parse_md_to_media = parse_md_to_media
+        app.state.parse_all_media = lambda: parse_all_media(app.state.media_dir)
 
-    # store parsing functions in app.state
-    app.state.parse_md_to_media = parse_md_to_media
-    app.state.parse_all_media = lambda: parse_all_media(app.state.media_dir)
-    app.state.parse_md_to_workout = parse_md_to_workout
-    app.state.parse_all_workouts = lambda: parse_all_workouts(app.state.workout_dir)
-    app.state.parse_md_to_template = parse_md_to_template
-    app.state.parse_all_templates = lambda: parse_all_templates(app.state.template_dir)
+    if "workouts" in settings.enabled_views:
+        app.state.parse_md_to_workout = parse_md_to_workout
+        app.state.parse_all_workouts = lambda: parse_all_workouts(
+            app.state.workout_dir
+        )
+        app.state.parse_md_to_template = parse_md_to_template
+        app.state.parse_all_templates = lambda: parse_all_templates(
+            app.state.template_dir
+        )
 
-    # initial load of templates
-    app.state.template_items = parse_all_templates(app.state.template_dir)
+    if "habits" in settings.enabled_views:
+        app.state.parse_md_to_habit = parse_md_to_habit
+        app.state.parse_all_habits = lambda: parse_all_habits(app.state.habits_dir)
+        app.state.parse_md_to_activity = parse_md_to_activity
+        app.state.parse_all_activities = lambda: parse_all_activities(
+            app.state.activities_dir
+        )
+        app.state.parse_md_to_preset = parse_md_to_preset
+        app.state.parse_all_presets = lambda: parse_all_presets(
+            app.state.presets_dir
+        )
 
-    app.state.habits_dir = get_dir_from_config("./config.toml", "habits_dir")
-    validate_dir(app.state.habits_dir)
-    app.state.activities_dir = get_dir_from_config("./config.toml", "activities_dir")
-    validate_dir(app.state.activities_dir)
-    app.state.presets_dir = get_dir_from_config("./config.toml", "presets_dir")
-    validate_dir(app.state.presets_dir)
+    if "tasks" in settings.enabled_views:
+        app.state.parse_md_to_task = parse_md_to_task
+        app.state.parse_all_tasks = lambda: parse_all_tasks(app.state.tasks_dir)
 
-    app.state.parse_md_to_habit = parse_md_to_habit
-    app.state.parse_all_habits = lambda: parse_all_habits(app.state.habits_dir)
-    app.state.parse_md_to_activity = parse_md_to_activity
-    app.state.parse_all_activities = lambda: parse_all_activities(
-        app.state.activities_dir
-    )
-    app.state.parse_md_to_preset = parse_md_to_preset
-    app.state.parse_all_presets = lambda: parse_all_presets(app.state.presets_dir)
-
-    # initial load of habits, activities and presets
-    app.state.habit_items = parse_all_habits(app.state.habits_dir)
-    app.state.activity_items = parse_all_activities(app.state.activities_dir)
-    app.state.preset_items = parse_all_presets(app.state.presets_dir)
-
-    # tasks
-    app.state.tasks_dir = get_dir_from_config("./config.toml", "tasks_dir")
-    validate_dir(app.state.tasks_dir)
-    app.state.parse_md_to_task = parse_md_to_task
-    app.state.parse_all_tasks = lambda: parse_all_tasks(app.state.tasks_dir)
-    app.state.task_items = parse_all_tasks(app.state.tasks_dir)
+    refresh_enabled_items(app)
 
     # Google GenAI client for AI chat (optional)
     import os
 
     gemini_key = os.environ.get("GEMINI_API_KEY")
-    if gemini_key:
+    if "tasks" not in settings.enabled_views:
+        app.state.genai_client = None
+        app.state.gemini_model = None
+        logger.info("AI chat disabled with the tasks view")
+    elif gemini_key:
         from google import genai
 
         app.state.genai_client = genai.Client(api_key=gemini_key)
@@ -441,7 +420,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
 
     # start polling task for manual file edits
     logger.info("Starting background polling task")
-    poll_task = asyncio.create_task(poll_all_items(app, interval_in_seconds=5))
+    poll_task = asyncio.create_task(poll_enabled_items(app, interval_in_seconds=5))
 
     yield
 
@@ -470,7 +449,7 @@ app.include_router(habits_routes.router, prefix="/api")
 app.include_router(tasks_routes.router, prefix="/api")
 
 
-@app.get("/api/meta/enums")
+@app.get("/api/meta/enums", dependencies=[require_view("media")])
 async def get_enums() -> dict[str, list[str]]:
     """Return available enum values for media countries, types, and statuses."""
     return {
@@ -478,6 +457,11 @@ async def get_enums() -> dict[str, list[str]]:
         "types": [m.name.lower() for m in MediaType if m.name != "UNDEFINED"],
         "statuses": [m.name.lower() for m in MediaStatus],
     }
+
+
+@app.get("/api/meta/views")
+async def get_enabled_views(request: Request) -> dict[str, tuple[str, ...]]:
+    return {"views": request.app.state.enabled_views}
 
 
 @app.get("/events")

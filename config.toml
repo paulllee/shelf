@@ -18,3 +18,9 @@ presets_dir = "./contents/presets"
 
 # path to task markdown files
 tasks_dir = "./contents/tasks"
+
+[views]
+media = true
+workouts = false
+habits = false
+tasks = false
