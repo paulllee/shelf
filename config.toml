@@ -1,26 +1,2 @@
 # path to media markdown files
 media_dir = "./contents/media"
-
-# path to workout markdown files
-workout_dir = "./contents/workout"
-
-# path to workout template files
-template_dir = "./contents/template"
-
-# path to habit markdown files
-habits_dir = "./contents/habits"
-
-# path to activity markdown files
-activities_dir = "./contents/activities"
-
-# path to activity preset markdown files
-presets_dir = "./contents/presets"
-
-# path to task markdown files
-tasks_dir = "./contents/tasks"
-
-[views]
-media = true
-workouts = false
-habits = false
-tasks = false

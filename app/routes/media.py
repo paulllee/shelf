@@ -4,11 +4,10 @@ from fastapi import APIRouter, HTTPException, Request
 from slugify import slugify
 
 from app.models import Media, MediaModel, MediaStatus
-from app.features import require_view
 from app.writer import write_media_item
 from app.sse import manager
 
-router = APIRouter(dependencies=[require_view("media")])
+router = APIRouter()
 
 
 def get_media_dir(request: Request) -> Path:

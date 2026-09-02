@@ -10,10 +10,10 @@ python = ">=3.14,<3.15"
 nodejs = ">=24,<25"
 
 [pypi-dependencies]
-google-genai = ">=1.0.0"
 fastapi = { version = ">=0.128.0", extras = ["standard"] }
 python-frontmatter = ">=1.1.0"
 python-slugify = ">=8.0.0"
+pytest = ">=9,<10"
 ruff = "==0.14.10"
 
 [tasks]
@@ -21,6 +21,7 @@ install = { cmd = "npm ci", cwd = "frontend" }
 lint-python = "ruff check"
 lint-ui = { cmd = "npx tsc --noEmit", cwd = "frontend", depends-on = ["install"] }
 lint = { depends-on = ["lint-python", "lint-ui"] }
+test = "python -m pytest -q"
 format-python = "ruff format"
 format-ui = { cmd = "npx prettier -w src/", cwd = "frontend", depends-on = ["install"] }
 format = { depends-on = ["format-python", "format-ui"] }

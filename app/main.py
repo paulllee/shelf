@@ -1,8 +1,9 @@
 import asyncio
+import json
 import logging
+import tomllib
 from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
-from datetime import date, datetime, time
 from pathlib import Path
 from typing import Any
 
@@ -12,46 +13,32 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 
-from app.features import require_view
-from app.models import (
-    Activity,
-    Exercise,
-    ExerciseGroup,
-    Habit,
-    HabitShift,
-    Media,
-    MediaCountry,
-    MediaStatus,
-    MediaType,
-    Preset,
-    Task,
-    Workout,
-    WorkoutSet,
-    WorkoutTemplate,
-)
-from app.routes import habits as habits_routes
+from app.models import Media, MediaCountry, MediaStatus, MediaType
 from app.routes import media as media_routes
-from app.routes import tasks as tasks_routes
-from app.routes import workout as workout_routes
 from app.sse import manager
-from app.settings import Settings, load_settings
 
 logger: logging.Logger = logging.getLogger("uvicorn.error")
+POLL_INTERVAL_SECONDS = 5
+
+
+def get_media_dir(config_path: Path) -> Path:
+    with config_path.open("rb") as config_file:
+        config = tomllib.load(config_file)
+
+    media_dir = config.get("media_dir")
+    if not isinstance(media_dir, str) or not media_dir:
+        raise ValueError("media_dir must be a non-empty path string")
+    return Path(media_dir)
 
 
 def validate_dir(dir_path: Path) -> None:
-    """Ensure a directory exists, creating it and parents if needed."""
     dir_path.mkdir(parents=True, exist_ok=True)
 
 
-# media parsing
-
-
 def parse_md_to_media(md_path: Path) -> Media:
-    """Parse a markdown file into a Media dataclass."""
     try:
-        with md_path.open("r", encoding="utf-8") as f:
-            post: frontmatter.Post = frontmatter.load(f)
+        with md_path.open("r", encoding="utf-8") as file:
+            post: frontmatter.Post = frontmatter.load(file)
         return Media(
             name=str(post.get("name", "n/a")),
             country=MediaCountry.get(post.get("country", "undefined")),
@@ -66,365 +53,39 @@ def parse_md_to_media(md_path: Path) -> Media:
 
 
 def parse_all_media(media_dir: Path) -> list[Media]:
-    """Parse all markdown files in the media directory into Media objects."""
-    return [parse_md_to_media(p) for p in media_dir.iterdir() if p.is_file()]
+    return [parse_md_to_media(path) for path in media_dir.iterdir() if path.is_file()]
 
 
-def refresh_enabled_items(app: FastAPI) -> None:
-    enabled_views = app.state.enabled_views
-    if "media" in enabled_views:
-        app.state.media_items = parse_all_media(app.state.media_dir)
-    if "workouts" in enabled_views:
-        app.state.workout_items = parse_all_workouts(app.state.workout_dir)
-        app.state.template_items = parse_all_templates(app.state.template_dir)
-    if "habits" in enabled_views:
-        app.state.habit_items = parse_all_habits(app.state.habits_dir)
-        app.state.activity_items = parse_all_activities(app.state.activities_dir)
-        app.state.preset_items = parse_all_presets(app.state.presets_dir)
-    if "tasks" in enabled_views:
-        app.state.task_items = parse_all_tasks(app.state.tasks_dir)
+def refresh_media_items(app: FastAPI) -> None:
+    app.state.media_items = parse_all_media(app.state.media_dir)
 
 
-async def poll_enabled_items(app: FastAPI, interval_in_seconds: int) -> None:
+async def poll_media_items(app: FastAPI, interval_in_seconds: int) -> None:
     while True:
         try:
-            logger.info("Refreshing enabled items")
-            refresh_enabled_items(app)
+            logger.info("Refreshing media items")
+            refresh_media_items(app)
         except Exception:
-            logger.exception("Error during poll")
+            logger.exception("Error during media poll")
         await asyncio.sleep(interval_in_seconds)
-
-
-# workout parsing
-
-
-def parse_md_to_workout(md_path: Path) -> Workout:
-    """Parse a markdown file into a Workout dataclass."""
-    try:
-        with md_path.open("r", encoding="utf-8") as f:
-            post: frontmatter.Post = frontmatter.load(f)
-
-        date_val: Any = post.get("date")
-        if isinstance(date_val, str):
-            date_val = date.fromisoformat(date_val)
-
-        time_val: Any = post.get("time")
-        if isinstance(time_val, str):
-            time_val = time.fromisoformat(time_val)
-
-        groups_data: Any = post.get("groups", [])
-        groups: list[ExerciseGroup] = []
-        for g in groups_data:
-            exercises = []
-            for e in g.get("exercises", []):
-                sets = []
-                for s in e.get("sets", []):
-                    sets.append(WorkoutSet(reps=s.get("reps"), weight=s.get("weight")))
-                exercises.append(Exercise(name=e.get("name", ""), sets=sets))
-            groups.append(
-                ExerciseGroup(
-                    name=g.get("name", ""),
-                    rest_seconds=g.get("rest_seconds", 0),
-                    exercises=exercises,
-                )
-            )
-
-        return Workout(
-            date=date_val,
-            time=time_val,
-            groups=groups,
-            content=post.content,
-        )
-    except Exception:
-        logger.exception("Failed to parse %s", md_path)
-        raise HTTPException(status_code=404, detail=f"failed to parse {md_path}")
-
-
-def parse_all_workouts(workout_dir: Path) -> list[Workout]:
-    """Parse all markdown files in the workout directory into Workout objects."""
-    if not workout_dir.exists():
-        return []
-    return [
-        parse_md_to_workout(p)
-        for p in workout_dir.iterdir()
-        if p.is_file() and p.suffix == ".md"
-    ]
-
-
-# template parsing
-
-
-def parse_md_to_template(md_path: Path) -> WorkoutTemplate:
-    """Parse a markdown file into a WorkoutTemplate dataclass."""
-    try:
-        with md_path.open("r", encoding="utf-8") as f:
-            post: frontmatter.Post = frontmatter.load(f)
-
-        groups_data: Any = post.get("groups", [])
-        groups: list[ExerciseGroup] = []
-        for g in groups_data:
-            exercises = []
-            for e in g.get("exercises", []):
-                sets = []
-                for s in e.get("sets", []):
-                    sets.append(WorkoutSet(reps=s.get("reps"), weight=s.get("weight")))
-                exercises.append(Exercise(name=e.get("name", ""), sets=sets))
-            groups.append(
-                ExerciseGroup(
-                    name=g.get("name", ""),
-                    rest_seconds=g.get("rest_seconds", 0),
-                    exercises=exercises,
-                )
-            )
-
-        return WorkoutTemplate(
-            name=str(post.get("name", "")),
-            groups=groups,
-        )
-    except Exception:
-        logger.exception("Failed to parse %s", md_path)
-        raise HTTPException(status_code=404, detail=f"failed to parse {md_path}")
-
-
-def parse_all_templates(template_dir: Path) -> list[WorkoutTemplate]:
-    """Parse all markdown files in the template directory."""
-    if not template_dir.exists():
-        return []
-    return [
-        parse_md_to_template(p)
-        for p in template_dir.iterdir()
-        if p.is_file() and p.suffix == ".md"
-    ]
-
-
-# habit parsing
-
-
-def parse_md_to_habit(md_path: Path) -> Habit:
-    """Parse a markdown file into a Habit dataclass."""
-    try:
-        with md_path.open("r", encoding="utf-8") as f:
-            post: frontmatter.Post = frontmatter.load(f)
-        days_data: Any = post.get("days", [])
-        completions_data: Any = post.get("completions", [])
-        shifts_data: Any = post.get("shifts", []) or []
-        shifts = [
-            HabitShift(
-                from_date=str(s["from"]),
-                to_date=str(s["to"]) if s.get("to") else None,
-            )
-            for s in shifts_data
-            if isinstance(s, dict) and "from" in s
-        ]
-        return Habit(
-            name=str(post.get("name", "")),
-            days=list(days_data),
-            color=str(post.get("color", "#605dff")),
-            completions=list(completions_data),
-            shifts=shifts,
-        )
-    except Exception:
-        logger.exception("Failed to parse %s", md_path)
-        raise HTTPException(status_code=404, detail=f"failed to parse {md_path}")
-
-
-def parse_all_habits(habits_dir: Path) -> list[Habit]:
-    """Parse all markdown files in the habits directory."""
-    if not habits_dir.exists():
-        return []
-    return [
-        parse_md_to_habit(p)
-        for p in habits_dir.iterdir()
-        if p.is_file() and p.suffix == ".md"
-    ]
-
-
-# activity parsing
-
-
-def parse_md_to_activity(md_path: Path) -> Activity:
-    """Parse a markdown file into an Activity dataclass."""
-    try:
-        with md_path.open("r", encoding="utf-8") as f:
-            post: frontmatter.Post = frontmatter.load(f)
-
-        date_val: Any = post.get("date")
-        if isinstance(date_val, str):
-            date_val = date.fromisoformat(date_val)
-
-        return Activity(
-            name=str(post.get("name", "")),
-            date=date_val,
-        )
-    except Exception:
-        logger.exception("Failed to parse %s", md_path)
-        raise HTTPException(status_code=404, detail=f"failed to parse {md_path}")
-
-
-def parse_all_activities(activities_dir: Path) -> list[Activity]:
-    """Parse all markdown files in the activities directory."""
-    if not activities_dir.exists():
-        return []
-    return [
-        parse_md_to_activity(p)
-        for p in activities_dir.iterdir()
-        if p.is_file() and p.suffix == ".md"
-    ]
-
-
-# preset parsing
-
-
-def parse_md_to_preset(md_path: Path) -> Preset:
-    """Parse a markdown file into a Preset dataclass."""
-    try:
-        with md_path.open("r", encoding="utf-8") as f:
-            post: frontmatter.Post = frontmatter.load(f)
-        return Preset(name=str(post.get("name", "")))
-    except Exception:
-        logger.exception("Failed to parse %s", md_path)
-        raise HTTPException(status_code=404, detail=f"failed to parse {md_path}")
-
-
-def parse_all_presets(presets_dir: Path) -> list[Preset]:
-    """Parse all markdown files in the presets directory."""
-    if not presets_dir.exists():
-        return []
-    return [
-        parse_md_to_preset(p)
-        for p in presets_dir.iterdir()
-        if p.is_file() and p.suffix == ".md"
-    ]
-
-
-# task parsing
-
-
-def parse_md_to_task(md_path: Path) -> Task:
-    """Parse a markdown file into a Task dataclass."""
-    try:
-        with md_path.open("r", encoding="utf-8") as f:
-            post: frontmatter.Post = frontmatter.load(f)
-
-        do_date_val: Any = post.get("do_date")
-        if isinstance(do_date_val, str):
-            do_date_val = date.fromisoformat(do_date_val)
-        elif not isinstance(do_date_val, date):
-            do_date_val = None
-
-        created_at_val: Any = post.get("created_at", "")
-        if isinstance(created_at_val, str):
-            created_at_val = datetime.fromisoformat(created_at_val)
-
-        completed_at_val: Any = post.get("completed_at")
-        if isinstance(completed_at_val, str):
-            completed_at_val = datetime.fromisoformat(completed_at_val)
-        elif not isinstance(completed_at_val, datetime):
-            completed_at_val = None
-
-        parent_val: Any = post.get("parent")
-        if parent_val is None or parent_val == "null":
-            parent_val = None
-        else:
-            parent_val = str(parent_val)
-
-        return Task(
-            title=str(post.get("title", "")),
-            status=str(post.get("status", "open")),
-            do_date=do_date_val,
-            parent=parent_val,
-            notes=post.content,
-            created_at=created_at_val,
-            completed_at=completed_at_val,
-        )
-    except Exception:
-        logger.exception("Failed to parse %s", md_path)
-        raise HTTPException(status_code=404, detail=f"failed to parse {md_path}")
-
-
-def parse_all_tasks(tasks_dir: Path) -> list[Task]:
-    """Parse all markdown files in the tasks directory."""
-    if not tasks_dir.exists():
-        return []
-    return [
-        parse_md_to_task(p)
-        for p in tasks_dir.iterdir()
-        if p.is_file() and p.suffix == ".md"
-    ]
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
-    settings: Settings = load_settings(Path("./config.toml"))
-    app.state.enabled_views = settings.enabled_views
-    logger.info("Enabled views: %s", ", ".join(settings.enabled_views))
+    app.state.media_dir = get_media_dir(Path("./config.toml"))
+    validate_dir(app.state.media_dir)
+    app.state.parse_md_to_media = parse_md_to_media
+    app.state.parse_all_media = lambda: parse_all_media(app.state.media_dir)
+    refresh_media_items(app)
 
-    for key, directory in settings.directories.items():
-        validate_dir(directory)
-        setattr(app.state, key, directory)
-
-    if "media" in settings.enabled_views:
-        app.state.parse_md_to_media = parse_md_to_media
-        app.state.parse_all_media = lambda: parse_all_media(app.state.media_dir)
-
-    if "workouts" in settings.enabled_views:
-        app.state.parse_md_to_workout = parse_md_to_workout
-        app.state.parse_all_workouts = lambda: parse_all_workouts(
-            app.state.workout_dir
-        )
-        app.state.parse_md_to_template = parse_md_to_template
-        app.state.parse_all_templates = lambda: parse_all_templates(
-            app.state.template_dir
-        )
-
-    if "habits" in settings.enabled_views:
-        app.state.parse_md_to_habit = parse_md_to_habit
-        app.state.parse_all_habits = lambda: parse_all_habits(app.state.habits_dir)
-        app.state.parse_md_to_activity = parse_md_to_activity
-        app.state.parse_all_activities = lambda: parse_all_activities(
-            app.state.activities_dir
-        )
-        app.state.parse_md_to_preset = parse_md_to_preset
-        app.state.parse_all_presets = lambda: parse_all_presets(
-            app.state.presets_dir
-        )
-
-    if "tasks" in settings.enabled_views:
-        app.state.parse_md_to_task = parse_md_to_task
-        app.state.parse_all_tasks = lambda: parse_all_tasks(app.state.tasks_dir)
-
-    refresh_enabled_items(app)
-
-    # Google GenAI client for AI chat (optional)
-    import os
-
-    gemini_key = os.environ.get("GEMINI_API_KEY")
-    if "tasks" not in settings.enabled_views:
-        app.state.genai_client = None
-        app.state.gemini_model = None
-        logger.info("AI chat disabled with the tasks view")
-    elif gemini_key:
-        from google import genai
-
-        app.state.genai_client = genai.Client(api_key=gemini_key)
-        app.state.gemini_model = os.environ.get(
-            "GEMINI_MODEL", "gemini-3.1-flash-lite"
-        )
-        logger.info(
-            "Google GenAI client initialized (model: %s)", app.state.gemini_model
-        )
-    else:
-        app.state.genai_client = None
-        app.state.gemini_model = None
-        logger.warning("GEMINI_API_KEY not set — AI chat disabled")
-
-    # start polling task for manual file edits
-    logger.info("Starting background polling task")
-    poll_task = asyncio.create_task(poll_enabled_items(app, interval_in_seconds=5))
+    logger.info("Starting media polling task")
+    poll_task = asyncio.create_task(
+        poll_media_items(app, interval_in_seconds=POLL_INTERVAL_SECONDS)
+    )
 
     yield
 
-    logger.info("Shutting down background task")
+    logger.info("Shutting down media polling task")
     poll_task.cancel()
 
 
@@ -444,44 +105,39 @@ app.mount(
 )
 
 app.include_router(media_routes.router, prefix="/api")
-app.include_router(workout_routes.router, prefix="/api")
-app.include_router(habits_routes.router, prefix="/api")
-app.include_router(tasks_routes.router, prefix="/api")
 
 
-@app.get("/api/meta/enums", dependencies=[require_view("media")])
+@app.get("/api/meta/enums")
 async def get_enums() -> dict[str, list[str]]:
     """Return available enum values for media countries, types, and statuses."""
     return {
-        "countries": [m.name.lower() for m in MediaCountry if m.name != "UNDEFINED"],
-        "types": [m.name.lower() for m in MediaType if m.name != "UNDEFINED"],
-        "statuses": [m.name.lower() for m in MediaStatus],
+        "countries": [
+            item.name.lower() for item in MediaCountry if item.name != "UNDEFINED"
+        ],
+        "types": [item.name.lower() for item in MediaType if item.name != "UNDEFINED"],
+        "statuses": [item.name.lower() for item in MediaStatus],
     }
-
-
-@app.get("/api/meta/views")
-async def get_enabled_views(request: Request) -> dict[str, tuple[str, ...]]:
-    return {"views": request.app.state.enabled_views}
 
 
 @app.get("/events")
 async def sse_endpoint(request: Request) -> StreamingResponse:
-    """Stream server-sent events to the client for real-time cache invalidation."""
-    import json
+    """Stream cache invalidation events to the browser."""
 
     async def stream() -> AsyncGenerator[str, None]:
-        q = await manager.subscribe()
+        queue = await manager.subscribe()
         try:
             while True:
                 if await request.is_disconnected():
                     break
                 try:
-                    msg = await asyncio.wait_for(q.get(), timeout=15.0)
-                    yield f"data: {json.dumps(msg)}\n\n"
+                    message: dict[str, Any] = await asyncio.wait_for(
+                        queue.get(), timeout=15.0
+                    )
+                    yield f"data: {json.dumps(message)}\n\n"
                 except asyncio.TimeoutError:
                     yield ": keepalive\n\n"
         finally:
-            manager.unsubscribe(q)
+            manager.unsubscribe(queue)
 
     return StreamingResponse(
         stream(),
@@ -490,21 +146,16 @@ async def sse_endpoint(request: Request) -> StreamingResponse:
     )
 
 
-# SPA catch-all: serve index.html for non-API, non-static routes
 spa_dir: Path = Path(__file__).parent.parent / "static" / "spa"
 
 
 @app.get("/{full_path:path}")
 async def serve_spa(full_path: str) -> FileResponse:
-    """Serve the SPA index.html or static assets for client-side routing."""
-    # try to serve the exact file first (for assets like .js, .css)
+    """Serve the SPA entry point or one of its built assets."""
     file_path: Path = spa_dir / full_path
     if full_path and file_path.is_file():
         return FileResponse(file_path)
-    # otherwise serve index.html for client-side routing
     index_path: Path = spa_dir / "index.html"
     if index_path.is_file():
         return FileResponse(index_path)
-    raise HTTPException(
-        status_code=404, detail="SPA not built. Run: pixi run build"
-    )
+    raise HTTPException(status_code=404, detail="SPA not built. Run: pixi run build")
